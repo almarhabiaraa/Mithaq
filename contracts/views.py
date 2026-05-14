@@ -4,6 +4,9 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 
+from notifications.services import NotificationService
+from notifications.models import Notification
+
 from contracts.models import Contract, ContractParty, ContractVersion
 from contracts.serializers import (
     ContractSerializer, ContractCreateSerializer, ContractVersionSerializer
@@ -40,6 +43,13 @@ class ContractListCreateView(APIView):
         contract = ContractWorkflowService.create_contract(
             creator=request.user,
             data=serializer.validated_data,
+        )
+
+        # Notify all parties that a new contract has been received
+        NotificationService.notify_all_parties(
+            contract=contract,
+            notification_type=Notification.CONTRACT_RECEIVED,
+            exclude_user=request.user,
         )
 
         return Response(
@@ -96,6 +106,13 @@ class ApproveView(APIView):
         party = get_object_or_404(ContractParty, contract=contract, user=request.user)
         ContractWorkflowService.approve_contract(contract, party)
 
+        # Notify all parties that the contract has been accepted
+        NotificationService.notify_all_parties(
+            contract=contract,
+            notification_type=Notification.CONTRACT_ACCEPTED,
+            exclude_user=request.user,
+        )
+
         return Response(ContractSerializer(contract).data)
 
 
@@ -122,6 +139,22 @@ class SignView(APIView):
         )
 
         contract.refresh_from_db()
+
+
+        # Notify all parties that the contract has been signed
+        NotificationService.notify_all_parties(
+            contract=contract,
+            notification_type=Notification.CONTRACT_SIGNED,
+            exclude_user=request.user,
+        )
+
+        # If contract is completed notify all parties
+        if contract.status == Contract.Status.COMPLETED:
+            NotificationService.notify_all_parties(
+                contract=contract,
+                notification_type=Notification.CONTRACT_COMPLETED,
+            )
+
         return Response(ContractSerializer(contract).data)
 
 
@@ -134,6 +167,15 @@ class CancelView(APIView):
         self.check_object_permissions(request, contract)
 
         ContractWorkflowService.cancel_contract(contract, request.user)
+
+
+        # Notify all parties that the contract has been rejected
+        NotificationService.notify_all_parties(
+            contract=contract,
+            notification_type=Notification.CONTRACT_REJECTED,
+            exclude_user=request.user,
+        )
+
         return Response(ContractSerializer(contract).data)
 
 

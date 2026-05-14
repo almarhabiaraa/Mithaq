@@ -61,9 +61,12 @@
                     <span>التحقق من عقد</span>
                 </a>
 
-                <a href="#" class="mithaq-menu-link">
+                <a href="{% url 'notifications:list' %}" class="mithaq-menu-link">
                     <i class="bi bi-bell"></i>
                     <span>الإشعارات</span>
+                    {% if unread_count > 0 %}
+                    <span class="mithaq-badge">{{ unread_count }}</span>
+                    {% endif %}
                 </a>
 
                 <a href="#" class="mithaq-menu-link">
@@ -96,10 +99,12 @@
                 </div>
 
                 <div class="mithaq-navbar-actions">
-                    <button class="mithaq-icon-btn" type="button">
+                    <a href="{% url 'notifications:list' %}" class="mithaq-icon-btn">
                         <i class="bi bi-bell"></i>
-                        <span></span>
-                    </button>
+                        {% if unread_count > 0 %}
+                        <span class="mithaq-badge">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>
 
                     <a href="{% url 'accounts:profile' %}" class="mithaq-profile-btn">
                         {{ request.user.first_name|default:"م"|slice:":1" }}
