@@ -12,11 +12,17 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
+TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID", default="")
+TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN", default="")
+TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER", default="")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -53,7 +59,7 @@ INSTALLED_APPS = [
     'notifications',
     'payments',
     'signatures',
-    'subscriptions',
+    'subscriptions',   
     'wallet',
     'templates_lib',
 ]
@@ -149,11 +155,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.SessionAuthentication',  # (added by ghadi: lets session-logged-in users call DRF API endpoints from browser template pages like checkout.html)
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    # (added by ghadi: rate-limits the public verification API to prevent hash-enumeration abuse)
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '60/hour',   # 60 requests per hour per IP for unauthenticated users
+    },
 }
 
 # SimpleJWT
@@ -167,8 +177,11 @@ SIMPLE_JWT = {
 # Added by Remas — custom user model to replace Django's default auth.User
 AUTH_USER_MODEL = 'accounts.User'
 
+# (added by ghadi: Moyasar payment gateway config — Saudi-licensed, sandbox keys in .env)
 # Moyasar payment gateway (Saudi-licensed)
 MOYASAR_API_KEY       = config('MOYASAR_API_KEY')
 MOYASAR_PUBLISHABLE_KEY = config('MOYASAR_PUBLISHABLE_KEY')
 MOYASAR_BASE_URL      = 'https://api.moyasar.com/v1'
 MOYASAR_CALLBACK_URL  = config('MOYASAR_CALLBACK_URL', default='http://localhost:8000/api/payments/callback/')
+# Set this in your Moyasar dashboard under Settings → Webhooks → Secret Token
+MOYASAR_WEBHOOK_SECRET = config('MOYASAR_WEBHOOK_SECRET', default='')

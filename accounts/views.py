@@ -5,6 +5,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 
+# (added by ghadi: imports two subscription functions used in sign_up and profile)
+#   assign_free_plan    → gives every new user the Free plan (1 contract limit)
+#   get_user_subscription → fetches the active subscription to show on the profile page
 from subscriptions.services.subscription_service import assign_free_plan, get_user_subscription
 from .models import User
 
@@ -47,7 +50,7 @@ def sign_up(request: HttpRequest):
                 date_of_birth=date_of_birth or None,
             )
 
-        assign_free_plan(user)
+        assign_free_plan(user)  # (added by ghadi: auto-assigns the Free plan to every new user on registration)
         login(request, user)
         messages.success(request, "تم إنشاء الحساب بنجاح", "alert-success")
         return redirect("accounts:profile")
@@ -100,5 +103,7 @@ def profile(request: HttpRequest):
         messages.success(request, "تم تحديث المعلومات بنجاح", "alert-success")
         return redirect("accounts:profile")
 
+    # (added by ghadi: fetch the user's active subscription so the profile page
+    #  can display plan name, status, contracts used, and expiry date)
     sub = get_user_subscription(user)
     return render(request, "accounts/profile.html", {"user": user, "subscription": sub})

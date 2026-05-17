@@ -1,0 +1,219 @@
+{% extends "core/dashboard_base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/review_invitations.css' %}">
+
+<div class="review-page" dir="rtl">
+
+  <header class="review-header">
+    <div class="breadcrumb-nav">
+      <span>العقود</span>
+      <span>›</span>
+      <span>إنشاء عقد جديد</span>
+      <span>›</span>
+      <span class="active">المراجعة والتوقيع</span>
+    </div>
+
+    <h1>المراجعة والتوقيع</h1>
+    <p>راجع بيانات العقد والأطراف قبل إرسال طلبات التوقيع</p>
+  </header>
+
+  <div class="wizard-steps">
+    <div class="wizard-step completed">
+      <div class="step-circle">1</div>
+      <span>تفاصيل العقد</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="wizard-step completed">
+      <div class="step-circle">2</div>
+      <span>أطراف العقد</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="wizard-step active">
+      <div class="step-circle">3</div>
+      <span>المراجعة والتوقيع</span>
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="review-stack">
+
+      <section class="review-card">
+        <div class="card-head">
+          <h3>ملخص العقد</h3>
+          <p>نظرة عامة على بيانات العقد الأساسية</p>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span>اسم العقد</span>
+            <strong>{{ contract.title_ar }}</strong>
+          </div>
+
+          <div class="summary-item">
+            <span>حالة العقد</span>
+            <strong>{{ contract.get_status_display }}</strong>
+          </div>
+
+          <div class="summary-item">
+            <span>منشئ العقد</span>
+            <strong>{{ contract.creator.full_name }}</strong>
+          </div>
+
+          <div class="summary-item">
+            <span>عدد الأطراف</span>
+            <strong>{{ invitations|length }}</strong>
+          </div>
+
+          <div class="summary-item">
+            <span>تاريخ الإنشاء</span>
+            <strong>{{ contract.created_at|date:"Y-m-d" }}</strong>
+          </div>
+
+          <div class="summary-item">
+            <span>رقم العقد</span>
+            <strong class="text-small">{{ contract.id }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="review-card">
+        <div class="card-head">
+          <h3>الأطراف والصلاحيات</h3>
+          <p>الأطراف التي سيتم إرسال طلب التوقيع لهم</p>
+        </div>
+
+        <div class="parties-list">
+          {% for item in invitations %}
+          <article class="party-row-review">
+            <div class="party-identity">
+              <div class="party-avatar">
+                {{ item.signer_full_name|slice:":1" }}
+              </div>
+
+              <div>
+                <h4>{{ item.signer_full_name }}</h4>
+                <p>{{ item.get_party_type_display }} — {{ item.get_contract_role_display }} — {{ item.get_signing_role_display }}</p>
+                <span>{{ item.signer_mobile }}</span>
+              </div>
+            </div>
+
+            <div class="permission-tags">
+              {% if item.can_view_contract %}<span>عرض العقد</span>{% endif %}
+              {% if item.can_comment %}<span>ملاحظات</span>{% endif %}
+              {% if item.can_edit %}<span>تعديل</span>{% endif %}
+              {% if item.can_upload_files %}<span>رفع مرفقات</span>{% endif %}
+              {% if item.can_sign %}<span>توقيع</span>{% endif %}
+            </div>
+          </article>
+          {% empty %}
+          <div class="empty-state">لا توجد أطراف مضافة</div>
+          {% endfor %}
+        </div>
+      </section>
+
+      {% if invitations|length > 1 %}
+      <section class="review-card">
+        <div class="card-head">
+          <h3>ترتيب التوقيع</h3>
+          <p>يظهر هذا القسم فقط عند وجود أكثر من طرف</p>
+        </div>
+
+        <div class="timeline-list">
+          {% for item in invitations %}
+          <div class="timeline-item">
+            <div class="timeline-number">{{ item.signing_order }}</div>
+            <div>
+              <strong>{{ item.signer_full_name }}</strong>
+              <span>{{ item.get_signing_role_display }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      <section class="review-card">
+        <div class="card-head">
+          <h3>معاينة رسالة SMS</h3>
+          <p>معاينة مختصرة للرسالة التي ستصل لكل طرف</p>
+        </div>
+
+        <div class="sms-list">
+          {% for item in invitations %}
+          <article class="sms-item">
+            <div class="sms-head">
+              <strong>{{ item.signer_full_name }}</strong>
+              <span>{{ item.signer_mobile }}</span>
+            </div>
+
+            <p>
+              منصة ميثاق: لديك طلب توقيع على عقد "{{ contract.title_ar }}"
+              رقم الطلب: {{ item.reference_number }}.
+              يرجى تسجيل الدخول إلى منصة ميثاق لمراجعة العقد والتوقيع
+            </p>
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="review-card">
+        <div class="card-head">
+          <h3>معاينة العقد</h3>
+          <p>عرض مختصر لبيانات العقد قبل الإرسال</p>
+        </div>
+
+        <div class="document-preview">
+          <h2>{{ contract.title_ar }}</h2>
+          <p class="doc-ref">رقم العقد: {{ contract.id }}</p>
+
+          <div class="doc-block">
+            <h4>الطرف الأول</h4>
+            <p>{{ contract.creator.full_name }}</p>
+            <p>{{ contract.creator.email }}</p>
+            <p>{{ contract.creator.mobile }}</p>
+          </div>
+
+          <div class="doc-block">
+            <h4>الأطراف المطلوب توقيعهم</h4>
+            {% for item in invitations %}
+              <p>{{ forloop.counter }}. {{ item.signer_full_name }} — {{ item.get_contract_role_display }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="doc-block">
+            <h4>وصف العقد</h4>
+            <p>{{ contract.description_ar|default:"لا يوجد وصف مضاف لهذا العقد" }}</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="review-card final-card">
+        <div class="card-head">
+          <h3>مراجعة نهائية</h3>
+          <p>تأكد من اكتمال البيانات قبل الإرسال</p>
+        </div>
+
+        <ul>
+          <li>تم التحقق من بيانات العقد</li>
+          <li>تم إضافة الأطراف المطلوبة</li>
+          <li>تم تحديد صلاحيات الأطراف</li>
+          <li>العقد جاهز لإرسال طلبات التوقيع</li>
+        </ul>
+
+        <textarea name="final_notes" placeholder="ملاحظات اختيارية قبل الإرسال"></textarea>
+      </section>
+
+    </div>
+
+    <div class="review-actions">
+      <a href="javascript:history.back()" class="btn light">السابق</a>
+     <button type="submit" class="btn primary">إرسال طلبات التوقيع</button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

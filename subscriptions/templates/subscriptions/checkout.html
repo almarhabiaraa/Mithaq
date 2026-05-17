@@ -1,128 +1,201 @@
-{% extends "base.html" %}
+{% extends "core/dashboard_base.html" %}
 {% load static %}
 
-{% block title %}الدفع — {{ plan.name_ar }} — ميثاق{% endblock %}
-
 {% block content %}
-<section class="bg-brand-bg min-h-screen flex items-center justify-center px-4 py-16">
-  <div class="max-w-md w-full">
+<style>
+  :root {
+    --navy:#1B2A4A; --gold:#C9A84C; --gold-light:#E8C97A;
+    --off-white:#F8F7F4; --border:#E5E7EB;
+    --text-dark:#1C1C1C; --text-grey:#6B7280;
+    --success:#16A34A; --success-bg:#DCFCE7;
+    --error:#C0392B; --error-bg:#FEE2E2;
+  }
+  .card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.08); padding:28px; }
+  .pay-method { border:2px solid var(--border); border-radius:10px; padding:14px 18px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:border-color .15s, background .15s; margin-bottom:12px; }
+  .pay-method:hover { border-color:var(--gold-light); }
+  .pay-method.selected { border-color:var(--gold); background:#FFFBEB; }
+  .pay-method input[type="radio"] { accent-color:var(--gold); width:18px; height:18px; flex-shrink:0; }
+  .pay-method-label { font-size:15px; font-weight:600; color:var(--text-dark); }
+  .info-box { background:#FFFBEB; border:1px solid var(--gold-light); border-radius:10px; padding:14px 18px; display:flex; align-items:flex-start; gap:12px; margin:20px 0; }
+  .btn-pay { background:var(--gold); color:var(--navy); border-radius:8px; padding:14px 24px; width:100%; font-size:16px; font-weight:800; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:opacity .15s; font-family:inherit; }
+  .btn-pay:hover { opacity:.88; }
+  .btn-pay:disabled { opacity:.6; cursor:wait; }
+  .divider { border:none; border-top:1px solid var(--border); margin:16px 0; }
+  .summary-row { display:flex; justify-content:space-between; align-items:center; font-size:14px; color:var(--text-dark); margin-bottom:10px; }
+  .summary-total { font-size:17px; font-weight:800; color:var(--navy); }
+</style>
 
-    <!-- Back link -->
-    <a href="/api/subscriptions/plans-page/"
-       class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-black mb-8 transition-colors">
-      <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+<!-- Breadcrumb -->
+<nav style="font-size:13px; color:var(--text-grey); margin-bottom:24px;">
+  <a href="/" style="color:var(--text-grey); text-decoration:none;">الرئيسية</a>
+  <span style="margin:0 8px;">←</span>
+  <a href="/api/subscriptions/plans-page/" style="color:var(--text-grey); text-decoration:none;">الاشتراكات</a>
+  <span style="margin:0 8px;">←</span>
+  <span style="color:var(--navy); font-weight:600;">الدفع</span>
+</nav>
+
+<div style="margin-bottom:28px;">
+  <h1 style="font-size:26px; font-weight:800; color:var(--navy); margin:0;">إتمام الاشتراك</h1>
+</div>
+
+<!-- Two-column layout -->
+<div style="display:grid; grid-template-columns:1.4fr 1fr; gap:28px; align-items:start;">
+
+  <!-- Right column — Payment -->
+  <div class="card">
+    <h2 style="font-size:18px; font-weight:800; color:var(--navy); margin:0 0 22px;">تفاصيل الدفع</h2>
+
+    <!-- Payment method selection -->
+    <p style="font-size:13px; font-weight:600; color:var(--text-grey); margin:0 0 12px;">اختر طريقة الدفع</p>
+
+    <label class="pay-method selected" id="method-card">
+      <input type="radio" name="payment_method" value="card" checked onchange="selectMethod('card')">
+      <svg width="22" height="22" fill="none" stroke="var(--navy)" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
       </svg>
-      العودة لعرض الخطط
-    </a>
+      <span class="pay-method-label">بطاقة ائتمانية</span>
+    </label>
 
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+    <label class="pay-method" id="method-stcpay">
+      <input type="radio" name="payment_method" value="stcpay" onchange="selectMethod('stcpay')">
+      <svg width="22" height="22" fill="none" stroke="var(--navy)" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+      </svg>
+      <span class="pay-method-label">STC Pay</span>
+    </label>
 
-      <!-- Plan summary -->
-      <div class="mb-8">
-        <p class="text-xs text-gray-400 uppercase tracking-widest mb-2">الخطة المختارة</p>
-        <h1 class="text-2xl font-bold text-black mb-1">{{ plan.name_ar }}</h1>
-        <p class="text-sm text-gray-400">{{ plan.name }}</p>
-      </div>
+    <label class="pay-method" id="method-applepay">
+      <input type="radio" name="payment_method" value="applepay" onchange="selectMethod('applepay')">
+      <svg width="22" height="22" fill="none" stroke="var(--navy)" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+      </svg>
+      <span class="pay-method-label">Apple Pay</span>
+    </label>
 
-      <!-- Feature list -->
-      <ul class="space-y-2 mb-8 text-sm text-gray-600">
-        <li class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-brand-green shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-          {% if plan.contract_limit == -1 %}عقود غير محدودة{% else %}{{ plan.contract_limit }} عقد{% endif %}
-        </li>
-        <li class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-brand-green shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-          {% if plan.duration_days == 0 %}دائم{% else %}{{ plan.duration_days }} يوماً{% endif %}
-        </li>
-        <li class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-brand-green shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-          توقيع رقمي موثوق
-        </li>
-      </ul>
-
-      <!-- Price summary -->
-      <div class="bg-brand-bg rounded-xl p-5 mb-8 flex justify-between items-center">
-        <span class="text-2xl font-bold text-black">{{ plan.price }} <span class="text-base font-normal text-gray-500">ريال سعودي</span></span>
-        <span class="text-sm text-gray-500">ستدفع</span>
-      </div>
-
-      <!-- Pay button -->
-      <button id="pay-btn" onclick="startCheckout()"
-              class="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl
-                     text-sm font-bold text-white bg-brand-gold hover:bg-brand-gold-dark
-                     active:scale-95 transition-all duration-150 disabled:opacity-60 disabled:cursor-wait">
-        <span id="btn-label">ادفع الآن</span>
-        <svg id="spinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-        </svg>
-      </button>
-
-      <!-- Security note -->
-      <p class="mt-4 text-center text-xs text-gray-400">
-        <svg class="inline w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-        </svg>
-        الدفع يتم عبر بوابة موئسر الآمنة
+    <!-- Security info box -->
+    <div class="info-box">
+      <svg width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0; margin-top:1px;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+      </svg>
+      <p style="margin:0; font-size:13px; color:#92400E; line-height:1.6;">
+        سيتم تحويلك لبوابة <strong>موئسر الآمنة</strong> لإتمام الدفع بشكل مشفر وآمن
       </p>
+    </div>
 
-      <!-- Error message -->
-      <p id="error-msg" class="hidden mt-4 text-center text-sm text-brand-red font-semibold"></p>
+    <!-- Pay button -->
+    <button class="btn-pay" id="pay-btn" onclick="submitCheckout()">
+      <span id="btn-text">ادفع الآن — {{ total_with_vat }} ر.س</span>
+      <svg id="btn-spinner" class="hidden" width="18" height="18" fill="none" viewBox="0 0 24 24"
+           style="animation:spin 1s linear infinite; display:none;">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity=".25"/>
+        <path fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" opacity=".75"/>
+      </svg>
+    </button>
 
+    <!-- Cancel link -->
+    <div style="text-align:center; margin-top:14px;">
+      <a href="/api/subscriptions/plans-page/"
+         style="font-size:13px; color:var(--text-grey); text-decoration:none; hover:color:var(--navy);">
+        ← إلغاء والعودة للباقات
+      </a>
     </div>
   </div>
-</section>
 
-{% block extra_scripts %}
+  <!-- Left column — Order summary -->
+  <div class="card" style="position:sticky; top:80px;">
+    <h2 style="font-size:18px; font-weight:800; color:var(--navy); margin:0 0 20px;">ملخص الطلب</h2>
+
+    <!-- Plan details -->
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+      <div style="width:44px; height:44px; border-radius:10px; background:#EFF6FF; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <svg width="22" height="22" fill="none" stroke="var(--navy)" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+      </div>
+      <div>
+        <p style="margin:0; font-size:15px; font-weight:700; color:var(--navy);">{{ plan.name_ar }}</p>
+        <p style="margin:4px 0 0; font-size:13px; color:var(--text-grey);">{{ billing_type|default:"شهري" }}</p>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="summary-row">
+      <span style="color:var(--text-grey);">المجموع الفرعي</span>
+      <span>{{ plan.price }} ر.س</span>
+    </div>
+    <div class="summary-row">
+      <span style="color:var(--text-grey);">ضريبة القيمة المضافة (15%)</span>
+      <span>{{ vat }} ر.س</span>
+    </div>
+
+    <hr class="divider">
+
+    <div class="summary-row summary-total">
+      <span>الإجمالي</span>
+      <span style="color:var(--gold);">{{ total_with_vat }} ر.س</span>
+    </div>
+
+    <p style="font-size:12px; color:var(--text-grey); margin:16px 0 0; line-height:1.6; text-align:center;">
+      سيتم تجديد الاشتراك تلقائياً كل شهر. يمكنك الإلغاء في أي وقت.
+    </p>
+  </div>
+
+</div>
+
+<style>
+  @keyframes spin { to { transform:rotate(360deg); } }
+</style>
+
 <script>
-  async function startCheckout() {
-    const btn = document.getElementById('pay-btn');
-    const label = document.getElementById('btn-label');
-    const spinner = document.getElementById('spinner');
-    const errorMsg = document.getElementById('error-msg');
+  const planId = '{{ plan.id }}';
+  let selectedMethod = 'card';
+
+  // Update the selected payment method card styling
+  function selectMethod(method) {
+    selectedMethod = method;
+    ['card', 'stcpay', 'applepay'].forEach(m => {
+      const el = document.getElementById('method-' + m);
+      if (el) el.classList.toggle('selected', m === method);
+    });
+  }
+
+  // POST to the Moyasar checkout API and redirect to payment URL
+  async function submitCheckout() {
+    const btn     = document.getElementById('pay-btn');
+    const btnText = document.getElementById('btn-text');
+    const spinner = document.getElementById('btn-spinner');
 
     btn.disabled = true;
-    label.textContent = 'جارٍ التحضير...';
-    spinner.classList.remove('hidden');
-    errorMsg.classList.add('hidden');
+    btnText.textContent = 'جارٍ التحضير...';
+    spinner.style.display = 'block';
 
-    const csrfToken = document.cookie.split(';')
+    // Get CSRF token from the cookie
+    const csrf = document.cookie.split(';')
       .map(c => c.trim())
       .find(c => c.startsWith('csrftoken='))
       ?.split('=')[1] || '';
 
     try {
-      const response = await fetch('/api/payments/checkout/{{ plan.id }}/', {
+      const res  = await fetch('/api/payments/checkout/' + planId + '/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+        body: JSON.stringify({ payment_method: selectedMethod }),
       });
+      const data = await res.json();
 
-      const data = await response.json();
-
-      if (response.ok && data.payment_url) {
+      if (res.ok && data.payment_url) {
+        // Redirect to Moyasar hosted payment page
         window.location.href = data.payment_url;
       } else {
         throw new Error(data.error || 'حدث خطأ غير متوقع');
       }
     } catch (err) {
       btn.disabled = false;
-      label.textContent = 'ادفع الآن';
-      spinner.classList.add('hidden');
-      errorMsg.textContent = err.message;
-      errorMsg.classList.remove('hidden');
+      btnText.textContent = 'ادفع الآن — {{ total_with_vat }} ر.س';
+      spinner.style.display = 'none';
+      alert('خطأ: ' + err.message);
     }
   }
 </script>
-{% endblock %}
 {% endblock %}

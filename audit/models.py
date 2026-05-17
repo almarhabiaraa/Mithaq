@@ -14,11 +14,15 @@ class AuditEvent(models.Model):
        USER_REGISTERED       = 'USER_REGISTERED',       'مستخدم سجّل'
        USER_LOGIN_FAILED     = 'USER_LOGIN_FAILED',     'فشل تسجيل دخول'
        USER_PROFILE_UPDATED  = 'USER_PROFILE_UPDATED',  'ملف شخصي حُدِّث'
-       # ── Subscription ────────────────────── (added by ghadi)
+       # ── Subscription ──────────────────────────────────────────────────────────
+       # (added by ghadi: subscription lifecycle events written by subscription_service.py)
        SUBSCRIPTION_ACTIVATED  = 'SUBSCRIPTION_ACTIVATED',  'اشتراك فُعِّل'
-       # NOTE (ghadi): SUBSCRIPTION_EXPIRED and CONTRACT_LIMIT_CHECKED
-       # need to be added here once the audit team is ready.
-       # See ghadi_works/for_audit_app/event_types.py for the exact lines.
+       # (added by ghadi: these two are PENDING — waiting for the audit team to add them)
+       # (they are already used in subscription_service.py but wrapped in try/except
+       #  so the app won't crash — it just won't write audit events until added)
+       # SUBSCRIPTION_EXPIRED   = 'SUBSCRIPTION_EXPIRED',   'اشتراك انتهى'
+       # CONTRACT_LIMIT_CHECKED = 'CONTRACT_LIMIT_CHECKED', 'فُحص حد العقود'
+       # → Full instructions: ghadi_works/for_audit_app/event_types.py
        # ── Contract ──────────────────────────
        CONTRACT_CREATED      = 'CONTRACT_CREATED',      'عقد أُنشئ'
        CONTRACT_UPDATED      = 'CONTRACT_UPDATED',      'عقد حُدِّث'

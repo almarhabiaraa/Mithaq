@@ -1,0 +1,826 @@
+{% extends 'contracts/base.html' %}
+{% block title %}إنشاء عقد جديد — ميثاق{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: var(--color-primary);
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    .page-header h1 { color: #fff; font-size: 1.5rem; font-weight: 700; }
+    .page-header p  { color: rgba(255,255,255,0.6); font-size: 0.875rem; margin-top: 4px; }
+
+    .stepper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+    .step-circle {
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        border: 2px solid var(--color-border-strong);
+        background: var(--color-surface);
+        color: var(--color-text-muted);
+        font-size: 0.875rem; font-weight: 700;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.3s;
+    }
+    .step-label {
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .step.active .step-circle {
+        background: var(--color-secondary);
+        border-color: var(--color-secondary);
+        color: var(--color-primary);
+    }
+    .step.active .step-label { color: var(--color-secondary); font-weight: 700; }
+    .step.done .step-circle  { background: var(--color-success); border-color: var(--color-success); color: #fff; }
+    .step.done .step-label   { color: var(--color-success); }
+
+    .step-line {
+        width: 60px; height: 2px;
+        background: var(--color-border);
+        margin-bottom: 22px;
+        transition: background 0.3s;
+    }
+    .step-line.done { background: var(--color-success); }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .section-title {
+        font-size: 1rem; font-weight: 700;
+        color: var(--color-text-primary);
+        margin-bottom: 1.25rem;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::before {
+        content: ''; width: 4px; height: 20px;
+        background: var(--color-secondary);
+        border-radius: 4px; display: block;
+    }
+
+    .clause-item {
+        background: var(--color-surface-soft);
+        border: 1.5px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        padding: 1rem; margin-bottom: 0.75rem;
+        transition: border-color 0.2s;
+    }
+    .clause-item:focus-within { border-color: var(--color-secondary); }
+
+    .clause-header {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+    .clause-num {
+        width: 28px; height: 28px;
+        background: var(--color-primary);
+        color: var(--color-secondary);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+    }
+    .clause-type-select {
+        border: 1.5px solid var(--color-border);
+        border-radius: 8px; padding: 4px 10px;
+        font-size: 0.75rem; font-family: 'Cairo', sans-serif;
+        color: var(--color-text-secondary);
+        background: var(--color-surface);
+        cursor: pointer; outline: none;
+    }
+    .clause-delete {
+        background: none; border: none;
+        color: var(--color-text-muted);
+        cursor: pointer; font-size: 0.8rem;
+        padding: 4px 8px; border-radius: 6px;
+        transition: all 0.2s;
+        font-family: 'Cairo', sans-serif;
+    }
+    .clause-delete:hover {
+        background: var(--color-danger-background);
+        color: var(--color-danger);
+    }
+    .add-clause-btn {
+        width: 100%; padding: 0.75rem;
+        border: 2px dashed var(--color-border-strong);
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--color-text-muted);
+        font-size: 0.875rem;
+        font-family: 'Cairo', sans-serif; font-weight: 600;
+        cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;
+    }
+    .add-clause-btn:hover {
+        border-color: var(--color-secondary);
+        color: var(--color-secondary);
+        background: var(--color-secondary-light);
+    }
+
+    .party-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 0.875rem 1rem;
+        background: var(--color-surface-soft);
+        border: 1.5px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        margin-bottom: 0.75rem;
+    }
+    .party-avatar {
+        width: 40px; height: 40px; border-radius: 50%;
+        background: var(--color-primary);
+        color: var(--color-secondary);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.875rem; font-weight: 700; flex-shrink: 0;
+    }
+    .party-info { flex: 1; }
+    .party-name { font-size: 0.875rem; font-weight: 600; color: var(--color-text-primary); }
+    .party-role { font-size: 0.75rem; color: var(--color-text-muted); }
+    .party-remove {
+        background: none; border: none;
+        color: var(--color-text-muted); cursor: pointer;
+        font-size: 0.8rem; padding: 4px 8px;
+        border-radius: 6px; transition: all 0.2s;
+        font-family: 'Cairo', sans-serif;
+    }
+    .party-remove:hover {
+        background: var(--color-danger-background);
+        color: var(--color-danger);
+    }
+
+    .form-footer {
+        display: flex; justify-content: space-between;
+        align-items: center;
+        margin-top: 1.5rem; padding-top: 1.5rem;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .error-msg {
+        color: var(--color-danger);
+        font-size: 0.8rem; margin-top: 4px; display: none;
+    }
+    .error-msg.show { display: block; }
+
+    textarea.input { resize: vertical; min-height: 80px; }
+
+    select.input { cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div class="container">
+        <a href="/contracts/dashboard/"
+           style="color:rgba(255,255,255,0.5);font-size:0.8rem;text-decoration:none;display:block;margin-bottom:8px;">
+            ← العودة للعقود
+        </a>
+        <h1>إنشاء عقد جديد</h1>
+        <p>أكمل الخطوات الأربع لإنشاء العقد</p>
+    </div>
+</div>
+
+<div class="container" style="max-width:760px;">
+
+    <!-- Stepper -->
+    <div class="stepper">
+        <div class="step active" id="step-1">
+            <div class="step-circle" id="circle-1">1</div>
+            <div class="step-label">معلومات العقد</div>
+        </div>
+        <div class="step-line" id="line-1"></div>
+        <div class="step" id="step-2">
+            <div class="step-circle" id="circle-2">2</div>
+            <div class="step-label">البنود</div>
+        </div>
+        <div class="step-line" id="line-2"></div>
+        <div class="step" id="step-3">
+            <div class="step-circle" id="circle-3">3</div>
+            <div class="step-label">الأطراف</div>
+        </div>
+        <div class="step-line" id="line-3"></div>
+        <div class="step" id="step-4">
+            <div class="step-circle" id="circle-4">4</div>
+            <div class="step-label">المراجعة</div>
+        </div>
+    </div>
+
+    <!-- Panel 1: معلومات العقد -->
+    <div class="panel active" id="panel-1">
+        <div class="card">
+            <div class="section-title">معلومات العقد</div>
+
+            <div style="margin-bottom:1rem;">
+                <label class="label">
+                    عنوان العقد بالعربية
+                    <span style="color:var(--color-danger);">*</span>
+                </label>
+                <input type="text" id="title_ar" class="input"
+                       placeholder="مثال: عقد تصميم هوية بصرية لشركة ريادة">
+                <p class="error-msg" id="err-title">عنوان العقد مطلوب</p>
+            </div>
+
+            <div style="margin-bottom:1rem;">
+                <label class="label">
+                    عنوان العقد بالإنجليزية
+                    <span style="color:var(--color-text-muted);font-weight:400;font-size:0.8rem;">(اختياري)</span>
+                </label>
+                <input type="text" id="title_en" class="input" dir="ltr"
+                       placeholder="e.g. Visual Identity Design Contract">
+            </div>
+
+            <div>
+                <label class="label">
+                    وصف العقد
+                    <span style="color:var(--color-text-muted);font-weight:400;font-size:0.8rem;">(اختياري)</span>
+                </label>
+                <textarea id="description_ar" class="input" rows="3"
+                          placeholder="وصف مختصر يوضح الهدف من العقد..."></textarea>
+            </div>
+        </div>
+
+        <div class="form-footer">
+            <a href="/contracts/dashboard/" class="btn btn-outline">إلغاء</a>
+            <button class="btn btn-primary" onclick="goToStep(2)">التالي: البنود ←</button>
+        </div>
+    </div>
+
+    <!-- Panel 2: البنود -->
+    <div class="panel" id="panel-2">
+        <div class="card">
+            <div class="section-title">بنود العقد</div>
+            <div id="clauses-container"></div>
+            <button class="add-clause-btn" onclick="addClause()">+ إضافة بند جديد</button>
+            <p class="error-msg" id="err-clauses">يجب إضافة بند واحد على الأقل</p>
+        </div>
+
+        <div class="form-footer">
+            <button class="btn btn-outline" onclick="goToStep(1)">← رجوع</button>
+            <button class="btn btn-primary" onclick="goToStep(3)">التالي: الأطراف ←</button>
+        </div>
+    </div>
+
+    <!-- Panel 3: الأطراف -->
+    <div class="panel" id="panel-3">
+        <div class="card">
+            <div class="section-title">أطراف العقد</div>
+
+            <!-- المنشئ ثابت -->
+            <div class="party-item">
+                <div class="party-avatar">أ</div>
+                <div class="party-info">
+                    <div class="party-name">أنت (المنشئ)</div>
+                    <div class="party-role">منشئ العقد — موافقة تلقائية</div>
+                </div>
+                <span style="font-size:0.75rem;color:var(--color-success);font-weight:600;">✓ منشئ</span>
+            </div>
+
+            <!-- الأطراف المضافة -->
+            <div id="parties-container"></div>
+
+            <!-- صف الإضافة -->
+                <div style="margin-top:0.75rem;">
+                    <div style="display:flex;gap:8px;margin-bottom:6px;">
+                        <input type="text" id="party-name" class="input"
+                            placeholder="الاسم الكامل" style="flex:1.2;">
+                        <input type="tel" id="party-phone" class="input"
+                            placeholder="05XXXXXXXX" dir="ltr"
+                            maxlength="10" style="flex:1;">
+                        <button class="btn btn-outline" onclick="addParty()"
+                                style="white-space:nowrap;flex-shrink:0;">+ إضافة</button>
+                    </div>
+                    <input type="email" id="party-email" class="input"
+                        placeholder="البريد الإلكتروني (اختياري)" dir="ltr"
+                        style="margin-bottom:6px;">
+                    <p class="error-msg" id="err-party-email"></p>
+                </div>
+
+            <!-- زر إضافة طرف آخر -->
+            <button class="add-clause-btn" onclick="
+                document.getElementById('party-name').focus();
+                document.getElementById('party-name').scrollIntoView({behavior:'smooth'});
+            ">
+                + إضافة طرف آخر
+            </button>
+
+            <p class="error-msg" id="err-parties" style="margin-top:8px;">
+                يجب إضافة طرف واحد على الأقل
+            </p>
+
+        </div>
+
+        <div style="background:var(--color-secondary-light);border:1px solid #e8d8a0;
+                    border-radius:var(--radius-sm);padding:0.875rem 1rem;
+                    margin-top:1rem;font-size:0.8rem;color:var(--color-text-secondary);">
+            💡 سيتم التواصل مع كل طرف عبر رقم جواله لمراجعة العقد والموافقة عليه
+        </div>
+
+        <div class="form-footer">
+            <button class="btn btn-outline" onclick="goToStep(2)">← رجوع</button>
+            <button class="btn btn-primary" onclick="goToStep(4)">التالي: المراجعة ←</button>
+        </div>
+    </div>
+
+    <!-- Panel 4: المراجعة -->
+    <div class="panel" id="panel-4">
+        <div class="card" style="margin-bottom:1.25rem;">
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+                <div class="section-title" style="margin-bottom:0;">مراجعة العقد</div>
+                <span style="font-size:0.75rem;color:var(--color-text-muted);">
+                    تأكد من كل التفاصيل قبل الإنشاء
+                </span>
+            </div>
+
+            <!-- معلومات العقد -->
+            <div style="background:var(--color-surface-soft);border:1px solid var(--color-border);
+                        border-radius:var(--radius-sm);padding:1rem;margin-bottom:1rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+                    <span style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);">معلومات العقد</span>
+                    <button onclick="goToStep(1)"
+                            style="font-size:0.75rem;color:var(--color-secondary);background:none;
+                                   border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:600;">
+                        تعديل
+                    </button>
+                </div>
+                <p id="review-title"
+                   style="font-size:1rem;font-weight:700;color:var(--color-text-primary);margin-bottom:4px;"></p>
+                <p id="review-title-en"
+                   style="font-size:0.8rem;color:var(--color-text-muted);margin-bottom:6px;"></p>
+                <p id="review-description"
+                   style="font-size:0.875rem;color:var(--color-text-secondary);"></p>
+            </div>
+
+            <!-- البنود -->
+            <div style="background:var(--color-surface-soft);border:1px solid var(--color-border);
+                        border-radius:var(--radius-sm);padding:1rem;margin-bottom:1rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+                    <span style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);">البنود</span>
+                    <button onclick="goToStep(2)"
+                            style="font-size:0.75rem;color:var(--color-secondary);background:none;
+                                   border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:600;">
+                        تعديل
+                    </button>
+                </div>
+                <div id="review-clauses"></div>
+            </div>
+
+            <!-- الأطراف -->
+            <div style="background:var(--color-surface-soft);border:1px solid var(--color-border);
+                        border-radius:var(--radius-sm);padding:1rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+                    <span style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);">الأطراف</span>
+                    <button onclick="goToStep(3)"
+                            style="font-size:0.75rem;color:var(--color-secondary);background:none;
+                                   border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:600;">
+                        تعديل
+                    </button>
+                </div>
+                <div id="review-parties"></div>
+            </div>
+        </div>
+
+        <div style="background:var(--color-secondary-light);border:1px solid #e8d8a0;
+                    border-radius:var(--radius-sm);padding:0.875rem 1rem;
+                    margin-bottom:1.5rem;font-size:0.8rem;color:var(--color-text-secondary);">
+            ⚖️ بإنشاء هذا العقد، سيتم التواصل مع جميع الأطراف لمراجعته والموافقة عليه قبل التوقيع.
+        </div>
+
+        <div class="form-footer">
+            <button class="btn btn-outline" onclick="goToStep(3)">← رجوع</button>
+            <button class="btn btn-primary" onclick="submitContract()" id="submit-btn">
+                ✓ إنشاء العقد الآن
+            </button>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+let clauseCount = 0;
+let parties     = [];
+
+const CLAUSE_TYPES = [
+    { value: 'GENERAL',  label: 'عام' },
+    { value: 'PAYMENT',  label: 'دفع' },
+    { value: 'DELIVERY', label: 'تسليم' },
+    { value: 'PENALTY',  label: 'غرامة' },
+    { value: 'CUSTOM',   label: 'مخصص' },
+];
+
+const CLAUSE_LABELS = {
+    GENERAL:'عام', PAYMENT:'دفع', DELIVERY:'تسليم', PENALTY:'غرامة', CUSTOM:'مخصص'
+};
+
+// ── Stepper ────────────────────────────────────────────
+function goToStep(n) {
+    if (n === 2 && !validateStep1()) return;
+    if (n === 3 && !validateStep2()) return;
+    if (n === 4 && !validateStep3()) return;
+
+    document.getElementById(`panel-${currentStep}`).classList.remove('active');
+    document.getElementById(`step-${currentStep}`).classList.remove('active');
+
+    if (n > currentStep) {
+        document.getElementById(`step-${currentStep}`).classList.add('done');
+        document.getElementById(`circle-${currentStep}`).innerHTML = '✓';
+        document.getElementById(`line-${currentStep}`)?.classList.add('done');
+    } else {
+        document.getElementById(`step-${currentStep}`).classList.remove('done');
+        document.getElementById(`circle-${currentStep}`).innerHTML = currentStep;
+        document.getElementById(`line-${currentStep - 1}`)?.classList.remove('done');
+    }
+
+    currentStep = n;
+    document.getElementById(`step-${currentStep}`).classList.add('active');
+    document.getElementById(`step-${currentStep}`).classList.remove('done');
+    document.getElementById(`circle-${currentStep}`).innerHTML = currentStep;
+    document.getElementById(`panel-${currentStep}`).classList.add('active');
+
+    if (n === 4) renderReview();
+}
+
+// ── Validation ─────────────────────────────────────────
+function validateStep1() {
+    const title = document.getElementById('title_ar').value.trim();
+    if (!title) {
+        document.getElementById('err-title').classList.add('show');
+        document.getElementById('title_ar').focus();
+        return false;
+    }
+    document.getElementById('err-title').classList.remove('show');
+    return true;
+}
+
+function validateStep2() {
+    if (getClauses().length === 0) {
+        document.getElementById('err-clauses').classList.add('show');
+        return false;
+    }
+    document.getElementById('err-clauses').classList.remove('show');
+    return true;
+}
+
+function validateStep3() {
+    if (parties.length === 0) {
+        document.getElementById('err-parties').classList.add('show');
+        return false;
+    }
+    document.getElementById('err-parties').classList.remove('show');
+    return true;
+}
+
+// ── Clauses ────────────────────────────────────────────
+function addClause(content = '', type = 'GENERAL') {
+    clauseCount++;
+    const id  = clauseCount;
+    const div = document.createElement('div');
+    div.className = 'clause-item';
+    div.id        = `clause-${id}`;
+    div.innerHTML = `
+        <div class="clause-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div class="clause-num">${id}</div>
+                <select class="clause-type-select" id="type-${id}">
+                    ${CLAUSE_TYPES.map(t =>
+                        `<option value="${t.value}" ${t.value===type?'selected':''}>${t.label}</option>`
+                    ).join('')}
+                </select>
+            </div>
+            <button class="clause-delete" onclick="removeClause(${id})">حذف</button>
+        </div>
+        <textarea class="input" id="content-${id}" rows="3"
+                  placeholder="اكتب نص البند هنا...">${content}</textarea>
+    `;
+    document.getElementById('clauses-container').appendChild(div);
+    document.getElementById(`content-${id}`).focus();
+    document.getElementById('err-clauses').classList.remove('show');
+}
+
+function removeClause(id) {
+    document.getElementById(`clause-${id}`)?.remove();
+}
+
+function getClauses() {
+    return Array.from(document.querySelectorAll('[id^="content-"]'))
+        .map(t => ({
+            content_ar:  t.value.trim(),
+            clause_type: document.getElementById(`type-${t.id.split('-')[1]}`).value,
+        }))
+        .filter(c => c.content_ar);
+}
+
+// ── Parties ────────────────────────────────────────────
+// ── Parties ────────────────────────────────────────────
+function addParty() {
+    const nameInput  = document.getElementById('party-name');
+    const phoneInput = document.getElementById('party-phone');
+    const emailInput = document.getElementById('party-email');
+    const errEl      = document.getElementById('err-party-email');
+
+    const name  = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const email = emailInput.value.trim().toLowerCase();
+
+    if (!name) {
+        errEl.textContent = 'الاسم مطلوب';
+        errEl.classList.add('show');
+        nameInput.focus();
+        return;
+    }
+
+    if (!phone) {
+        errEl.textContent = 'رقم الجوال مطلوب';
+        errEl.classList.add('show');
+        phoneInput.focus();
+        return;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+        errEl.textContent = 'رقم الجوال يجب أن يكون 10 أرقام';
+        errEl.classList.add('show');
+        phoneInput.focus();
+        return;
+    }
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errEl.textContent = 'البريد الإلكتروني غير صالح';
+        errEl.classList.add('show');
+        emailInput.focus();
+        return;
+    }
+
+    if (parties.some(p => p.phone === phone)) {
+        errEl.textContent = 'هذا الرقم مضاف مسبقاً';
+        errEl.classList.add('show');
+        return;
+    }
+
+    errEl.classList.remove('show');
+    parties.push({ name, phone, email });
+    renderParties();
+
+    nameInput.value  = '';
+    phoneInput.value = '';
+    emailInput.value = '';
+    nameInput.focus();
+    document.getElementById('err-parties').classList.remove('show');
+}
+
+function removeParty(phone) {
+    parties = parties.filter(p => p.phone !== phone);
+    renderParties();
+}
+
+function editParty(phone) {
+    const index = parties.findIndex(p => p.phone === phone);
+    if (index === -1) return;
+    const p = parties[index];
+
+    const item = document.getElementById(`party-item-${phone}`);
+    item.innerHTML = `
+        <div style="width:100%;">
+            <div style="display:flex;gap:8px;margin-bottom:6px;">
+                <input type="text"  id="edit-name-${phone}"  class="input"
+                       value="${p.name}"  placeholder="الاسم الكامل"
+                       style="flex:1.2;">
+                <input type="tel"   id="edit-phone-${phone}" class="input"
+                       value="${p.phone}" placeholder="05XXXXXXXX"
+                       dir="ltr" maxlength="10" style="flex:1;">
+            </div>
+            <div style="margin-bottom:8px;">
+                <input type="email" id="edit-email-${phone}" class="input"
+                       value="${p.email}" placeholder="البريد الإلكتروني (اختياري)"
+                       dir="ltr">
+            </div>
+            <p class="error-msg" id="edit-err-${phone}"></p>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button class="btn btn-outline"
+                        onclick="cancelPartyEdit('${phone}')"
+                        style="padding:4px 14px;font-size:0.8rem;">إلغاء</button>
+                <button class="btn btn-primary"
+                        onclick="savePartyEdit('${phone}')"
+                        style="padding:4px 14px;font-size:0.8rem;">حفظ</button>
+            </div>
+        </div>
+    `;
+
+    // أرقام فقط في حقل التعديل
+    document.getElementById(`edit-phone-${phone}`).addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 10);
+    });
+
+    document.getElementById(`edit-name-${phone}`).focus();
+}
+
+function savePartyEdit(oldPhone) {
+    const nameInput  = document.getElementById(`edit-name-${oldPhone}`);
+    const phoneInput = document.getElementById(`edit-phone-${oldPhone}`);
+    const emailInput = document.getElementById(`edit-email-${oldPhone}`);
+    const errEl      = document.getElementById(`edit-err-${oldPhone}`);
+
+    const name  = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const email = emailInput.value.trim().toLowerCase();
+
+    if (!name) {
+        errEl.textContent = 'الاسم مطلوب';
+        errEl.classList.add('show');
+        nameInput.focus();
+        return;
+    }
+
+    if (!phone) {
+        errEl.textContent = 'رقم الجوال مطلوب';
+        errEl.classList.add('show');
+        phoneInput.focus();
+        return;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+        errEl.textContent = 'رقم الجوال يجب أن يكون 10 أرقام';
+        errEl.classList.add('show');
+        phoneInput.focus();
+        return;
+    }
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errEl.textContent = 'البريد الإلكتروني غير صالح';
+        errEl.classList.add('show');
+        emailInput.focus();
+        return;
+    }
+
+    // تحقق من تكرار الرقم الجديد (إلا لو نفس الرقم القديم)
+    if (phone !== oldPhone && parties.some(p => p.phone === phone)) {
+        errEl.textContent = 'هذا الرقم مضاف مسبقاً';
+        errEl.classList.add('show');
+        return;
+    }
+
+    // حدّث في الـ array
+    const index = parties.findIndex(p => p.phone === oldPhone);
+    parties[index] = { name, phone, email };
+    renderParties();
+}
+
+function cancelPartyEdit(phone) {
+    renderParties();
+}
+
+function renderParties() {
+    document.getElementById('parties-container').innerHTML = parties.map(p => `
+        <div class="party-item" id="party-item-${p.phone}">
+            <div class="party-avatar">${p.name[0]}</div>
+            <div class="party-info">
+                <div class="party-name">${p.name}</div>
+                <div class="party-role" dir="ltr" style="text-align:right;">
+                    ${p.phone}${p.email ? ' · ' + p.email : ''}
+                </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+                <button class="party-remove"
+                        onclick="editParty('${p.phone}')"
+                        style="color:var(--color-secondary);">تعديل</button>
+                <button class="party-remove"
+                        onclick="removeParty('${p.phone}')">إزالة</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ── Review ─────────────────────────────────────────────
+function renderReview() {
+    const titleAr = document.getElementById('title_ar').value.trim();
+    const titleEn = document.getElementById('title_en').value.trim();
+    const desc    = document.getElementById('description_ar').value.trim();
+
+    document.getElementById('review-title').textContent       = titleAr;
+    document.getElementById('review-title-en').textContent    = titleEn;
+    document.getElementById('review-description').textContent = desc || 'لا يوجد وصف';
+
+    const clauses = getClauses();
+    document.getElementById('review-clauses').innerHTML = clauses.map((c, i) => `
+        <div style="display:flex;gap:10px;padding:8px 0;
+                    border-bottom:1px solid var(--color-border);
+                    ${i === clauses.length - 1 ? 'border-bottom:none;' : ''}">
+            <span style="width:22px;height:22px;background:var(--color-primary);
+                         color:var(--color-secondary);border-radius:50%;
+                         display:flex;align-items:center;justify-content:center;
+                         font-size:0.7rem;font-weight:700;flex-shrink:0;">${i + 1}</span>
+            <div>
+                <span style="font-size:0.7rem;color:var(--color-text-muted);
+                             background:var(--color-border);padding:2px 8px;
+                             border-radius:10px;margin-bottom:4px;display:inline-block;">
+                    ${CLAUSE_LABELS[c.clause_type] || c.clause_type}
+                </span>
+                <p style="font-size:0.875rem;color:var(--color-text-primary);margin-top:4px;">
+                    ${c.content_ar}
+                </p>
+            </div>
+        </div>
+    `).join('');
+
+    document.getElementById('review-parties').innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+                    border-bottom:1px solid var(--color-border);">
+            <div style="width:32px;height:32px;border-radius:50%;
+                        background:var(--color-primary);color:var(--color-secondary);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:0.75rem;font-weight:700;">أ</div>
+            <div>
+                <p style="font-size:0.875rem;font-weight:600;color:var(--color-text-primary);">أنت</p>
+                <p style="font-size:0.75rem;color:var(--color-text-muted);">منشئ العقد</p>
+            </div>
+            <span style="margin-right:auto;font-size:0.75rem;
+                         color:var(--color-success);font-weight:600;">✓ منشئ</span>
+        </div>
+        ${parties.map(p => `
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
+                        border-bottom:1px solid var(--color-border);">
+                <div style="width:32px;height:32px;border-radius:50%;
+                            background:#e8d8f0;color:#6b21a8;
+                            display:flex;align-items:center;justify-content:center;
+                            font-size:0.75rem;font-weight:700;">
+                    ${p.name[0]}
+                </div>
+                <div>
+                    <p style="font-size:0.875rem;font-weight:600;
+                            color:var(--color-text-primary);">${p.name}</p>
+                    <p style="font-size:0.75rem;color:var(--color-text-muted);" dir="ltr">
+                        ${p.phone}${p.email ? ' · ' + p.email : ''}
+                    </p>
+                </div>
+                <span style="margin-right:auto;font-size:0.75rem;
+                            color:var(--color-text-muted);">⏳ بانتظار القبول</span>
+            </div>
+        `).join('')}
+    `;
+}
+
+// ── Submit ─────────────────────────────────────────────
+async function submitContract() {
+    const btn = document.getElementById('submit-btn');
+    btn.disabled    = true;
+    btn.textContent = 'جاري الإنشاء...';
+
+    try {
+        const res = await fetch('/api/contracts/', {
+            method:  'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken':  getCookie('csrftoken'),
+            },
+            body: JSON.stringify({
+                title_ar:       document.getElementById('title_ar').value.trim(),
+                title_en:       document.getElementById('title_en').value.trim(),
+                description_ar: document.getElementById('description_ar').value.trim(),
+                clauses:        getClauses(),
+                invite_parties: parties,
+            }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            window.location.href = `/api/contracts/${data.id}/detail/`;
+        } else {
+            alert('خطأ: ' + JSON.stringify(data));
+            btn.disabled    = false;
+            btn.textContent = '✓ إنشاء العقد الآن';
+        }
+    } catch (e) {
+        alert('خطأ في الاتصال');
+        btn.disabled    = false;
+        btn.textContent = '✓ إنشاء العقد الآن';
+    }
+}
+
+// ── Init ───────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('party-phone').addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); addParty(); }
+    });
+
+    document.getElementById('party-phone').addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 10);
+    });
+
+    addClause();
+});
+</script>
+{% endblock %}

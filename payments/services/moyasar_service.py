@@ -17,6 +17,12 @@
 #   All amounts are multiplied by 100 before sending to the API.
 #   Example: plan.price = 99 SAR → API receives amount = 9900
 #
+# RETRY LOGIC:
+#   Both GET and POST calls use a shared session with automatic exponential-
+#   backoff retry on transient server errors (429, 500-504) and connection
+#   failures. POST requests include an Idempotency-Key header so retrying
+#   the same request never creates a duplicate charge on Moyasar.
+#
 # SECURITY RULES (never break these):
 #   - Never trust callback query params alone — always call verify_payment()
 #     to re-fetch the real status from Moyasar's API.
@@ -26,11 +32,10 @@
 # CALLED FROM:
 #   payments/views.py → CheckoutView.post()         → initiate_payment()
 #   payments/views.py → PaymentCallbackView.get()   → handle_callback()
+#   payments/views.py → WebhookView.post()          → handle_callback()
 #
 # FUTURE WORK (Ghadi):
-#   - Handle REFUNDED status from Moyasar (add to handle_callback)
 #   - Support stcpay and applepay (currently card only)
-#   - Add retry logic if Moyasar API is temporarily down
 # =============================================================================
 
 import logging
@@ -39,11 +44,26 @@ import uuid
 import requests
 from django.conf import settings
 from django.db import transaction
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from payments.models import PaymentRecord
 from subscriptions.models import SubscriptionPlan
 
 logger = logging.getLogger(__name__)
+
+# ── Retry configuration ────────────────────────────────────────────────────────
+# These values control how the shared session retries failed requests.
+#
+_RETRY_TOTAL         = 3      # max attempts after the first failure
+_RETRY_BACKOFF       = 0.5    # exponential backoff factor:
+                               #   attempt 1 → wait 0.5 s
+                               #   attempt 2 → wait 1.0 s
+                               #   attempt 3 → wait 2.0 s
+_RETRY_ON_STATUSES   = frozenset({429, 500, 502, 503, 504})
+                               # 429 = rate-limited, 5xx = Moyasar server errors
+                               # 4xx client errors are NOT retried (our fault)
+_REQUEST_TIMEOUT     = 10     # seconds per individual attempt
 
 
 class MoyasarError(Exception):
@@ -51,12 +71,44 @@ class MoyasarError(Exception):
     pass
 
 
+# ── Internal helpers ───────────────────────────────────────────────────────────
+
 def _auth() -> tuple:
     """Return HTTP Basic Auth tuple for Moyasar: (secret_key, empty_password)."""
     return (settings.MOYASAR_API_KEY, '')
 
 
-def initiate_payment(user, plan: SubscriptionPlan) -> str:
+def _session(retry_post: bool = False) -> requests.Session:
+    """
+    Build a requests.Session with automatic exponential-backoff retry.
+
+    retry_post:
+        Set True only when the POST request carries an Idempotency-Key header,
+        making it safe to retry without risking duplicate charges on Moyasar.
+        Defaults to False so accidental POST retries without the key are blocked.
+    """
+    methods = {'GET', 'HEAD', 'OPTIONS'}
+    if retry_post:
+        methods.add('POST')
+
+    retry = Retry(
+        total           = _RETRY_TOTAL,
+        backoff_factor  = _RETRY_BACKOFF,
+        status_forcelist= _RETRY_ON_STATUSES,
+        allowed_methods = methods,
+        raise_on_status = False,   # let raise_for_status() handle HTTP errors
+    )
+
+    session = requests.Session()
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('https://', adapter)
+    session.mount('http://',  adapter)   # needed for localhost sandbox testing
+    return session
+
+
+# ── Public service functions ───────────────────────────────────────────────────
+
+def initiate_payment(user, plan: SubscriptionPlan, payment_method: str = 'creditcard') -> str:
     """
     Create a PaymentRecord and call the Moyasar API to open a payment session.
 
@@ -66,11 +118,15 @@ def initiate_payment(user, plan: SubscriptionPlan) -> str:
 
     Amount is converted from SAR to halalas (× 100) as required by Moyasar.
 
+    An Idempotency-Key header (= payment_record.id) is sent so Moyasar treats
+    all retries of the same request as a single payment — no duplicate charges.
+
     Returns:
         The Moyasar-hosted payment URL to redirect the user to.
 
     Raises:
-        MoyasarError: if the API is unreachable, times out, or returns an unexpected body.
+        MoyasarError: if the API is unreachable, all retries are exhausted,
+                      or the response structure is unexpected.
     """
     amount_halalas = int(plan.price * 100)
 
@@ -84,28 +140,34 @@ def initiate_payment(user, plan: SubscriptionPlan) -> str:
     )
 
     payload = {
-        'amount': amount_halalas,
-        'currency': 'SAR',
-        'description': f'Mithaq - {plan.name_ar}',
+        'amount':       amount_halalas,
+        'currency':     'SAR',
+        'description':  f'Mithaq - {plan.name_ar}',
         'callback_url': settings.MOYASAR_CALLBACK_URL,
+        'source': {
+            'type': payment_method,   # 'creditcard', 'stcpay', or 'applepay'
+        },
         'metadata': {
-            'user_id': str(user.id),
-            'plan_id': str(plan.id),
-            'payment_record_id': str(payment_record.id),
+            'user_id':            str(user.id),
+            'plan_id':            str(plan.id),
+            'payment_record_id':  str(payment_record.id),
         },
     }
 
     logger.info(
-        'Initiating Moyasar payment | user=%s plan=%s amount_halalas=%s',
-        user.id, plan.id, amount_halalas,
+        'Initiating Moyasar payment | user=%s plan=%s amount_halalas=%s attempt_max=%s',
+        user.id, plan.id, amount_halalas, _RETRY_TOTAL + 1,
     )
 
     try:
-        response = requests.post(
+        # retry_post=True is safe here because of the Idempotency-Key header.
+        # Moyasar returns the same payment object for the same key on retries.
+        response = _session(retry_post=True).post(
             f'{settings.MOYASAR_BASE_URL}/payments',
             json=payload,
             auth=_auth(),
-            timeout=10,
+            timeout=_REQUEST_TIMEOUT,
+            headers={'Idempotency-Key': str(payment_record.id)},
         )
         logger.info(
             'Moyasar initiate response | http_status=%s body=%.500s',
@@ -113,15 +175,19 @@ def initiate_payment(user, plan: SubscriptionPlan) -> str:
         )
         response.raise_for_status()
         data = response.json()
+
     except requests.exceptions.Timeout:
         payment_record.delete()
-        raise MoyasarError('Moyasar API timed out after 10 seconds')
+        raise MoyasarError(
+            f'Moyasar API timed out after {_REQUEST_TIMEOUT}s '
+            f'(tried {_RETRY_TOTAL + 1} time(s))'
+        )
     except requests.exceptions.RequestException as exc:
         payment_record.delete()
-        raise MoyasarError(f'Moyasar API request failed: {exc}')
+        raise MoyasarError(f'Moyasar API request failed after retries: {exc}')
 
-    moyasar_id = data.get('id')
-    # Card payments return the hosted page URL under source.transaction_url
+    moyasar_id  = data.get('id')
+    # Card payments return the hosted-page redirect URL under source.transaction_url
     payment_url = (
         data.get('source', {}).get('transaction_url')
         or data.get('url')
@@ -158,6 +224,7 @@ def handle_callback(moyasar_payment_id: str) -> str:
     Returns:
         'paid'      — payment verified, subscription activated.
         'failed'    — payment failed, cancelled, or amount mismatch.
+        'refunded'  — payment was refunded; PaymentRecord marked REFUNDED.
         'initiated' — payment still pending (no action taken).
 
     Raises:
@@ -168,9 +235,9 @@ def handle_callback(moyasar_payment_id: str) -> str:
 
     logger.info('Handling callback | moyasar_payment_id=%s', moyasar_payment_id)
 
-    moyasar_data = verify_payment(moyasar_payment_id)
+    moyasar_data   = verify_payment(moyasar_payment_id)
     moyasar_status = moyasar_data.get('status', '').lower()
-    moyasar_amount = moyasar_data.get('amount')  # halalas
+    moyasar_amount = moyasar_data.get('amount')   # in halalas
 
     logger.info(
         'Moyasar verified | payment_id=%s status=%s amount_halalas=%s',
@@ -189,16 +256,19 @@ def handle_callback(moyasar_payment_id: str) -> str:
             logger.error('No PaymentRecord found | moyasar_payment_id=%s', moyasar_payment_id)
             raise ValueError(f'PaymentRecord not found for Moyasar ID: {moyasar_payment_id}')
 
-        # Idempotency: callback already processed successfully
+        # Idempotency: already in a terminal state — skip processing
         if record.status == PaymentRecord.Status.PAID:
-            logger.info('Callback already processed, skipping | payment_id=%s', moyasar_payment_id)
+            logger.info('Payment already PAID, skipping | payment_id=%s', moyasar_payment_id)
             return 'paid'
+        if record.status == PaymentRecord.Status.REFUNDED:
+            logger.info('Payment already REFUNDED, skipping | payment_id=%s', moyasar_payment_id)
+            return 'refunded'
 
         # Amount integrity check (local SAR × 100 must match Moyasar halalas)
         expected_halalas = int(record.amount * 100)
         if moyasar_amount != expected_halalas:
             logger.warning(
-                'Amount mismatch — NOT activating | expected_halalas=%s moyasar_halalas=%s payment_id=%s',
+                'Amount mismatch — NOT activating | expected=%s moyasar=%s payment_id=%s',
                 expected_halalas, moyasar_amount, moyasar_payment_id,
             )
             record.status = PaymentRecord.Status.FAILED
@@ -209,11 +279,19 @@ def handle_callback(moyasar_payment_id: str) -> str:
             record.status = PaymentRecord.Status.PAID
             record.save(update_fields=['status', 'updated_at'])
             activate_subscription(record.user, record.plan)
-            logger.info(
-                'Subscription activated | user=%s plan=%s',
-                record.user.id, record.plan.id,
-            )
+            logger.info('Subscription activated | user=%s plan=%s', record.user.id, record.plan.id)
             return 'paid'
+
+        if moyasar_status == 'refunded':
+            record.status = PaymentRecord.Status.REFUNDED
+            record.save(update_fields=['status', 'updated_at'])
+            logger.info(
+                'Payment refunded by Moyasar | user=%s payment_id=%s',
+                record.user.id, moyasar_payment_id,
+            )
+            # Subscription is intentionally left active after a refund.
+            # Deactivating it is a business decision for manual or admin action.
+            return 'refunded'
 
         if moyasar_status in ('failed', 'cancelled'):
             record.status = PaymentRecord.Status.FAILED
@@ -228,23 +306,37 @@ def verify_payment(moyasar_payment_id: str) -> dict:
     """
     Fetch the raw payment object from the Moyasar API.
 
+    GET is idempotent, so the session is configured to retry automatically
+    on transient errors (5xx, 429, connection failures) with exponential backoff.
+
     Used internally by handle_callback and available for manual verification.
 
     Returns:
         The full Moyasar payment dict (amounts are in halalas).
 
     Raises:
-        MoyasarError: if the request times out or the HTTP call fails.
+        MoyasarError: if all retries are exhausted or the request fails.
     """
     url = f'{settings.MOYASAR_BASE_URL}/payments/{moyasar_payment_id}'
-    logger.info('Verifying payment | moyasar_payment_id=%s', moyasar_payment_id)
+    logger.info(
+        'Verifying payment | moyasar_payment_id=%s attempt_max=%s',
+        moyasar_payment_id, _RETRY_TOTAL + 1,
+    )
 
     try:
-        response = requests.get(url, auth=_auth(), timeout=10)
+        response = _session(retry_post=False).get(
+            url,
+            auth=_auth(),
+            timeout=_REQUEST_TIMEOUT,
+        )
         logger.info('Moyasar verify response | http_status=%s', response.status_code)
         response.raise_for_status()
         return response.json()
+
     except requests.exceptions.Timeout:
-        raise MoyasarError('Moyasar API timed out after 10 seconds')
+        raise MoyasarError(
+            f'Moyasar API timed out after {_REQUEST_TIMEOUT}s '
+            f'(tried {_RETRY_TOTAL + 1} time(s))'
+        )
     except requests.exceptions.RequestException as exc:
-        raise MoyasarError(f'Moyasar API request failed: {exc}')
+        raise MoyasarError(f'Moyasar API request failed after retries: {exc}')

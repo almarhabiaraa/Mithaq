@@ -1,0 +1,91 @@
+{% extends "core/dashboard_base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+  :root {
+    --navy:#1B2A4A; --gold:#C9A84C; --gold-light:#E8C97A;
+    --off-white:#F8F7F4; --border:#E5E7EB;
+    --text-dark:#1C1C1C; --text-grey:#6B7280;
+    --success:#16A34A; --success-bg:#DCFCE7;
+    --error:#C0392B; --error-bg:#FEE2E2;
+  }
+  @keyframes bounce-in {
+    0%   { transform:scale(0); opacity:0; }
+    60%  { transform:scale(1.15); opacity:1; }
+    80%  { transform:scale(.95); }
+    100% { transform:scale(1); }
+  }
+  .success-icon { animation:bounce-in .55s cubic-bezier(.17,.67,.35,1.2) forwards; }
+  .btn-gold    { background:var(--gold); color:var(--navy); border-radius:8px; padding:12px 24px; font-weight:800; font-size:15px; border:none; cursor:pointer; transition:opacity .15s; font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
+  .btn-gold:hover { opacity:.88; }
+  .btn-outlined{ background:#fff; border:2px solid var(--navy); color:var(--navy); border-radius:8px; padding:12px 24px; font-weight:800; font-size:15px; cursor:pointer; transition:background .15s; font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
+  .btn-outlined:hover { background:var(--navy); color:#fff; }
+  .detail-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--success-bg); font-size:14px; }
+  .detail-row:last-child { border-bottom:none; }
+</style>
+
+<div style="display:flex; justify-content:center; padding:20px 0;">
+  <div style="width:100%; max-width:560px;">
+
+    <div style="background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.08); padding:48px 36px; text-align:center;">
+
+      <!-- Animated checkmark -->
+      <div class="success-icon" style="width:80px; height:80px; border-radius:50%; background:var(--success-bg); display:flex; align-items:center; justify-content:center; margin:0 auto 24px;">
+        <svg width="40" height="40" fill="none" stroke="var(--success)" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+
+      <h1 style="font-size:26px; font-weight:800; color:var(--navy); margin:0 0 8px;">
+        تم الدفع بنجاح! 🎉
+      </h1>
+      <p style="font-size:15px; color:var(--text-grey); margin:0 0 32px;">
+        اشتراكك الآن نشط ويمكنك البدء فوراً
+      </p>
+
+      <!-- Details card -->
+      <div style="background:var(--success-bg); border-radius:10px; padding:20px 24px; margin-bottom:32px; text-align:right;">
+        <div class="detail-row">
+          <span style="font-weight:700; color:var(--text-dark);">{{ subscription.plan.name_ar }}</span>
+          <span style="color:var(--text-grey);">الباقة</span>
+        </div>
+        <div class="detail-row">
+          <span style="font-weight:700; color:var(--text-dark);">{{ payment.amount }} ر.س</span>
+          <span style="color:var(--text-grey);">المبلغ</span>
+        </div>
+        <div class="detail-row">
+          <span style="font-weight:700; color:var(--text-dark);">
+            {% if subscription.expires_at %}
+              {{ subscription.expires_at|date:"d F Y" }}
+            {% else %}
+              لا تنتهي
+            {% endif %}
+          </span>
+          <span style="color:var(--text-grey);">تاريخ التجديد</span>
+        </div>
+        <div class="detail-row">
+          <span style="font-weight:700; color:var(--text-dark); font-family:monospace; font-size:12px;">
+            {{ payment.moyasar_payment_id }}
+          </span>
+          <span style="color:var(--text-grey);">رقم المرجع</span>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center;">
+        <a href="/contracts/create/" class="btn-gold">
+          إنشاء عقد الآن
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </a>
+        <a href="/dashboard/" class="btn-outlined">
+          لوحة التحكم
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

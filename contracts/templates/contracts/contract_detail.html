@@ -1,0 +1,674 @@
+{% extends 'contracts/base.html' %}
+{% block title %}{{ contract.title_ar }} — ميثاق{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: var(--color-primary);
+        padding: 1.5rem 0;
+        margin-bottom: 2rem;
+    }
+    .page-header h1 { color: #fff; font-size: 1.375rem; font-weight: 700; }
+    .page-header p  { color: rgba(255,255,255,0.55); font-size: 0.8rem; margin-top: 4px; }
+
+    .section-title {
+        font-size: 0.95rem; font-weight: 700;
+        color: var(--color-text-primary);
+        margin-bottom: 1rem;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::before {
+        content: ''; width: 4px; height: 18px;
+        background: var(--color-secondary);
+        border-radius: 4px; display: block;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 1.25rem;
+        align-items: start;
+    }
+    @media (max-width: 768px) {
+        .detail-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Contract summary ── */
+    .summary-row {
+        display: flex; gap: 8px;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid var(--color-border);
+        font-size: 0.875rem;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label {
+        color: var(--color-text-muted);
+        font-weight: 600;
+        width: 120px;
+        flex-shrink: 0;
+    }
+    .summary-value { color: var(--color-text-primary); }
+
+    /* ── Clause ── */
+    .clause-card {
+        background: var(--color-surface-soft);
+        border: 1.5px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        transition: border-color 0.2s;
+    }
+    .clause-num {
+        width: 26px; height: 26px;
+        background: var(--color-primary);
+        color: var(--color-secondary);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; font-weight: 700; flex-shrink: 0;
+    }
+    .clause-type-badge {
+        font-size: 0.7rem; padding: 2px 10px;
+        border-radius: 12px;
+        background: var(--color-border);
+        color: var(--color-text-secondary);
+        font-weight: 600;
+    }
+    .clause-action-btn {
+        background: none; border: none;
+        font-size: 0.75rem;
+        cursor: pointer; font-family: 'Cairo', sans-serif;
+        font-weight: 600; padding: 3px 8px;
+        border-radius: 6px; transition: background 0.2s;
+    }
+    .clause-edit  { color: var(--color-secondary); }
+    .clause-edit:hover  { background: var(--color-secondary-light); }
+    .clause-delete-btn { color: var(--color-danger); }
+    .clause-delete-btn:hover { background: var(--color-danger-background); }
+
+    /* ── Party row ── */
+    .party-row {
+        display: flex; align-items: center; gap: 10px;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+    .party-row:last-child { border-bottom: none; }
+    .party-avatar {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: var(--color-primary);
+        color: var(--color-secondary);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+    }
+    .party-name { font-size: 0.875rem; font-weight: 600; color: var(--color-text-primary); }
+    .party-role { font-size: 0.72rem; color: var(--color-text-muted); }
+
+    /* ── Action bar ── */
+    .action-bar {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        padding: 1.25rem;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1.25rem;
+    }
+    .action-bar-title {
+        font-size: 0.75rem; font-weight: 700;
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1rem;
+    }
+    .action-btn {
+        width: 100%; justify-content: center;
+        margin-bottom: 0.625rem;
+        display: flex;
+    }
+    .action-btn:last-child { margin-bottom: 0; }
+
+    /* ── Status badge ── */
+    .status-badge {
+        display: inline-flex; align-items: center;
+        padding: 5px 14px; border-radius: 20px;
+        font-size: 0.8rem; font-weight: 700;
+    }
+    .status-draft     { background: #FEF3C7; color: #92400E; }
+    .status-pending   { background: #DBEAFE; color: #1E40AF; }
+    .status-signed    { background: var(--color-success-background); color: var(--color-success); }
+    .status-completed { background: #D1FAE5; color: #065F46; }
+    .status-cancelled { background: var(--color-danger-background); color: var(--color-danger); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(6,29,59,0.6);
+        display: none; align-items: center; justify-content: center;
+        z-index: 200;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+        background: var(--color-surface);
+        border-radius: var(--radius-md);
+        padding: 1.75rem;
+        max-width: 520px; width: 90%;
+        box-shadow: var(--shadow-lg);
+    }
+    .modal h3 { font-size: 1.1rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 0.5rem; }
+    .modal p  { font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 1rem; }
+    .hash-box {
+        background: var(--color-surface-soft);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem 1rem; margin-bottom: 1rem;
+    }
+    .hash-label { font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 4px; }
+    .hash-value {
+        font-family: monospace; font-size: 0.75rem;
+        color: var(--color-text-primary);
+        word-break: break-all; line-height: 1.6;
+    }
+    .agree-label {
+        display: flex; align-items: flex-start; gap: 10px;
+        cursor: pointer; margin-bottom: 1.25rem;
+        font-size: 0.875rem; color: var(--color-text-primary);
+    }
+    .agree-label input { margin-top: 3px; accent-color: var(--color-secondary); }
+    textarea.input { resize: vertical; min-height: 80px; }
+
+    .info-row {
+        display: flex; justify-content: space-between;
+        font-size: 0.8rem; padding: 5px 0;
+        border-bottom: 1px solid var(--color-border);
+        color: var(--color-text-secondary);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row span:last-child { font-weight: 600; color: var(--color-text-primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="page-header">
+    <div class="container">
+        <a href="/contracts/dashboard/"
+           style="color:rgba(255,255,255,0.45);font-size:0.78rem;text-decoration:none;display:block;margin-bottom:8px;">
+            ← العقود
+        </a>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+                <h1>{{ contract.title_ar }}</h1>
+                {% if contract.title_en %}
+                <p>{{ contract.title_en }}</p>
+                {% endif %}
+            </div>
+            <span class="status-badge
+                {% if contract.status == 'DRAFT' %}status-draft
+                {% elif contract.status == 'PENDING_SIGNATURES' %}status-pending
+                {% elif contract.status == 'SIGNED' %}status-signed
+                {% elif contract.status == 'COMPLETED' %}status-completed
+                {% elif contract.status == 'CANCELLED' %}status-cancelled{% endif %}">
+                {% if contract.status == 'DRAFT' %}📝 مسودة
+                {% elif contract.status == 'PENDING_SIGNATURES' %}✍ بانتظار التوقيعات
+                {% elif contract.status == 'SIGNED' %}✅ موقّع
+                {% elif contract.status == 'COMPLETED' %}🏁 مكتمل
+                {% elif contract.status == 'CANCELLED' %}❌ ملغي{% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="detail-grid">
+
+        <!-- ── العمود الرئيسي ── -->
+        <div>
+
+            <!-- ملخص العقد -->
+            <div class="card" style="margin-bottom:1.25rem;">
+                <div class="section-title">ملخص العقد</div>
+
+                <div class="summary-row">
+                    <span class="summary-label">رقم العقد</span>
+                    <span class="summary-value" style="font-family:monospace;font-size:0.8rem;color:var(--color-text-muted);">
+                        #{{ contract.id|slice:":8"|upper }}
+                    </span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">عنوان العقد</span>
+                    <span class="summary-value">{{ contract.title_ar }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">ملخص العقد</span>
+                    <span class="summary-value">
+                        {{ contract.description_ar|default:"لا يوجد وصف" }}
+                    </span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">الحالة</span>
+                    <span class="summary-value">
+                        {% if contract.status == 'DRAFT' %}مسودة
+                        {% elif contract.status == 'PENDING_SIGNATURES' %}بانتظار التوقيعات
+                        {% elif contract.status == 'SIGNED' %}موقّع
+                        {% elif contract.status == 'COMPLETED' %}مكتمل
+                        {% elif contract.status == 'CANCELLED' %}ملغي{% endif %}
+                    </span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">النسخة</span>
+                    <span class="summary-value">v{{ contract.current_version.version_number }}</span>
+                </div>
+            </div>
+
+            <!-- بنود العقد -->
+            <div class="card" style="margin-bottom:1.25rem;">
+                <div class="section-title">بنود العقد</div>
+
+                {% for clause in contract.current_version.clauses.all %}
+                <div class="clause-card" id="clause-view-{{ clause.id }}">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                        <div class="clause-num">{{ forloop.counter }}</div>
+                        <span class="clause-type-badge">{{ clause.get_clause_type_display }}</span>
+                        {% if contract.status == 'DRAFT' %}
+                        <div style="margin-right:auto;display:flex;gap:4px;">
+                            <button class="clause-action-btn clause-edit"
+                                    onclick="openEditClause('{{ clause.id }}', `{{ clause.content_ar }}`, '{{ clause.clause_type }}')">
+                                تعديل
+                            </button>
+                            <button class="clause-action-btn clause-delete-btn"
+                                    onclick="deleteClause('{{ clause.id }}')">
+                                حذف
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <p style="font-size:0.875rem;color:var(--color-text-primary);line-height:1.7;">
+                        {{ clause.content_ar }}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <!-- ── السايدبار ── -->
+        <div>
+
+            <!-- الإجراءات المتاحة -->
+            {% if contract.status != 'CANCELLED' and contract.status != 'COMPLETED' %}
+            <div class="action-bar">
+                <div class="action-bar-title">الإجراءات المتاحة</div>
+
+                {% if contract.status == 'DRAFT' %}
+
+                    {% if user_party.role == 'CREATOR' %}
+                        <!-- المنشئ: وافق بالفعل -->
+                        <div class="action-btn"
+                             style="background:var(--color-success-background);border:1px solid #b7e4c7;
+                                    border-radius:var(--radius-sm);padding:0.625rem;text-align:center;
+                                    font-size:0.875rem;color:var(--color-success);font-weight:600;">
+                            ✓ وافقت على العقد
+                        </div>
+
+                    {% else %}
+                        <!-- الأطراف الأخرى -->
+                        {% if user_party.approval_status == 'PENDING' %}
+                        <button class="btn btn-primary action-btn"
+                                onclick="approveContract()">
+                            ✓ موافقة على العقد
+                        </button>
+                        <button class="btn btn-outline action-btn"
+                                onclick="openEditClauseFromParty()"
+                                style="color:var(--color-text-secondary);">
+                            ✏ اقتراح تعديل على بند
+                        </button>
+                        <button class="btn btn-danger action-btn"
+                                onclick="rejectContract()">
+                            ✗ رفض العقد
+                        </button>
+                        {% else %}
+                        <div class="action-btn"
+                             style="background:var(--color-success-background);border:1px solid #b7e4c7;
+                                    border-radius:var(--radius-sm);padding:0.625rem;text-align:center;
+                                    font-size:0.875rem;color:var(--color-success);font-weight:600;">
+                            ✓ وافقت على العقد
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                {% endif %}
+
+                {% if contract.status == 'PENDING_SIGNATURES' %}
+                    {% if not user_signed %}
+                    <button class="btn btn-primary action-btn"
+                            onclick="openSignModal()">
+                        ✍ توقيع العقد
+                    </button>
+                    {% else %}
+                    <div class="action-btn"
+                         style="background:var(--color-success-background);border:1px solid #b7e4c7;
+                                border-radius:var(--radius-sm);padding:0.625rem;text-align:center;
+                                font-size:0.875rem;color:var(--color-success);font-weight:600;">
+                        ✓ وقّعت على العقد
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+                <!-- حذف العقد — للمنشئ فقط في DRAFT -->
+                {% if contract.status == 'DRAFT' and user_party.role == 'CREATOR' %}
+                <button class="btn btn-danger action-btn"
+                        style="margin-top:0.5rem;"
+                        onclick="cancelContract()">
+                    🗑 حذف العقد
+                </button>
+                {% endif %}
+
+            </div>
+            {% endif %}
+
+            <!-- الأطراف -->
+            <div class="card" style="margin-bottom:1.25rem;">
+                <div class="section-title">الأطراف</div>
+                {% for party in contract.parties.all %}
+                <div class="party-row">
+                    <div class="party-avatar">{{ party.user.first_name|first }}</div>
+                    <div style="flex:1;">
+                        <div class="party-name">{{ party.user.full_name }}</div>
+                        <div class="party-role">
+                            {% if party.role == 'CREATOR' %}منشئ العقد{% else %}طرف{% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        {% if party.approval_status == 'APPROVED' %}
+                        <span style="font-size:0.72rem;color:var(--color-success);font-weight:700;">✓ وافق</span>
+                        {% else %}
+                        <span style="font-size:0.72rem;color:var(--color-text-muted);">⏳ بانتظار</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- التوقيعات -->
+            {% if contract.signatures.exists %}
+            <div class="card" style="margin-bottom:1.25rem;">
+                <div class="section-title">التوقيعات</div>
+                {% for sig in contract.signatures.all %}
+                <div class="party-row">
+                    <div class="party-avatar"
+                         style="background:var(--color-success-background);color:var(--color-success);">✓</div>
+                    <div style="flex:1;">
+                        <div class="party-name">{{ sig.signer.full_name }}</div>
+                        <div class="party-role">{{ sig.signed_at|date:"d/m/Y — H:i" }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- معلومات العقد -->
+            <div class="card">
+                <div class="section-title">معلومات</div>
+                <div class="info-row">
+                    <span>تاريخ الإنشاء</span>
+                    <span>{{ contract.created_at|date:"d/m/Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span>عدد البنود</span>
+                    <span>{{ contract.current_version.clauses.count }}</span>
+                </div>
+                <div class="info-row">
+                    <span>عدد الأطراف</span>
+                    <span>{{ contract.parties.count }}</span>
+                </div>
+                {% if contract.canonical_hash %}
+                <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--color-border);">
+                    <div style="font-size:0.72rem;color:var(--color-text-muted);margin-bottom:4px;">Hash</div>
+                    <div style="font-family:monospace;font-size:0.68rem;
+                                word-break:break-all;color:var(--color-text-primary);">
+                        {{ contract.canonical_hash }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal: تعديل بند -->
+<div class="modal-overlay" id="edit-clause-modal">
+    <div class="modal">
+        <h3>تعديل البند</h3>
+        <p>التعديل سيُنشئ نسخة جديدة وتُعاد موافقات الأطراف</p>
+        <input type="hidden" id="edit-clause-id">
+        <div style="margin-bottom:1rem;">
+            <label class="label">نوع البند</label>
+            <select id="edit-clause-type" class="input">
+                <option value="GENERAL">عام</option>
+                <option value="PAYMENT">دفع</option>
+                <option value="DELIVERY">تسليم</option>
+                <option value="PENALTY">غرامة</option>
+                <option value="CUSTOM">مخصص</option>
+            </select>
+        </div>
+        <div style="margin-bottom:1.25rem;">
+            <label class="label">نص البند</label>
+            <textarea id="edit-clause-content" class="input" rows="4"></textarea>
+        </div>
+        <div style="display:flex;gap:0.75rem;">
+            <button class="btn btn-outline" style="flex:1;justify-content:center;"
+                    onclick="closeModal('edit-clause-modal')">إلغاء</button>
+            <button class="btn btn-primary" style="flex:1;justify-content:center;"
+                    onclick="saveClauseEdit()">حفظ التعديل</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: التوقيع -->
+<div class="modal-overlay" id="sign-modal">
+    <div class="modal">
+        <h3>تأكيد التوقيع على العقد</h3>
+        <p>بتوقيعك أنت توافق على جميع بنود العقد وتلتزم بها.</p>
+        <div class="hash-box">
+            <div class="hash-label">رمز تحقق العقد (SHA-256)</div>
+            <div class="hash-value">{{ contract.canonical_hash }}</div>
+        </div>
+        <label class="agree-label">
+            <input type="checkbox" id="agree-checkbox">
+            <span>قرأت جميع بنود العقد وأوافق عليها وأتحمل كامل المسؤولية القانونية</span>
+        </label>
+        <div style="display:flex;gap:0.75rem;">
+            <button class="btn btn-outline" style="flex:1;justify-content:center;"
+                    onclick="closeModal('sign-modal')">إلغاء</button>
+            <button class="btn btn-primary" style="flex:1;justify-content:center;"
+                    onclick="signContract()">✍ توقيع الآن</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: رفض العقد -->
+<div class="modal-overlay" id="reject-modal">
+    <div class="modal">
+        <h3>رفض العقد</h3>
+        <p>سيتم إلغاء العقد وإشعار جميع الأطراف.</p>
+        <div style="margin-bottom:1.25rem;">
+            <label class="label">سبب الرفض</label>
+            <textarea id="reject-reason" class="input" rows="3"
+                      placeholder="اذكر سبب رفضك للعقد..."></textarea>
+        </div>
+        <div style="display:flex;gap:0.75rem;">
+            <button class="btn btn-outline" style="flex:1;justify-content:center;"
+                    onclick="closeModal('reject-modal')">إلغاء</button>
+            <button class="btn btn-danger" style="flex:1;justify-content:center;"
+                    onclick="confirmReject()">تأكيد الرفض</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const CONTRACT_ID    = '{{ contract.id }}';
+const CANONICAL_HASH = '{{ contract.canonical_hash }}';
+
+// ── Modals ─────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+        if (e.target === overlay) overlay.classList.remove('open');
+    });
+});
+
+// ── Edit Clause ────────────────────────────────────────
+function openEditClause(clauseId, content, type) {
+    document.getElementById('edit-clause-id').value      = clauseId;
+    document.getElementById('edit-clause-content').value = content;
+    document.getElementById('edit-clause-type').value    = type;
+    openModal('edit-clause-modal');
+}
+
+function openEditClauseFromParty() {
+    // يفتح أول بند للتعديل — الطرف يختار
+    const firstClause = document.querySelector('[id^="clause-view-"]');
+    if (firstClause) {
+        const clauseId = firstClause.id.replace('clause-view-', '');
+        const content  = firstClause.querySelector('p').textContent.trim();
+        const type     = 'GENERAL';
+        openEditClause(clauseId, content, type);
+    }
+}
+
+async function saveClauseEdit() {
+    const clauseId = document.getElementById('edit-clause-id').value;
+    const content  = document.getElementById('edit-clause-content').value.trim();
+    const type     = document.getElementById('edit-clause-type').value;
+
+    if (!content) { alert('نص البند مطلوب'); return; }
+
+    const clauses = getCurrentClauses();
+    const updated = clauses.map(c =>
+        c.id === clauseId ? { ...c, content_ar: content, clause_type: type } : c
+    );
+
+    await updateVersion(updated);
+    closeModal('edit-clause-modal');
+}
+
+// ── Delete Clause ──────────────────────────────────────
+async function deleteClause(clauseId) {
+    if (!confirm('هل أنت متأكد من حذف هذا البند؟')) return;
+
+    const clauses = getCurrentClauses().filter(c => c.id !== clauseId);
+    if (clauses.length === 0) {
+        alert('لا يمكن حذف جميع البنود — يجب أن يبقى بند واحد على الأقل');
+        return;
+    }
+
+    await updateVersion(clauses);
+}
+
+function getCurrentClauses() {
+    return Array.from(document.querySelectorAll('[id^="clause-view-"]')).map((el, i) => ({
+        id:          el.id.replace('clause-view-', ''),
+        content_ar:  el.querySelector('p').textContent.trim(),
+        clause_type: el.querySelector('.clause-type-badge').textContent.trim() === 'عام'   ? 'GENERAL'  :
+                     el.querySelector('.clause-type-badge').textContent.trim() === 'دفع'   ? 'PAYMENT'  :
+                     el.querySelector('.clause-type-badge').textContent.trim() === 'تسليم' ? 'DELIVERY' :
+                     el.querySelector('.clause-type-badge').textContent.trim() === 'غرامة' ? 'PENALTY'  : 'CUSTOM',
+        order_index: i + 1,
+    }));
+}
+
+async function updateVersion(clauses) {
+    const res = await fetch(`/api/contracts/${CONTRACT_ID}/versions/`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body:    JSON.stringify({ clauses }),
+    });
+
+    if (res.ok) {
+        location.reload();
+    } else {
+        const data = await res.json();
+        alert('خطأ: ' + JSON.stringify(data));
+    }
+}
+
+// ── Approve ────────────────────────────────────────────
+async function approveContract() {
+    if (!confirm('هل تريد الموافقة على هذا العقد؟')) return;
+
+    const res = await fetch(`/api/contracts/${CONTRACT_ID}/approve/`, {
+        method:  'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' },
+    });
+
+    if (res.ok) { location.reload(); }
+    else {
+        const data = await res.json();
+        alert('خطأ: ' + JSON.stringify(data));
+    }
+}
+
+// ── Reject ─────────────────────────────────────────────
+function rejectContract() { openModal('reject-modal'); }
+
+async function confirmReject() {
+    const reason = document.getElementById('reject-reason').value.trim();
+    if (!reason) { alert('سبب الرفض مطلوب'); return; }
+
+    const res = await fetch(`/api/contracts/${CONTRACT_ID}/cancel/`, {
+        method:  'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ reason }),
+    });
+
+    if (res.ok) { location.reload(); }
+    else {
+        const data = await res.json();
+        alert('خطأ: ' + JSON.stringify(data));
+    }
+}
+
+// ── Sign ───────────────────────────────────────────────
+function openSignModal() { openModal('sign-modal'); }
+
+async function signContract() {
+    if (!document.getElementById('agree-checkbox').checked) {
+        alert('يجب الموافقة على البنود أولاً');
+        return;
+    }
+
+    const res = await fetch(`/api/contracts/${CONTRACT_ID}/sign/`, {
+        method:  'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ hash: CANONICAL_HASH }),
+    });
+
+    if (res.ok) { closeModal('sign-modal'); location.reload(); }
+    else {
+        const data = await res.json();
+        alert('خطأ: ' + JSON.stringify(data));
+    }
+}
+
+// ── Cancel ─────────────────────────────────────────────
+async function cancelContract() {
+    if (!confirm('هل أنت متأكد من حذف العقد؟ لا يمكن التراجع.')) return;
+
+    const res = await fetch(`/api/contracts/${CONTRACT_ID}/cancel/`, {
+        method:  'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' },
+    });
+
+    if (res.ok) { window.location.href = '/contracts/dashboard/'; }
+    else {
+        const data = await res.json();
+        alert('خطأ: ' + JSON.stringify(data));
+    }
+}
+</script>
+{% endblock %}

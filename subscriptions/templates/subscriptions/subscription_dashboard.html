@@ -1,0 +1,247 @@
+{% extends "core/dashboard_base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+  :root {
+    --navy:#1B2A4A; --gold:#C9A84C; --gold-light:#E8C97A;
+    --off-white:#F8F7F4; --border:#E5E7EB;
+    --text-dark:#1C1C1C; --text-grey:#6B7280;
+    --success:#16A34A; --success-bg:#DCFCE7;
+    --error:#C0392B; --error-bg:#FEE2E2;
+  }
+  .card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.08); padding:28px; }
+  .badge { display:inline-block; font-size:12px; font-weight:700; border-radius:20px; padding:4px 14px; }
+  .badge-green  { background:var(--success-bg); color:var(--success); }
+  .badge-red    { background:var(--error-bg);    color:var(--error);   }
+  .badge-grey   { background:#E5E7EB;            color:var(--text-grey);}
+  .badge-yellow { background:#FEF3C7;            color:#92400E;        }
+  .progress-bar-wrap { background:#E5E7EB; border-radius:20px; height:8px; overflow:hidden; margin:8px 0; }
+  .progress-bar-fill { height:100%; background:var(--navy); border-radius:20px; transition:width .4s; }
+  .table-row:hover { background:#F9FAFB; }
+  .btn-outlined { background:#fff; border:1.5px solid var(--navy); color:var(--navy); border-radius:8px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer; transition:background .15s; font-family:inherit; }
+  .btn-outlined:hover { background:var(--navy); color:#fff; }
+  .btn-icon { background:#F9FAFB; border:1px solid var(--border); border-radius:6px; padding:6px 10px; cursor:pointer; transition:background .15s; }
+  .btn-icon:hover { background:#E5E7EB; }
+  .section-title { font-size:18px; font-weight:800; color:var(--navy); margin:0; }
+  .feature-item { display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:14px; }
+  .check-icon { flex-shrink:0; width:18px; height:18px; background:var(--success-bg); border-radius:50%; display:flex; align-items:center; justify-content:center; }
+</style>
+
+<!-- Breadcrumb -->
+<nav style="font-size:13px; color:var(--text-grey); margin-bottom:24px;">
+  <a href="/" style="color:var(--text-grey); text-decoration:none;">الرئيسية</a>
+  <span style="margin:0 8px;">←</span>
+  <span style="color:var(--navy); font-weight:600;">الاشتراكات</span>
+</nav>
+
+<!-- Page header -->
+<div style="margin-bottom:28px;">
+  <h1 style="font-size:26px; font-weight:800; color:var(--navy); margin:0 0 6px;">الاشتراكات</h1>
+  <p style="font-size:14px; color:var(--text-grey); margin:0;">إدارة اشتراكاتك الحالية وتفاصيل الفواتير</p>
+</div>
+
+<!-- Section 1 — Current Subscription -->
+{% if subscription %}
+<div class="card" style="margin-bottom:28px;">
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px;">
+
+    <!-- Right column -->
+    <div>
+      <!-- Status badge -->
+      {% if subscription.status == 'ACTIVE' %}
+        <span class="badge badge-green">نشط</span>
+      {% elif subscription.status == 'EXPIRED' %}
+        <span class="badge badge-red">منتهي</span>
+      {% else %}
+        <span class="badge badge-grey">ملغى</span>
+      {% endif %}
+
+      <h2 style="font-size:24px; font-weight:800; color:var(--navy); margin:12px 0 4px;">
+        {{ subscription.plan.name_ar }}
+      </h2>
+      <p style="font-size:15px; color:var(--text-grey); margin:0 0 20px;">
+        {{ subscription.plan.price }} ر.س / شهرياً
+      </p>
+
+      <!-- Renewal date -->
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:14px; color:var(--text-dark);">
+        <svg width="16" height="16" fill="none" stroke="var(--gold)" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <span>تجدد في:
+          {% if subscription.expires_at %}
+            {{ subscription.expires_at|date:"d F Y" }}
+          {% else %}
+            لا تنتهي
+          {% endif %}
+        </span>
+      </div>
+
+      <!-- Payment method -->
+      {% if last_payment %}
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px; font-size:14px; color:var(--text-dark);">
+        <svg width="16" height="16" fill="none" stroke="var(--gold)" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+        </svg>
+        <span>طريقة الدفع: {{ last_payment.payment_method|default:"—" }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Contracts usage -->
+      <div style="margin-bottom:24px;">
+        <p style="font-size:13px; font-weight:600; color:var(--text-grey); margin:0 0 6px;">العقود المستخدمة</p>
+        <div class="progress-bar-wrap">
+          {% if subscription.plan.contract_limit == -1 %}
+            <div class="progress-bar-fill" style="width:20%;"></div>
+          {% else %}
+            <div class="progress-bar-fill"
+                 style="width:{% widthratio subscription.contracts_used subscription.plan.contract_limit 100 %}%;"></div>
+          {% endif %}
+        </div>
+        <p style="font-size:13px; color:var(--text-dark); margin:4px 0 0;">
+          {{ subscription.contracts_used }}
+          من
+          {% if subscription.plan.contract_limit == -1 %}غير محدود{% else %}{{ subscription.plan.contract_limit }}{% endif %}
+          عقد
+        </p>
+      </div>
+
+      <a href="/api/subscriptions/plans-page/" class="btn-outlined" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        إدارة الاشتراك
+      </a>
+    </div>
+
+    <!-- Left column — features + plan icon -->
+    <div>
+      <div style="display:flex; justify-content:flex-end; margin-bottom:20px;">
+        {% if subscription.plan.plan_type == 'PROFESSIONAL' %}
+        <div style="width:64px; height:64px; border-radius:50%; background:#FEF3C7; display:flex; align-items:center; justify-content:center;">
+          <svg width="32" height="32" fill="none" stroke="var(--gold)" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3l1.5 4.5L12 2l5.5 5.5L19 3l2 6-9 11L2 9l3-6z"/>
+          </svg>
+        </div>
+        {% elif subscription.plan.plan_type == 'ENTERPRISE' %}
+        <div style="width:64px; height:64px; border-radius:50%; background:#EFF6FF; display:flex; align-items:center; justify-content:center;">
+          <svg width="32" height="32" fill="none" stroke="var(--navy)" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+          </svg>
+        </div>
+        {% else %}
+        <div style="width:64px; height:64px; border-radius:50%; background:#F3F4F6; display:flex; align-items:center; justify-content:center;">
+          <svg width="32" height="32" fill="none" stroke="#6B7280" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+        </div>
+        {% endif %}
+      </div>
+
+      <p style="font-size:14px; font-weight:700; color:var(--navy); margin:0 0 14px;">مزايا الباقة</p>
+      <ul style="list-style:none; padding:0; margin:0;">
+        <li class="feature-item"><span class="check-icon"><svg width="10" height="10" fill="none" stroke="var(--success)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>إدارة العقود والمستندات</li>
+        <li class="feature-item"><span class="check-icon"><svg width="10" height="10" fill="none" stroke="var(--success)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>توقيع رقمي موثوق</li>
+        <li class="feature-item"><span class="check-icon"><svg width="10" height="10" fill="none" stroke="var(--success)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>سجل بلوك تشين لا يُعدَّل</li>
+        <li class="feature-item"><span class="check-icon"><svg width="10" height="10" fill="none" stroke="var(--success)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>تنبيهات تلقائية للمواعيد</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+{% endif %}
+
+<!-- Section 2 — Invoice History -->
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h2 class="section-title">سجل الفواتير</h2>
+    <button class="btn-outlined" style="display:flex; align-items:center; gap:6px; font-size:12px; padding:6px 14px;">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+      </svg>
+      تصدير الكل
+    </button>
+  </div>
+
+  {% if payments %}
+  <div style="overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:14px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:right; padding:10px 12px; color:var(--text-grey); font-weight:600; white-space:nowrap;">رقم الفاتورة</th>
+          <th style="text-align:right; padding:10px 12px; color:var(--text-grey); font-weight:600; white-space:nowrap;">التاريخ</th>
+          <th style="text-align:right; padding:10px 12px; color:var(--text-grey); font-weight:600; white-space:nowrap;">المبلغ</th>
+          <th style="text-align:right; padding:10px 12px; color:var(--text-grey); font-weight:600; white-space:nowrap;">طريقة الدفع</th>
+          <th style="text-align:right; padding:10px 12px; color:var(--text-grey); font-weight:600; white-space:nowrap;">الحالة</th>
+          <th style="text-align:right; padding:10px 12px; color:var(--text-grey); font-weight:600;">الإجراء</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payment in payments %}
+        <tr class="table-row" style="border-bottom:1px solid var(--border);">
+          <td style="padding:14px 12px; font-family:monospace; font-size:13px; color:var(--navy); font-weight:700;">
+            INV-{{ payment.id|slice:":8"|upper }}
+          </td>
+          <td style="padding:14px 12px; color:var(--text-dark); white-space:nowrap;">
+            {{ payment.created_at|date:"d F Y" }}
+          </td>
+          <td style="padding:14px 12px; color:var(--text-dark); font-weight:600;">
+            {{ payment.amount }} ر.س
+          </td>
+          <td style="padding:14px 12px; color:var(--text-dark); white-space:nowrap;">
+            <svg width="14" height="14" fill="none" stroke="var(--text-grey)" stroke-width="2" viewBox="0 0 24 24" style="display:inline; margin-left:4px; vertical-align:middle;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+            {{ payment.payment_method|default:"—" }}
+          </td>
+          <td style="padding:14px 12px;">
+            {% if payment.status == 'PAID' %}
+              <span class="badge badge-green">مدفوعة</span>
+            {% elif payment.status == 'FAILED' %}
+              <span class="badge badge-red">فاشلة</span>
+            {% elif payment.status == 'REFUNDED' %}
+              <span class="badge badge-yellow">مُستردة</span>
+            {% else %}
+              <span class="badge badge-grey">معلّقة</span>
+            {% endif %}
+          </td>
+          <td style="padding:14px 12px;">
+            <button class="btn-icon" title="تحميل الفاتورة">
+              <svg width="14" height="14" fill="none" stroke="var(--navy)" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if payments.has_next %}
+  <div style="text-align:center; margin-top:20px;">
+    <button class="btn-outlined">
+      عرض المزيد
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline; margin-right:4px; vertical-align:middle;">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </button>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div style="text-align:center; padding:48px 20px;">
+    <div style="width:56px; height:56px; background:#F3F4F6; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
+      <svg width="26" height="26" fill="none" stroke="var(--text-grey)" stroke-width="1.8" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+    </div>
+    <p style="font-size:15px; font-weight:600; color:var(--text-dark); margin:0 0 4px;">لا توجد فواتير بعد</p>
+    <p style="font-size:13px; color:var(--text-grey); margin:0;">ستظهر فواتيرك هنا بعد إتمام أول عملية دفع</p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

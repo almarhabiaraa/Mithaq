@@ -26,12 +26,15 @@
 
             <nav class="mithaq-menu">
 
-                <a href="{% url 'dashboard:dashboard' %}" class="mithaq-menu-link active">
+                {# لوحة التحكم — main dashboard #}
+                <a href="{% url 'dashboard:dashboard' %}"
+                   class="mithaq-menu-link {% if request.path == '/dashboard/' %}active{% endif %}">
                     <i class="bi bi-grid-1x2"></i>
                     <span>لوحة التحكم</span>
                 </a>
 
-                <a href="#" class="mithaq-menu-link">
+                <a href="/api/contracts/"
+                   class="mithaq-menu-link {% if 'contracts' in request.path %}active{% endif %}">
                     <i class="bi bi-file-earmark-text"></i>
                     <span>العقود</span>
                 </a>
@@ -41,6 +44,7 @@
                     <span>إنشاء عقد</span>
                 </a>
 
+                
                 <a href="#" class="mithaq-menu-link">
                     <i class="bi bi-pen"></i>
                     <span>التوقيعات</span>
@@ -51,12 +55,16 @@
                     <span>الاطراف</span>
                 </a>
 
-                <a href="#" class="mithaq-menu-link">
+                {# (added by ghadi: الاشتراك → subscription dashboard, shows plan + invoice history) #}
+                <a href="{% url 'subscriptions:dashboard' %}"
+                   class="mithaq-menu-link {% if 'subscriptions' in request.path or 'payment' in request.path %}active{% endif %}">
                     <i class="bi bi-gem"></i>
                     <span>الاشتراك</span>
                 </a>
 
-                <a href="#" class="mithaq-menu-link">
+                {# (added by ghadi: التحقق من عقد → public verification page, no login needed) #}
+                <a href="/verify/"
+                   class="mithaq-menu-link {% if 'verify' in request.path %}active{% endif %}">
                     <i class="bi bi-shield-check"></i>
                     <span>التحقق من عقد</span>
                 </a>
@@ -69,7 +77,8 @@
                     {% endif %}
                 </a>
 
-                <a href="#" class="mithaq-menu-link">
+                <a href="{% url 'accounts:profile' %}"
+                   class="mithaq-menu-link {% if 'profile' in request.path %}active{% endif %}">
                     <i class="bi bi-gear"></i>
                     <span>الإعدادات</span>
                 </a>

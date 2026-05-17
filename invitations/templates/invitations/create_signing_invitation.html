@@ -1,0 +1,295 @@
+{% extends "core/dashboard_base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/create_invitations.css' %}">
+
+<div class="contract-parties-page" dir="rtl">
+
+  <div class="breadcrumb-nav">
+    <span>العقود</span>
+    <span class="sep">›</span>
+    <span>إنشاء عقد جديد</span>
+    <span class="sep">›</span>
+    <span class="active-crumb">أطراف العقد</span>
+  </div>
+
+  <div class="page-header">
+    <h1>أطراف العقد</h1>
+    <p>أضف الأطراف المطلوب إرسال طلب التوقيع لهم عبر الرسائل النصية</p>
+  </div>
+
+  <div class="wizard-steps">
+    <div class="wizard-step completed">
+      <div class="step-circle">1</div>
+      <span>تفاصيل العقد</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="wizard-step active">
+      <div class="step-circle">2</div>
+      <span>أطراف العقد</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="wizard-step">
+      <div class="step-circle">3</div>
+      <span>المراجعة والتوقيع</span>
+    </div>
+  </div>
+
+  <form method="post" id="partyForm">
+    {% csrf_token %}
+    <input type="hidden" name="parties_payload" id="partiesPayload">
+
+    <section class="section-card">
+      <div class="section-head row">
+        <div>
+          <h3>الطرف الرئيسي</h3>
+          <p>يتم عرض بيانات منشئ العقد تلقائيًا ولا يمكن حذفها من هذه الصفحة</p>
+        </div>
+      </div>
+
+      <div class="party-row primary-party">
+        <div class="party-label green">الطرف الرئيسي</div>
+
+        <div class="party-main-info">
+          <div class="avatar formal">
+            <span>{{ contract.creator.first_name|slice:":1" }}{{ contract.creator.last_name|slice:":1" }}</span>
+          </div>
+
+          <div class="party-details">
+            <div class="name-row">
+              <h4>{{ contract.creator.full_name }}</h4>
+              <span class="verified-badge">موثق</span>
+            </div>
+
+            <p class="party-type-label">منشئ العقد</p>
+
+            <div class="party-meta">
+              <span class="meta-item">رقم الهوية: {{ contract.creator.national_id }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-info-col">
+          <h5>معلومات التواصل</h5>
+          <div class="contact-item">
+            <span class="mini-label">البريد</span>
+            <span>{{ contract.creator.email }}</span>
+          </div>
+          <div class="contact-item">
+            <span class="mini-label">الجوال</span>
+            <span>{{ contract.creator.mobile }}</span>
+          </div>
+        </div>
+
+        <div class="role-col">
+          <h5>دور الطرف في العقد</h5>
+          <select class="role-select" disabled>
+            <option>الطرف الأول / منشئ العقد</option>
+          </select>
+
+          <div class="permissions-label">الصلاحيات</div>
+          <div class="permissions">
+            <span>إنشاء العقد</span>
+            <span>إضافة الأطراف</span>
+            <span>إرسال للتوقيع</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <div class="section-head row">
+        <div>
+          <h3>الأطراف المطلوب توقيعهم</h3>
+          <p>يجب إضافة طرف واحد على الأقل قبل المتابعة</p>
+        </div>
+
+        <button type="button" class="add-party-btn" id="addPartyBtn">
+          إضافة طرف
+        </button>
+      </div>
+
+      <div id="emptyState" class="empty-state">
+        لم تتم إضافة أي طرف بعد. اضغط على "إضافة طرف" لإدخال بيانات الطرف المطلوب توقيعه
+      </div>
+
+      <div class="party-list" id="dynamicParties"></div>
+
+      <div class="form-error" id="formError"></div>
+    </section>
+
+    <div class="bottom-actions">
+      <a href="javascript:history.back()" class="btn light">السابق</a>
+      <button type="submit" class="btn primary">حفظ ومتابعة</button>
+    </div>
+  </form>
+</div>
+
+<div class="party-modal" id="partyModal" aria-hidden="true">
+  <div class="modal-card">
+
+    <div class="modal-header">
+      <div>
+        <h3 id="modalTitle">إضافة طرف مطلوب توقيعه</h3>
+        <p>أدخلي بيانات الطرف، دوره، صلاحياته، ومعلومات التحقق</p>
+      </div>
+      <button type="button" class="modal-close" id="closeModal">×</button>
+    </div>
+
+    <div class="modal-body">
+
+      <section class="modal-section">
+        <div class="modal-section-title">
+          <h4>نوع الطرف والدور</h4>
+          <p>حددي نوع الطرف ودوره داخل العقد وعملية التوقيع</p>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>نوع الطرف</label>
+            <select id="partyType">
+              <option value="INDIVIDUAL">فرد</option>
+              <option value="ORGANIZATION">منشأة</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>الدور القانوني</label>
+            <select id="contractRole">
+              <option value="SECOND_PARTY">الطرف الثاني</option>
+              <option value="WITNESS">شاهد</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>دور التوقيع</label>
+            <select id="signingRole">
+              <option value="SIGNER">موقّع</option>
+              <option value="REVIEWER">مراجع</option>
+              <option value="APPROVER">معتمد</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>ترتيب التوقيع</label>
+            <input type="number" id="signingOrder" min="1" value="1">
+          </div>
+        </div>
+      </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">
+          <h4>بيانات الطرف</h4>
+          <p>هذه البيانات ستستخدم لإرسال الدعوة والتحقق من الطرف</p>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>الاسم الكامل</label>
+            <input type="text" id="partyName" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label>رقم الهوية</label>
+            <input type="text" id="nationalId" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label>الجنسية</label>
+            <input type="text" id="nationality" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label>رقم الجوال</label>
+            <input type="text" id="partyMobile" autocomplete="off" placeholder="+9665xxxxxxxx">
+          </div>
+
+          <div class="form-group">
+            <label>البريد الإلكتروني <span class="optional">اختياري</span></label>
+            <input type="email" id="partyEmail" autocomplete="off">
+          </div>
+        </div>
+      </section>
+
+      <section class="modal-section hidden" id="organizationFields">
+        <div class="modal-section-title">
+          <h4>بيانات المنشأة</h4>
+          <p>تظهر هذه البيانات عند اختيار نوع الطرف منشأة</p>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>اسم المنشأة</label>
+            <input type="text" id="organizationName" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label>السجل التجاري</label>
+            <input type="text" id="commercialRegistration" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label>الرقم الضريبي <span class="optional">اختياري</span></label>
+            <input type="text" id="taxNumber" autocomplete="off">
+          </div>
+        </div>
+      </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">
+          <h4>الصلاحيات</h4>
+          <p>حددي ما يمكن للطرف فعله داخل العقد</p>
+        </div>
+
+        <div class="permissions-grid">
+          <label class="permission-item">
+            <span>عرض العقد</span>
+            <input type="checkbox" id="canViewContract" checked>
+          </label>
+
+          <label class="permission-item">
+            <span>إضافة ملاحظات</span>
+            <input type="checkbox" id="canComment">
+          </label>
+
+          <label class="permission-item">
+            <span>تعديل</span>
+            <input type="checkbox" id="canEdit">
+          </label>
+
+          <label class="permission-item">
+            <span>رفع مرفقات</span>
+            <input type="checkbox" id="canUploadFiles">
+          </label>
+
+          <label class="permission-item">
+            <span>التوقيع</span>
+            <input type="checkbox" id="canSign" checked>
+          </label>
+        </div>
+      </section>
+
+      <section class="modal-section">
+        <div class="modal-section-title">
+          <h4>رسالة الدعوة</h4>
+          <p>رسالة اختيارية تظهر للطرف عند إرسال طلب التوقيع</p>
+        </div>
+
+        <div class="form-group full">
+          <textarea id="invitationMessage" placeholder="مثال: يرجى مراجعة العقد والتوقيع خلال 3 أيام."></textarea>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn light" id="cancelParty">إلغاء</button>
+      <button type="button" class="btn primary" id="saveParty">حفظ الطرف</button>
+    </div>
+
+  </div>
+</div>
+
+<script src="{% static 'js/create_invitations.js' %}"></script>
+{% endblock %}

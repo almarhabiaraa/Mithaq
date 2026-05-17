@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ميثاق{% endblock %}</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- خط Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-primary: #061D3B;
+            --color-primary-light: #0A2A55;
+            --color-secondary: #B99655;
+            --color-secondary-light: #F7F0E3;
+            --color-background: #F8F7F4;
+            --color-surface: #FFFFFF;
+            --color-surface-soft: #FAFAF8;
+            --color-border: #E7E3DA;
+            --color-border-strong: #D8D2C7;
+            --color-text-primary: #0A1633;
+            --color-text-secondary: #6F7482;
+            --color-text-muted: #9AA1AE;
+            --color-success: #2F8F55;
+            --color-success-background: #EAF7EF;
+            --color-danger: #B42318;
+            --color-danger-background: #FEECEC;
+            --shadow-sm: 0 4px 12px rgba(6,29,59,0.04);
+            --shadow-md: 0 10px 30px rgba(6,29,59,0.08);
+            --shadow-lg: 0 20px 40px rgba(6,29,59,0.12);
+            --radius-sm: 10px;
+            --radius-md: 18px;
+            --radius-lg: 28px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--color-background);
+            color: var(--color-text-primary);
+            min-height: 100vh;
+        }
+
+        /* ── Nav ── */
+        .nav {
+            background: var(--color-primary);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            color: var(--color-secondary);
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover { color: #fff; }
+
+        .nav-user {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.5rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: 'Cairo', sans-serif;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--color-secondary);
+            color: var(--color-primary);
+        }
+        .btn-primary:hover { background: #a8844a; }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--color-text-secondary);
+            border: 1.5px solid var(--color-border-strong);
+        }
+        .btn-outline:hover {
+            border-color: var(--color-secondary);
+            color: var(--color-secondary);
+        }
+
+        .btn-danger {
+            background: var(--color-danger-background);
+            color: var(--color-danger);
+            border: 1.5px solid #f5c6c6;
+        }
+        .btn-danger:hover { background: #fdd; }
+
+        .btn-success {
+            background: var(--color-success-background);
+            color: var(--color-success);
+            border: 1.5px solid #b7e4c7;
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+        }
+
+        /* ── Status Badges ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-draft     { background: #FEF3C7; color: #92400E; }
+        .badge-pending   { background: #DBEAFE; color: #1E40AF; }
+        .badge-signed    { background: var(--color-success-background); color: var(--color-success); }
+        .badge-completed { background: #D1FAE5; color: #065F46; }
+        .badge-cancelled { background: var(--color-danger-background); color: var(--color-danger); }
+
+        /* ── Form inputs ── */
+        .input {
+            width: 100%;
+            border: 1.5px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+            font-family: 'Cairo', sans-serif;
+            background: var(--color-surface);
+            color: var(--color-text-primary);
+            transition: border-color 0.2s;
+            outline: none;
+        }
+        .input:focus { border-color: var(--color-secondary); }
+
+        .label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-bottom: 6px;
+        }
+
+        /* ── Page container ── */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* ── Divider ── */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--color-border);
+            margin: 1.5rem 0;
+        }
+
+        /* ── Messages ── */
+        .alert {
+            padding: 0.875rem 1rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        .alert-success { background: var(--color-success-background); color: var(--color-success); }
+        .alert-error   { background: var(--color-danger-background); color: var(--color-danger); }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+    <!-- ── Navbar ── -->
+    <nav class="nav">
+        <a href="/" class="nav-logo">ميثاق</a>
+
+        <div class="nav-links">
+            {% if user.is_authenticated %}
+                <a href="/contracts/dashboard/" class="nav-link">عقودي</a>
+                <a href="/notifications/" class="nav-link">الإشعارات</a>
+                <span class="nav-user">{{ user.full_name }}</span>
+                <a href="/accounts/logout/" class="btn btn-outline"
+                   style="padding: 0.35rem 1rem; color: rgba(255,255,255,0.7);
+                          border-color: rgba(255,255,255,0.2);">
+                    خروج
+                </a>
+            {% else %}
+                <a href="/accounts/login/" class="btn btn-primary">دخول</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- ── Messages ── -->
+    {% if messages %}
+    <div class="container" style="padding-bottom: 0;">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ── Content ── -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ── JS Utilities ── -->
+    <script>
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        function statusBadge(status) {
+            const map = {
+                'DRAFT':              ['badge-draft',     'مسودة'],
+                'PENDING_SIGNATURES': ['badge-pending',   'بانتظار التوقيعات'],
+                'SIGNED':             ['badge-signed',    'موقّع'],
+                'COMPLETED':          ['badge-completed', 'مكتمل'],
+                'CANCELLED':          ['badge-cancelled', 'ملغي'],
+            };
+            const [cls, label] = map[status] || ['', status];
+            return `<span class="badge ${cls}">${label}</span>`;
+        }
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
