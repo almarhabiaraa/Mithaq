@@ -28,8 +28,7 @@ TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER", default="")
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-%q19qr*sokgxyu9$&+^&!yplv9o5p7v+zn6w&%*z7i#phpt*(j'
-
+SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -54,17 +53,18 @@ INSTALLED_APPS = [
     'accounts',
     'audit',
     'blockchain',
+    'invitations',
     'contracts',
     'dashboard',
     'milestones',
     'notifications',
     'payments',
     'signatures',
-    'subscriptions',   
+    'subscriptions',
     'wallet',
     'templates_lib',
-    'invitations',
     'verification',
+  
 ]
 
 MIDDLEWARE = [
@@ -89,6 +89,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
+                # Added by Remas — unread notifications count for all pages
+                'notifications.context_processors.unread_notifications',
             ],
         },
     },

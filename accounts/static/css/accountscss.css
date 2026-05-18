@@ -1,544 +1,666 @@
-/* ========== Variables ========== */
+/* ==========================================================
+   Variables — Mithaq Brand System
+   ========================================================== */
 :root {
-    --navy: #1a2e4a;
-    --gold: #C9A84C;
-    --white: #ffffff;
-    --light-gray: #f5f5f5;
-    --text-primary: #1a1a1a;
-    --text-secondary: #6b7280;
-    --border-color: #e5e7eb;
-    --border-radius: 8px;
+    --color-primary: #061D3B;
+    --color-primary-light: #0A2A55;
+    --color-secondary: #B99655;
+    --color-secondary-light: #F7F0E3;
+    --color-background: #F8F7F4;
+    --color-surface: #FFFFFF;
+    --color-surface-soft: #FAFAF8;
+    --color-border: #E7E3DA;
+    --color-border-strong: #D8D2C7;
+    --color-text-primary: #0A1633;
+    --color-text-secondary: #6F7482;
+    --color-text-muted: #9AA1AE;
+    --color-success: #2F8F55;
+    --color-success-background: #EAF7EF;
+    --color-danger: #B42318;
+    --color-danger-background: #FEECEC;
+    --shadow-sm: 0 4px 12px rgba(6, 29, 59, 0.04);
+    --shadow-md: 0 10px 30px rgba(6, 29, 59, 0.08);
+    --shadow-lg: 0 20px 40px rgba(6, 29, 59, 0.12);
+    --radius-sm: 10px;
+    --radius-md: 18px;
+    --radius-lg: 28px;
 }
 
-/* ========== Shared ========== */
-* {
+/* ==========================================================
+   Shared — accounts pages only
+   ========================================================== */
+.signin-page *,
+.signin-card *,
+.signup-page *,
+.profile-card *,
+.profile-header * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Arial, sans-serif;
-}
-
-body {
-    background: var(--light-gray);
-    min-height: 100vh;
 }
 
 a {
     text-decoration: none;
 }
 
-/* ========== Auth Pages ========== */
-.auth-body {
+/* ==========================================================
+   Alerts
+   ========================================================== */
+.alert {
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    text-align: right;
+}
+
+.alert-success {
+    background: var(--color-success-background);
+    color: var(--color-success);
+}
+
+.alert-danger {
+    background: var(--color-danger-background);
+    color: var(--color-danger);
+}
+
+.alert-warning {
+    background: #fffbeb;
+    color: #92400e;
+}
+
+/* ==========================================================
+   Auth Navbar (signin/signup pages only — not dashboard)
+   ========================================================== */
+.auth-navbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    z-index: 10;
+}
+
+.nav-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: flex;
+    flex-direction: row-reverse; /* يعكس الترتيب */
+    justify-content: space-between;
+    align-items: center;
+}
+
+.signin-back-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.signin-back-link i {
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+}
+
+.signin-back-link:hover {
+    background-color: rgba(6, 29, 59, 0.06);
+    color: var(--color-primary);
+}
+
+.signin-back-link:hover i {
+    transform: translateX(4px);
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-img {
+    max-height: 52px;
+    width: auto;
+    display: block;
+    transition: transform 0.2s ease;
+}
+
+.logo-img:hover {
+    transform: scale(1.02);
+}
+
+/* ==========================================================
+   Sign In Page
+   ========================================================== */
+.signin-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 80px 20px 80px;
+}
+
+.signin-card {
+    background-color: var(--color-surface);
+    width: 100%;
+    max-width: 560px;
+    padding: 32px 56px;  /* قللي padding من فوق وتحت */
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+.signin-title {
+    font-size: 1.6rem;  /* قللي شوي */
+    color: var(--color-text-primary);
+    font-weight: 700;
+    text-align: center;
+     margin-bottom: 6px;
+}
+
+.signin-subtitle {
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+    text-align: center;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+/* ==========================================================
+   Form Fields
+   ========================================================== */
+.signin-field {
+    margin-bottom: 12px;  
+}
+
+.signin-field label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.signin-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.signin-input-wrapper input {
+    width: 100%;
+    padding: 14px 45px 14px 45px;
+    border: 1px solid rgba(6, 29, 59, 0.2);
+    border-radius: var(--radius-sm);
+    background-color: #EEF2FF;
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+    font-family: 'Cairo', system-ui, sans-serif;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.signin-input-wrapper input::placeholder {
+    color: rgba(6, 29, 59, 0.35);
+}
+
+.signin-input-wrapper input:hover {
+    border-color: var(--color-secondary);
+}
+
+.signin-input-wrapper input:focus {
+    border-color: var(--color-secondary);
+    background-color: #EEF2FF;
+    box-shadow: 0 0 0 3px rgba(185, 150, 85, 0.1);
+}
+
+.signin-input-wrapper .field-icon {
+    position: absolute;
+    right: 16px;
+    color: var(--color-text-muted);
+    font-size: 1.2rem;
+}
+
+.signin-toggle-password {
+    position: absolute;
+    left: 16px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: color 0.2s ease;
+}
+
+.signin-toggle-password:hover {
+    color: var(--color-primary);
+}
+
+/* ==========================================================
+   Options Row
+   ========================================================== */
+.signin-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+}
+
+.signin-remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+}
+
+.signin-remember input[type="checkbox"] {
+    accent-color: var(--color-primary);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.signin-forgot {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.signin-forgot:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+/* ==========================================================
+   Buttons & Divider
+   ========================================================== */
+.signin-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Cairo', system-ui, sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.signin-btn:hover {
+    background-color: var(--color-primary-light);
+}
+
+.signin-btn:active {
+    transform: scale(0.99);
+}
+
+.signin-divider {
+    text-align: center;
+    margin: 14px 0;
+    position: relative;
+}
+
+.signin-divider::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: var(--color-border);
+    z-index: 1;
+}
+
+.signin-divider span {
+    background-color: var(--color-surface);
+    padding: 0 15px;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 2;
+}
+
+.signin-google-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+    font-weight: 500;
+    font-size: 0.95rem;
+    font-family: 'Cairo', system-ui, sans-serif;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    padding: 20px;
+    gap: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.auth-wrapper {
-    background: var(--white);
-    border-radius: var(--border-radius);
-    display: flex;
-    width: 90%;
-    max-width: 900px;
-    min-height: 540px;
-    overflow: hidden;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+.signin-google-btn:hover {
+    background-color: var(--color-surface-soft);
+    border-color: var(--color-border-strong);
 }
 
-/* Sidebar */
-.auth-sidebar {
-    background: var(--navy);
-    width: 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px 0;
-    flex-shrink: 0;
-}
-
-/* ========== Responsive ========== */
-
-/* Tablet */
-@media (max-width: 768px) {
-    .auth-wrapper {
-        width: 95%;
-        min-height: auto;
-    }
-
-    .auth-sidebar {
-        width: 56px;
-    }
-
-    .auth-form-side {
-        padding: 24px 20px;
-    }
-
-    .auth-title {
-        font-size: 18px;
-    }
-
-    .auth-row {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Mobile */
-@media (max-width: 480px) {
-    .auth-body {
-        padding: 12px;
-        align-items: flex-start;
-        padding-top: 40px;
-    }
-
-    .auth-wrapper {
-        width: 100%;
-        border-radius: 12px;
-    }
-
-    .auth-sidebar {
-        width: 44px;
-    }
-
-    .auth-logo span {
-        display: none;
-    }
-
-    .auth-form-side {
-        padding: 20px 16px;
-    }
-
-    .auth-title {
-        font-size: 16px;
-    }
-
-    .auth-subtitle {
-        font-size: 11px;
-    }
-
-    .auth-field input {
-        font-size: 12px;
-        padding: 9px 36px 9px 10px;
-    }
-
-    .auth-btn {
-        font-size: 13px;
-        padding: 10px;
-    }
-}
-
-/* Sidebar */
-.auth-sidebar {
-    background: var(--navy);
-    width: 68px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px 0;
-    flex-shrink: 0;
-}
-
-.auth-logo {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    color: var(--white);
-    font-size: 10px;
-    font-weight: 500;
-}
-
-.auth-watermark {
-    margin-top: auto;
-    margin-bottom: 16px;
-    opacity: 0.4;
-}
-
-/* Form Side */
-.auth-form-side {
-    flex: 1;
-    padding: 32px 28px;
-    direction: rtl;
-    display: flex;
-    flex-direction: column;
-}
-
-.auth-title {
-    font-size: 22px;
-    font-weight: 500;
-    color: var(--text-primary);
+/* ==========================================================
+   Bottom Links & Trust
+   ========================================================== */
+.signin-bottom-link {
     text-align: center;
+    margin-top: 16px;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}
+
+.signin-bottom-link a {
+    color: var(--color-primary);
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.signin-bottom-link a:hover {
+    text-decoration: underline;
+}
+
+.signin-trust {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: var(--color-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.signin-trust i {
+    font-size: 1.1rem;
+}
+
+/* ==========================================================
+   Sign Up — two-column field rows
+   ========================================================== */
+.signup-row {
+    display: flex;
+    gap: 16px;
+}
+
+.signup-row .signin-field {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ==========================================================
+   Responsive
+   ========================================================== */
+@media (max-width: 480px) {
+    .signin-card {
+        padding: 28px 20px;
+    }
+
+    .signin-title {
+        font-size: 1.5rem;
+    }
+
+    .nav-container {
+        padding: 0 20px;
+    }
+
+    .signup-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+
+/* ==========================================================
+   Profile Page — Mithaq
+   ========================================================== */
+
+
+/* Fix profile page top spacing */
+.profile-breadcrumb {
+    margin-top: 20px;
+}
+
+.profile-breadcrumb .active {
+    color: var(--color-text-primary);
+    font-weight: 500;
+}
+
+.profile-breadcrumb i {
+    font-size: 0.75rem;
+}
+
+.profile-header {
+    margin-bottom: 16px;
+    direction: rtl;
+}
+
+.profile-header-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
     margin-bottom: 4px;
 }
 
-.auth-subtitle {
-    font-size: 12px;
-    color: var(--text-secondary);
-    text-align: center;
-    margin-bottom: 24px;
+.profile-header-subtitle {
+    font-size: 0.88rem;
+    color: var(--color-text-secondary);
 }
 
-/* Fields */
-.auth-field {
-    position: relative;
-    margin-bottom: 14px;
-}
-
-.auth-field input {
-    width: 100%;
-    padding: 10px 40px 10px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    font-size: 13px;
-    color: var(--text-primary);
-    background: var(--white);
-    text-align: right;
+/* Profile Card */
+.profile-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: 22px;
     direction: rtl;
-    outline: none;
-    transition: border-color 0.2s;
 }
 
-.auth-field input:focus {
-    border-color: var(--gold);
-}
-
-.auth-field-icon {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 15px;
-    color: var(--text-secondary);
-}
-
-/* Forgot Password */
-.auth-forgot {
-    font-size: 11px;
-    color: var(--text-secondary);
-    display: block;
-    text-align: left;
-    margin-bottom: 18px;
-    direction: ltr;
-    transition: color 0.2s;
-}
-
-.auth-forgot:hover {
-    color: var(--gold);
-}
-
-/* Button */
-.auth-btn {
-    width: 100%;
-    padding: 11px;
-    background: var(--gold);
-    border: none;
-    border-radius: var(--border-radius);
-    color: var(--white);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-.auth-btn:hover {
-    opacity: 0.9;
-}
-
-/* Bottom Link */
-.auth-bottom-link {
-    font-size: 11px;
-    color: var(--text-secondary);
-    text-align: center;
-    margin-top: 16px;
-}
-
-.auth-bottom-link a {
-    color: var(--gold);
-    font-weight: 500;
-}
-
-/* ========== Alerts ========== */
-.alert {
-    padding: 10px 14px;
-    border-radius: var(--border-radius);
-    font-size: 12px;
-    margin-bottom: 14px;
-    text-align: right;
-}
-
-.alert-success { background: #f0fdf4; color: #166534; }
-.alert-danger  { background: #fef2f2; color: #991b1b; }
-.alert-warning { background: #fffbeb; color: #92400e; }
-
-/* ========== Sign Up ========== */
-.auth-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-/* ========== Profile Info ========== */
-.profile-form-card {
-    background: var(--white);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 28px;
-}
-
-.profile-avatar-upload {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 24px;
-}
-
-.profile-avatar-img {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--gold);
-}
-
-.info-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 16px;
-}
-
-.info-field label {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-.info-field input,
-.info-field textarea {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    font-size: 13px;
-    color: var(--text-primary);
-    background: var(--white);
-    direction: rtl;
-    text-align: right;
-    outline: none;
-    transition: border-color 0.2s;
-    font-family: 'Cairo', sans-serif;
-}
-
-.info-field input:focus,
-.info-field textarea:focus {
-    border-color: var(--gold);
-}
-
-.info-readonly {
-    background: var(--light-gray) !important;
-    color: var(--text-secondary) !important;
-    cursor: not-allowed;
-}
-
-.info-actions {
+/* Card Header */
+.profile-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 24px;
-    gap: 12px;
-}
-
-.info-save-btn {
-    width: auto;
-    padding: 10px 32px;
-}
-
-.info-logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: #C0392B;
-    text-decoration: none;
-    transition: opacity 0.2s;
-}
-
-.info-logout-btn:hover {
-    opacity: 0.8;
-}
-
-
-/* ========== Profile Page ========== */
-.profile-page {
-    max-width: 680px;
-    margin: 40px auto;
-    padding: 0 16px 60px;
-    direction: rtl;
-}
-
-.profile-avatar-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 32px;
-}
-
-.profile-avatar-wrapper {
-    position: relative;
-    width: 100px;
-    height: 100px;
-}
-
-.profile-avatar-img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--gold);
-}
-
-.profile-avatar-initials {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: #fdf6e3;
-    border: 3px solid var(--gold);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--gold);
-}
-
-.avatar-edit-btn {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 30px;
-    height: 30px;
-    background: var(--gold);
-    border-radius: 50%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--white);
-    font-size: 14px;
-}
-
-.profile-username {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.profile-email-text {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.profile-section {
-    background: var(--white);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 24px;
-    margin-bottom: 16px;
-}
-
-.profile-section-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text-primary);
     margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--color-border);
 }
 
-.profile-section-title i {
-    color: var(--gold);
-    font-size: 16px;
-}
-
-.profile-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.profile-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 14px;
-}
-
-.profile-field label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-.profile-input {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    font-size: 13px;
-    color: var(--text-primary);
-    background: var(--light-gray);
-    direction: rtl;
-    text-align: right;
-    outline: none;
-    transition: all 0.2s;
-    font-family: 'Cairo', sans-serif;
-    cursor: not-allowed;
-}
-
-.profile-input.active,
-.profile-input:not([disabled]):not([readonly]) {
-    background: var(--white);
-    border-color: var(--border-color);
-    cursor: text;
-}
-
-.profile-input.active:focus {
-    border-color: var(--gold);
-}
-
-.profile-input[readonly] {
-    background: var(--light-gray);
-    cursor: not-allowed;
-    color: var(--text-secondary);
-}
-
-.profile-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 8px;
+.profile-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
 }
 
 .profile-edit-btn {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 10px 28px;
-    background: var(--gold);
-    border: none;
-    border-radius: var(--border-radius);
-    color: var(--white);
-    font-size: 14px;
+    padding: 8px 20px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
     font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.2s;
     font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
 }
 
 .profile-edit-btn:hover {
-    opacity: 0.9;
+    background: var(--color-surface-soft);
+    border-color: var(--color-border-strong);
+}
+
+/* Card Body */
+.profile-card-body {
+    display: flex;
+    gap: 48px;
+    align-items: flex-start;
+}
+
+/* Avatar Column */
+.profile-avatar-col {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-avatar-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--color-secondary);
+}
+
+.profile-avatar-initials {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--color-secondary-light);
+    border: 3px solid var(--color-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-secondary);
+}
+
+.avatar-camera-btn {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    width: 32px;
+    height: 32px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-surface);
+    font-size: 14px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Info Column */
+.profile-info-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Info Row */
+.profile-info-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.profile-info-row:last-child {
+    border-bottom: none;
+}
+
+.profile-info-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 160px;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.profile-info-label i {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+}
+
+.profile-info-inputs {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+
+
+.profile-info-inputs .profile-input:first-child {
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.profile-info-inputs .profile-input:last-child {
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+/* Profile Input */
+.profile-input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 14px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+    background: transparent;
+    direction: rtl;
+    text-align: right;
+    outline: none;
+    transition: all 0.2s;
+    font-family: 'Cairo', sans-serif;
+    cursor: default;
+}
+
+.profile-input[disabled] {
+    background: transparent;
+    border-color: transparent;
+    cursor: default;
+}
+
+.profile-input[readonly] {
+    background: transparent;
+    border-color: transparent;
+    cursor: default;
+    color: var(--color-text-secondary);
+}
+
+.profile-input.active {
+    background: var(--color-surface-soft);
+    border-color: var(--color-border);
+    cursor: text;
+}
+
+.profile-input.active:focus {
+    border-color: var(--color-secondary);
+    background: var(--color-surface);
+    box-shadow: 0 0 0 3px rgba(185, 150, 85, 0.1);
+}
+
+/* Save Row */
+.profile-save-row {
+    justify-content: flex-end;
+    margin-top: 16px;
 }
 
 .profile-save-btn {
@@ -546,43 +668,156 @@ a {
     align-items: center;
     gap: 6px;
     padding: 10px 28px;
-    background: #2D7A4F;
+    background: var(--color-primary);
     border: none;
-    border-radius: var(--border-radius);
-    color: var(--white);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.2s;
+    border-radius: var(--radius-sm);
+    color: var(--color-surface);
+    font-size: 0.95rem;
+    font-weight: 600;
     font-family: 'Cairo', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s ease;
 }
 
 .profile-save-btn:hover {
-    opacity: 0.9;
+    background: var(--color-primary-light);
 }
 
-.profile-logout-btn {
+/* Alerts */
+.alert {
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    text-align: right;
+}
+
+.alert-success {
+    background: var(--color-success-background);
+    color: var(--color-success);
+}
+
+.alert-danger {
+    background: var(--color-danger-background);
+    color: var(--color-danger);
+}
+
+.alert-warning {
+    background: #fffbeb;
+    color: #92400e;
+}
+
+/* ==========================================================
+   Responsive
+   ========================================================== */
+@media (max-width: 768px) {
+    .profile-card-body {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .profile-avatar-col {
+        align-self: center;
+    }
+
+    .profile-info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .profile-info-label {
+        min-width: unset;
+    }
+
+    .profile-info-inputs {
+        flex-direction: column;
+        width: 100%;
+    }
+}
+
+
+/* ==========================================================
+   Settings Page
+   ========================================================== */
+
+/* Settings list container */
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Single settings item */
+.settings-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: #C0392B;
+    gap: 14px;
+    padding: 13px 18px;
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
     text-decoration: none;
-    margin-right: auto;
-    transition: opacity 0.2s;
+    transition: all 0.2s ease;
+    direction: rtl;
 }
 
-.profile-logout-btn:hover {
-    opacity: 0.8;
+.settings-item:hover {
+    border-color: var(--color-secondary);
+    box-shadow: var(--shadow-sm);
+    transform: translateX(-2px);
 }
 
-/* Responsive */
-@media (max-width: 480px) {
-    .profile-row {
-        grid-template-columns: 1fr;
-    }
+/* Icon circle */
+.settings-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-secondary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1rem;
+    color: var(--color-secondary);
+}
 
-    .profile-actions {
-        flex-wrap: wrap;
-    }
+/* Text content */
+.settings-item-content {
+    flex: 1;
+}
+
+/* Item title */
+.settings-item-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 2px;
+}
+
+/* Item description */
+.settings-item-desc {
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+}
+
+/* Arrow icon */
+.settings-item-arrow {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+/* Danger item — logout */
+.settings-item-danger:hover {
+    border-color: var(--color-danger);
+}
+
+.settings-item-icon-danger {
+    background: var(--color-danger-background);
+    color: var(--color-danger);
+}
+
+.settings-item-title-danger {
+    color: var(--color-danger);
 }

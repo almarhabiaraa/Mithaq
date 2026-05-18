@@ -1,0 +1,92 @@
+{% extends "core/dashboard_base.html" %}
+
+{% load static %}
+
+{% block title %}ميثاق — الإشعارات{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'notifications/css/notifications.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="notifications-page">
+
+    <div class="notifications-header">
+        <h2 class="notifications-title">
+            <i class="bi bi-bell"></i>
+            الإشعارات
+        </h2>
+        {% if notifications %}
+        <button class="mark-all-btn" onclick="markAllRead()">
+            تحديد الكل كمقروء
+        </button>
+        {% endif %}
+    </div>
+
+    {% if notifications %}
+        {% for n in notifications %}
+        <div class="notification-item {% if not n.is_read %}unread{% endif %}" id="notification-{{ n.id }}">
+
+            <div class="notification-icon {{ n.notification_type|cut:'contract_' }}">
+                {% if n.notification_type == 'contract_received' %}
+                    <i class="bi bi-envelope"></i>
+                {% elif n.notification_type == 'contract_accepted' %}
+                    <i class="bi bi-check-circle"></i>
+                {% elif n.notification_type == 'contract_rejected' %}
+                    <i class="bi bi-x-circle"></i>
+                {% elif n.notification_type == 'contract_signed' %}
+                    <i class="bi bi-pen"></i>
+                {% elif n.notification_type == 'contract_completed' %}
+                    <i class="bi bi-shield-check"></i>
+                {% endif %}
+            </div>
+
+            <div class="notification-body">
+                <p class="notification-message">{{ n.get_message }}</p>
+                {% if n.contract %}
+                    <p class="notification-contract">
+                        <i class="bi bi-file-earmark-text"></i>
+                        {{ n.contract.title_ar }}
+                    </p>
+                {% endif %}
+                <p class="notification-time">{{ n.created_at|timesince }} مضت</p>
+            </div>
+
+        </div>
+        {% endfor %}
+
+    {% else %}
+        <div class="no-notifications">
+            <i class="bi bi-bell-slash"></i>
+            <p>لا توجد إشعارات</p>
+        </div>
+    {% endif %}
+
+</div>
+
+{% block extra_js %}
+<script>
+function markAllRead() {
+    fetch("{% url 'notifications:mark_all_read' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        }
+    }).then(res => {
+        if (!res.ok) throw new Error();
+        document.querySelectorAll('.notification-item.unread').forEach(item => {
+            item.classList.remove('unread');
+        });
+        // Hide button after marking all read
+        document.querySelector('.mark-all-btn')?.style.setProperty('display', 'none');
+        // Remove badges
+        document.querySelectorAll('.mithaq-badge').forEach(badge => badge.remove());
+    }).catch(() => {
+        alert('حدث خطأ، يرجى المحاولة مرة أخرى');
+    });
+}
+</script>
+{% endblock %}
+
+{% endblock %}
