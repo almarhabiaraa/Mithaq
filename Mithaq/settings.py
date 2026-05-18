@@ -53,15 +53,18 @@ INSTALLED_APPS = [
     'accounts',
     'audit',
     'blockchain',
+    'invitations',
     'contracts',
     'dashboard',
     'milestones',
     'notifications',
     'payments',
     'signatures',
-    'subscriptions',   
+    'subscriptions',
     'wallet',
     'templates_lib',
+    'verification',
+  
 ]
 
 MIDDLEWARE = [
