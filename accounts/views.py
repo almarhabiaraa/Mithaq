@@ -107,3 +107,7 @@ def profile(request: HttpRequest):
     #  can display plan name, status, contracts used, and expiry date)
     sub = get_user_subscription(user)
     return render(request, "accounts/profile.html", {"user": user, "subscription": sub})
+
+@login_required(login_url="accounts:sign_in")
+def settings(request):
+    return render(request, "accounts/settings.html", {"user": request.user})
