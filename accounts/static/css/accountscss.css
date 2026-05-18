@@ -821,3 +821,72 @@ a {
 .settings-item-title-danger {
     color: var(--color-danger);
 }
+
+/* ==========================================================
+   Password Tips
+   ========================================================== */
+.password-tip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.password-tip:last-child {
+    border-bottom: none;
+}
+
+.password-tip i {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+
+.privacy-item h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.privacy-item h4 i {
+    color: var(--color-secondary);
+    font-size: 1rem;
+}
+
+
+.faq-answer {
+    display: none;
+    padding: 0 0 16px;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+}
+
+.faq-item.open .faq-answer {
+    display: block;
+}
+
+.faq-item {
+    border: 1px solid var(--color-secondary);
+    margin-bottom: 8px;
+    padding: 0 16px;
+    cursor: pointer;
+}
+
+.faq-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    transition: color 0.2s;
+}

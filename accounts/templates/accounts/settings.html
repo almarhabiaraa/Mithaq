@@ -9,6 +9,7 @@
 
 {% block content %}
 <section class="mithaq-dashboard" dir="rtl">
+    
 
     <!-- Page Header -->
     <div class="profile-header">
@@ -32,7 +33,7 @@
         </a>
 
         <!-- Security & Password -->
-        <a href="#" class="settings-item">
+        <a href="{% url 'accounts:change_password' %}" class="settings-item">
             <div class="settings-item-icon">
                 <i class="bi bi-shield-check"></i>
             </div>
@@ -68,7 +69,7 @@
         </a>
 
         <!-- Privacy -->
-        <a href="#" class="settings-item">
+        <a href="{% url 'accounts:privacy' %}" class="settings-item">
             <div class="settings-item-icon">
                 <i class="bi bi-lock"></i>
             </div>
@@ -80,7 +81,7 @@
         </a>
 
         <!-- Help & Support -->
-        <a href="#" class="settings-item">
+        <a href="{% url 'accounts:help_support' %}" class="settings-item">
             <div class="settings-item-icon">
                 <i class="bi bi-question-circle"></i>
             </div>
