@@ -145,3 +145,19 @@ def change_password(request: HttpRequest):
         return redirect("accounts:settings")
 
     return render(request, "accounts/change_password.html")
+
+@login_required(login_url="accounts:sign_in")
+def privacy(request: HttpRequest):
+    if request.method == "POST":
+        # Delete account permanently
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(request, "تم حذف حسابك بنجاح", "alert-success")
+        return redirect("accounts:sign_in")
+
+    return render(request, "accounts/privacy.html")
+
+@login_required(login_url="accounts:sign_in")
+def help_support(request):
+    return render(request, "accounts/help_support.html")
