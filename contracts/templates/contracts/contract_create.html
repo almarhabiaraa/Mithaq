@@ -1,826 +1,1418 @@
-{% extends 'contracts/base.html' %}
+{% extends 'core/dashboard_base.html' %}
+
+{% load static %}
+
 {% block title %}إنشاء عقد جديد — ميثاق{% endblock %}
 
-{% block extra_css %}
-<style>
-    .page-header {
-        background: var(--color-primary);
-        padding: 2rem 0;
-        margin-bottom: 2rem;
-    }
-    .page-header h1 { color: #fff; font-size: 1.5rem; font-weight: 700; }
-    .page-header p  { color: rgba(255,255,255,0.6); font-size: 0.875rem; margin-top: 4px; }
-
-    .stepper {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 2rem;
-    }
-    .step {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-    }
-    .step-circle {
-        width: 40px; height: 40px;
-        border-radius: 50%;
-        border: 2px solid var(--color-border-strong);
-        background: var(--color-surface);
-        color: var(--color-text-muted);
-        font-size: 0.875rem; font-weight: 700;
-        display: flex; align-items: center; justify-content: center;
-        transition: all 0.3s;
-    }
-    .step-label {
-        font-size: 0.75rem;
-        color: var(--color-text-muted);
-        font-weight: 500;
-        white-space: nowrap;
-    }
-    .step.active .step-circle {
-        background: var(--color-secondary);
-        border-color: var(--color-secondary);
-        color: var(--color-primary);
-    }
-    .step.active .step-label { color: var(--color-secondary); font-weight: 700; }
-    .step.done .step-circle  { background: var(--color-success); border-color: var(--color-success); color: #fff; }
-    .step.done .step-label   { color: var(--color-success); }
-
-    .step-line {
-        width: 60px; height: 2px;
-        background: var(--color-border);
-        margin-bottom: 22px;
-        transition: background 0.3s;
-    }
-    .step-line.done { background: var(--color-success); }
-
-    .panel { display: none; }
-    .panel.active { display: block; }
-
-    .section-title {
-        font-size: 1rem; font-weight: 700;
-        color: var(--color-text-primary);
-        margin-bottom: 1.25rem;
-        display: flex; align-items: center; gap: 8px;
-    }
-    .section-title::before {
-        content: ''; width: 4px; height: 20px;
-        background: var(--color-secondary);
-        border-radius: 4px; display: block;
-    }
-
-    .clause-item {
-        background: var(--color-surface-soft);
-        border: 1.5px solid var(--color-border);
-        border-radius: var(--radius-sm);
-        padding: 1rem; margin-bottom: 0.75rem;
-        transition: border-color 0.2s;
-    }
-    .clause-item:focus-within { border-color: var(--color-secondary); }
-
-    .clause-header {
-        display: flex; align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.75rem;
-    }
-    .clause-num {
-        width: 28px; height: 28px;
-        background: var(--color-primary);
-        color: var(--color-secondary);
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
-    }
-    .clause-type-select {
-        border: 1.5px solid var(--color-border);
-        border-radius: 8px; padding: 4px 10px;
-        font-size: 0.75rem; font-family: 'Cairo', sans-serif;
-        color: var(--color-text-secondary);
-        background: var(--color-surface);
-        cursor: pointer; outline: none;
-    }
-    .clause-delete {
-        background: none; border: none;
-        color: var(--color-text-muted);
-        cursor: pointer; font-size: 0.8rem;
-        padding: 4px 8px; border-radius: 6px;
-        transition: all 0.2s;
-        font-family: 'Cairo', sans-serif;
-    }
-    .clause-delete:hover {
-        background: var(--color-danger-background);
-        color: var(--color-danger);
-    }
-    .add-clause-btn {
-        width: 100%; padding: 0.75rem;
-        border: 2px dashed var(--color-border-strong);
-        border-radius: var(--radius-sm);
-        background: transparent;
-        color: var(--color-text-muted);
-        font-size: 0.875rem;
-        font-family: 'Cairo', sans-serif; font-weight: 600;
-        cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;
-    }
-    .add-clause-btn:hover {
-        border-color: var(--color-secondary);
-        color: var(--color-secondary);
-        background: var(--color-secondary-light);
-    }
-
-    .party-item {
-        display: flex; align-items: center; gap: 12px;
-        padding: 0.875rem 1rem;
-        background: var(--color-surface-soft);
-        border: 1.5px solid var(--color-border);
-        border-radius: var(--radius-sm);
-        margin-bottom: 0.75rem;
-    }
-    .party-avatar {
-        width: 40px; height: 40px; border-radius: 50%;
-        background: var(--color-primary);
-        color: var(--color-secondary);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.875rem; font-weight: 700; flex-shrink: 0;
-    }
-    .party-info { flex: 1; }
-    .party-name { font-size: 0.875rem; font-weight: 600; color: var(--color-text-primary); }
-    .party-role { font-size: 0.75rem; color: var(--color-text-muted); }
-    .party-remove {
-        background: none; border: none;
-        color: var(--color-text-muted); cursor: pointer;
-        font-size: 0.8rem; padding: 4px 8px;
-        border-radius: 6px; transition: all 0.2s;
-        font-family: 'Cairo', sans-serif;
-    }
-    .party-remove:hover {
-        background: var(--color-danger-background);
-        color: var(--color-danger);
-    }
-
-    .form-footer {
-        display: flex; justify-content: space-between;
-        align-items: center;
-        margin-top: 1.5rem; padding-top: 1.5rem;
-        border-top: 1px solid var(--color-border);
-    }
-
-    .error-msg {
-        color: var(--color-danger);
-        font-size: 0.8rem; margin-top: 4px; display: none;
-    }
-    .error-msg.show { display: block; }
-
-    textarea.input { resize: vertical; min-height: 80px; }
-
-    select.input { cursor: pointer; }
-</style>
-{% endblock %}
-
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/contract_create.css' %}">
 
+<!-- ══ Header ══════════════════════════════════════════ -->
 <div class="page-header">
-    <div class="container">
-        <a href="/contracts/dashboard/"
-           style="color:rgba(255,255,255,0.5);font-size:0.8rem;text-decoration:none;display:block;margin-bottom:8px;">
-            ← العودة للعقود
-        </a>
-        <h1>إنشاء عقد جديد</h1>
-        <p>أكمل الخطوات الأربع لإنشاء العقد</p>
+  <div class="header-inner">
+    <div class="breadcrumb-nav">
+      <a href="/contracts/dashboard/" style="color:inherit;text-decoration:none;">العقود</a>
+      <span class="sep">›</span>
+      <span>إنشاء عقد جديد</span>
+      <span class="sep">›</span>
+      <span class="active" id="breadcrumb-step">معلومات العقد</span>
     </div>
+    <h1>إنشاء عقد جديد</h1>
+    <p>أكمل الخطوات الأربع لإنشاء العقد وإرسال طلبات التوقيع</p>
+  </div>
 </div>
 
-<div class="container" style="max-width:760px;">
-
-    <!-- Stepper -->
-    <div class="stepper">
-        <div class="step active" id="step-1">
-            <div class="step-circle" id="circle-1">1</div>
-            <div class="step-label">معلومات العقد</div>
-        </div>
-        <div class="step-line" id="line-1"></div>
-        <div class="step" id="step-2">
-            <div class="step-circle" id="circle-2">2</div>
-            <div class="step-label">البنود</div>
-        </div>
-        <div class="step-line" id="line-2"></div>
-        <div class="step" id="step-3">
-            <div class="step-circle" id="circle-3">3</div>
-            <div class="step-label">الأطراف</div>
-        </div>
-        <div class="step-line" id="line-3"></div>
-        <div class="step" id="step-4">
-            <div class="step-circle" id="circle-4">4</div>
-            <div class="step-label">المراجعة</div>
-        </div>
+<!-- ══ Wizard ══════════════════════════════════════════ -->
+<div class="wizard-wrap">
+  <div class="wizard-steps">
+    <div class="wizard-step active" id="ws-1">
+      <div class="step-circle" id="wc-1">1</div>
+      <span>معلومات العقد</span>
     </div>
-
-    <!-- Panel 1: معلومات العقد -->
-    <div class="panel active" id="panel-1">
-        <div class="card">
-            <div class="section-title">معلومات العقد</div>
-
-            <div style="margin-bottom:1rem;">
-                <label class="label">
-                    عنوان العقد بالعربية
-                    <span style="color:var(--color-danger);">*</span>
-                </label>
-                <input type="text" id="title_ar" class="input"
-                       placeholder="مثال: عقد تصميم هوية بصرية لشركة ريادة">
-                <p class="error-msg" id="err-title">عنوان العقد مطلوب</p>
-            </div>
-
-            <div style="margin-bottom:1rem;">
-                <label class="label">
-                    عنوان العقد بالإنجليزية
-                    <span style="color:var(--color-text-muted);font-weight:400;font-size:0.8rem;">(اختياري)</span>
-                </label>
-                <input type="text" id="title_en" class="input" dir="ltr"
-                       placeholder="e.g. Visual Identity Design Contract">
-            </div>
-
-            <div>
-                <label class="label">
-                    وصف العقد
-                    <span style="color:var(--color-text-muted);font-weight:400;font-size:0.8rem;">(اختياري)</span>
-                </label>
-                <textarea id="description_ar" class="input" rows="3"
-                          placeholder="وصف مختصر يوضح الهدف من العقد..."></textarea>
-            </div>
-        </div>
-
-        <div class="form-footer">
-            <a href="/contracts/dashboard/" class="btn btn-outline">إلغاء</a>
-            <button class="btn btn-primary" onclick="goToStep(2)">التالي: البنود ←</button>
-        </div>
+    <div class="step-line" id="wl-1"></div>
+    <div class="wizard-step" id="ws-2">
+      <div class="step-circle" id="wc-2">2</div>
+      <span>أطراف العقد</span>
     </div>
-
-    <!-- Panel 2: البنود -->
-    <div class="panel" id="panel-2">
-        <div class="card">
-            <div class="section-title">بنود العقد</div>
-            <div id="clauses-container"></div>
-            <button class="add-clause-btn" onclick="addClause()">+ إضافة بند جديد</button>
-            <p class="error-msg" id="err-clauses">يجب إضافة بند واحد على الأقل</p>
-        </div>
-
-        <div class="form-footer">
-            <button class="btn btn-outline" onclick="goToStep(1)">← رجوع</button>
-            <button class="btn btn-primary" onclick="goToStep(3)">التالي: الأطراف ←</button>
-        </div>
+    <div class="step-line" id="wl-2"></div>
+    <div class="wizard-step" id="ws-3">
+      <div class="step-circle" id="wc-3">3</div>
+      <span>بنود العقد</span>
     </div>
-
-    <!-- Panel 3: الأطراف -->
-    <div class="panel" id="panel-3">
-        <div class="card">
-            <div class="section-title">أطراف العقد</div>
-
-            <!-- المنشئ ثابت -->
-            <div class="party-item">
-                <div class="party-avatar">أ</div>
-                <div class="party-info">
-                    <div class="party-name">أنت (المنشئ)</div>
-                    <div class="party-role">منشئ العقد — موافقة تلقائية</div>
-                </div>
-                <span style="font-size:0.75rem;color:var(--color-success);font-weight:600;">✓ منشئ</span>
-            </div>
-
-            <!-- الأطراف المضافة -->
-            <div id="parties-container"></div>
-
-            <!-- صف الإضافة -->
-                <div style="margin-top:0.75rem;">
-                    <div style="display:flex;gap:8px;margin-bottom:6px;">
-                        <input type="text" id="party-name" class="input"
-                            placeholder="الاسم الكامل" style="flex:1.2;">
-                        <input type="tel" id="party-phone" class="input"
-                            placeholder="05XXXXXXXX" dir="ltr"
-                            maxlength="10" style="flex:1;">
-                        <button class="btn btn-outline" onclick="addParty()"
-                                style="white-space:nowrap;flex-shrink:0;">+ إضافة</button>
-                    </div>
-                    <input type="email" id="party-email" class="input"
-                        placeholder="البريد الإلكتروني (اختياري)" dir="ltr"
-                        style="margin-bottom:6px;">
-                    <p class="error-msg" id="err-party-email"></p>
-                </div>
-
-            <!-- زر إضافة طرف آخر -->
-            <button class="add-clause-btn" onclick="
-                document.getElementById('party-name').focus();
-                document.getElementById('party-name').scrollIntoView({behavior:'smooth'});
-            ">
-                + إضافة طرف آخر
-            </button>
-
-            <p class="error-msg" id="err-parties" style="margin-top:8px;">
-                يجب إضافة طرف واحد على الأقل
-            </p>
-
-        </div>
-
-        <div style="background:var(--color-secondary-light);border:1px solid #e8d8a0;
-                    border-radius:var(--radius-sm);padding:0.875rem 1rem;
-                    margin-top:1rem;font-size:0.8rem;color:var(--color-text-secondary);">
-            💡 سيتم التواصل مع كل طرف عبر رقم جواله لمراجعة العقد والموافقة عليه
-        </div>
-
-        <div class="form-footer">
-            <button class="btn btn-outline" onclick="goToStep(2)">← رجوع</button>
-            <button class="btn btn-primary" onclick="goToStep(4)">التالي: المراجعة ←</button>
-        </div>
+    <div class="step-line" id="wl-3"></div>
+    <div class="wizard-step" id="ws-4">
+      <div class="step-circle" id="wc-4">4</div>
+      <span>المراجعة والتدقيق</span>
     </div>
-
-    <!-- Panel 4: المراجعة -->
-    <div class="panel" id="panel-4">
-        <div class="card" style="margin-bottom:1.25rem;">
-
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
-                <div class="section-title" style="margin-bottom:0;">مراجعة العقد</div>
-                <span style="font-size:0.75rem;color:var(--color-text-muted);">
-                    تأكد من كل التفاصيل قبل الإنشاء
-                </span>
-            </div>
-
-            <!-- معلومات العقد -->
-            <div style="background:var(--color-surface-soft);border:1px solid var(--color-border);
-                        border-radius:var(--radius-sm);padding:1rem;margin-bottom:1rem;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-                    <span style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);">معلومات العقد</span>
-                    <button onclick="goToStep(1)"
-                            style="font-size:0.75rem;color:var(--color-secondary);background:none;
-                                   border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:600;">
-                        تعديل
-                    </button>
-                </div>
-                <p id="review-title"
-                   style="font-size:1rem;font-weight:700;color:var(--color-text-primary);margin-bottom:4px;"></p>
-                <p id="review-title-en"
-                   style="font-size:0.8rem;color:var(--color-text-muted);margin-bottom:6px;"></p>
-                <p id="review-description"
-                   style="font-size:0.875rem;color:var(--color-text-secondary);"></p>
-            </div>
-
-            <!-- البنود -->
-            <div style="background:var(--color-surface-soft);border:1px solid var(--color-border);
-                        border-radius:var(--radius-sm);padding:1rem;margin-bottom:1rem;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-                    <span style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);">البنود</span>
-                    <button onclick="goToStep(2)"
-                            style="font-size:0.75rem;color:var(--color-secondary);background:none;
-                                   border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:600;">
-                        تعديل
-                    </button>
-                </div>
-                <div id="review-clauses"></div>
-            </div>
-
-            <!-- الأطراف -->
-            <div style="background:var(--color-surface-soft);border:1px solid var(--color-border);
-                        border-radius:var(--radius-sm);padding:1rem;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-                    <span style="font-size:0.8rem;font-weight:700;color:var(--color-text-secondary);">الأطراف</span>
-                    <button onclick="goToStep(3)"
-                            style="font-size:0.75rem;color:var(--color-secondary);background:none;
-                                   border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:600;">
-                        تعديل
-                    </button>
-                </div>
-                <div id="review-parties"></div>
-            </div>
-        </div>
-
-        <div style="background:var(--color-secondary-light);border:1px solid #e8d8a0;
-                    border-radius:var(--radius-sm);padding:0.875rem 1rem;
-                    margin-bottom:1.5rem;font-size:0.8rem;color:var(--color-text-secondary);">
-            ⚖️ بإنشاء هذا العقد، سيتم التواصل مع جميع الأطراف لمراجعته والموافقة عليه قبل التوقيع.
-        </div>
-
-        <div class="form-footer">
-            <button class="btn btn-outline" onclick="goToStep(3)">← رجوع</button>
-            <button class="btn btn-primary" onclick="submitContract()" id="submit-btn">
-                ✓ إنشاء العقد الآن
-            </button>
-        </div>
-    </div>
-
+  </div>
 </div>
+
+<div class="page-body">
+
+<!-- ══════════════════════════════════════════════════════
+     PANEL 1 — معلومات العقد
+══════════════════════════════════════════════════════ -->
+<div class="panel active" id="panel-1">
+
+  <div class="section-card">
+    <div class="section-head">
+      <h3>تفاصيل العقد الأساسية</h3>
+      <p>أدخل عنوان العقد ونوعه</p>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>عنوان العقد بالعربية <span style="color:var(--danger)">*</span></label>
+        <input type="text" id="title_ar" placeholder="مثال: عقد تصميم هوية بصرية لشركة ريادة">
+        <p class="err-msg" id="err-title">عنوان العقد مطلوب</p>
+      </div>
+      <div class="form-group">
+        <label>عنوان العقد بالإنجليزية <span class="optional">(اختياري)</span></label>
+        <input type="text" id="title_en" dir="ltr" placeholder="e.g. Visual Identity Design Contract">
+      </div>
+      <div class="form-group full">
+        <label>نوع العقد <span style="color:var(--danger)">*</span></label>
+        <select id="contract_type">
+          <option value="">— اختر نوع العقد —</option>
+          <option value="SERVICES">عقد خدمات</option>
+          <option value="SUPPLY">عقد توريد</option>
+          <option value="RENT">عقد إيجار</option>
+          <option value="PARTNERSHIP">عقد شراكة</option>
+          <option value="CONSULTING">عقد خدمات استشارية</option>
+          <option value="EMPLOYMENT">عقد عمل</option>
+          <option value="OTHER">أخرى</option>
+        </select>
+        <p class="err-msg" id="err-contract-type">نوع العقد مطلوب</p>
+      </div>
+      <div class="form-group full">
+        <label>ملخص / وصف العقد <span class="optional">(اختياري)</span></label>
+        <textarea id="description_ar" placeholder="وصف مختصر يوضح الهدف من العقد وأطرافه الرئيسية..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-head">
+      <h3>المدة الزمنية</h3>
+      <p>حدد مدة العقد وتواريخ التنفيذ</p>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:1.25rem;">
+      <button type="button" class="duration-toggle active" id="toggle-fixed" onclick="setDurationType('fixed')">محددة</button>
+      <button type="button" class="duration-toggle" id="toggle-open" onclick="setDurationType('open')">غير محددة</button>
+    </div>
+    <div id="duration-fixed">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>تاريخ بداية العقد <span style="color:var(--danger)">*</span></label>
+          <input type="date" id="start_date" oninput="calcDuration()">
+          <p class="err-msg" id="err-start-date">تاريخ البداية مطلوب</p>
+        </div>
+        <div class="form-group">
+          <label>تاريخ نهاية العقد <span style="color:var(--danger)">*</span></label>
+          <input type="date" id="end_date" oninput="calcDuration()">
+          <p class="err-msg" id="err-end-date">تاريخ النهاية مطلوب</p>
+        </div>
+        <div class="form-group full">
+          <div id="duration-result" style="display:none;background:var(--gold-soft);border:1px solid #e8d8a0;border-radius:11px;padding:12px 16px;font-size:14px;color:var(--text);font-weight:600;"></div>
+        </div>
+      </div>
+    </div>
+    <div id="duration-open" style="display:none;">
+      <div style="background:var(--surface-soft);border:1px solid var(--border);border-radius:11px;padding:14px 16px;font-size:13px;color:var(--muted);">
+        ⚠️ العقد غير محدد المدة — يسري حتى إنهائه من قِبل أحد الأطراف وفق بنود الإنهاء والفسخ.
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-head">
+      <h3>المقابل المالي</h3>
+      <p>حدد قيمة العقد وطريقة السداد ومكان التنفيذ</p>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>قيمة العقد <span class="optional">(اختياري)</span></label>
+        <input type="number" id="contract_value" min="0" placeholder="0.00" oninput="formatValue(this)">
+      </div>
+      <div class="form-group">
+        <label>العملة</label>
+        <select id="currency">
+          <option value="SAR">ريال سعودي (SAR)</option>
+          <option value="USD">دولار أمريكي (USD)</option>
+          <option value="EUR">يورو (EUR)</option>
+          <option value="AED">درهم إماراتي (AED)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>طريقة الدفع</label>
+        <select id="payment_method">
+          <option value="">— اختر طريقة الدفع —</option>
+          <option value="UPFRONT">دفعة مقدمة كاملة</option>
+          <option value="INSTALLMENTS">دفعات مرحلية</option>
+          <option value="ON_DELIVERY">عند التسليم</option>
+          <option value="CUSTOM">مخصصة (يُحدد في البنود)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>مكان التنفيذ <span class="optional">(اختياري)</span></label>
+        <input type="text" id="execution_location" placeholder="مثال: الرياض، المملكة العربية السعودية">
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-actions">
+    <a href="/contracts/dashboard/" class="btn light">إلغاء</a>
+    <button class="btn primary" onclick="goToStep(2)">التالي: أطراف العقد ←</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PANEL 2 — أطراف العقد
+══════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-2">
+
+  <div class="section-card">
+    <div class="section-head">
+      <h3>الطرف الأول (المنشئ)</h3>
+      <p>يتم عرض بيانات منشئ العقد تلقائياً ولا يمكن حذفها</p>
+    </div>
+    <div class="party-row primary-party">
+      <div class="party-label green">الطرف الأول</div>
+      <div class="party-main-info">
+        <div class="avatar formal"><span>أ</span></div>
+        <div class="party-details">
+          <div class="name-row">
+            <h4>أنت (المنشئ)</h4>
+            <span class="verified-badge">منشئ العقد</span>
+          </div>
+          <p class="party-type-label">الطرف الأول — طرف ملزَم — موقّع</p>
+        </div>
+      </div>
+      <div class="contact-info-col">
+        <h5>الصلاحيات</h5>
+        <div class="permissions">
+          <span>إنشاء العقد</span>
+          <span>إضافة الأطراف</span>
+          <span>إرسال للتوقيع</span>
+          <span>التوقيع</span>
+        </div>
+      </div>
+      <div class="role-col">
+        <h5>دور التوقيع</h5>
+        <select class="role-select" disabled>
+          <option>موقّع — التزام قانوني كامل</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-head row">
+      <div>
+        <h3>الأطراف الأخرى</h3>
+        <p>كل طرف يأخذ رقمه تلقائياً (الثاني، الثالث...) حسب ترتيب إضافته</p>
+      </div>
+      <button class="add-party-btn" onclick="openPartyModal()">+ إضافة طرف</button>
+    </div>
+    <div class="empty-state" id="parties-empty">
+      لم تتم إضافة أي طرف بعد. اضغط على "إضافة طرف" لإدخال بيانات الطرف المطلوب
+    </div>
+    <div id="parties-list"></div>
+    <div class="form-error" id="parties-error"></div>
+  </div>
+
+  <div class="note-box">
+    💡 منصة ميثاق تُثبت حقوق جميع الأطراف إلكترونياً — سيتلقى كل طرف دعوة على بريده الإلكتروني للمراجعة والتوقيع
+  </div>
+
+  <div class="bottom-actions">
+    <button class="btn light" onclick="goToStep(1)">← رجوع</button>
+    <button class="btn primary" onclick="goToStep(3)">التالي: بنود العقد ←</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PANEL 3 — بنود العقد
+══════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-3">
+
+  <div class="section-card" style="padding:0;overflow:hidden;">
+    <div class="clause-tabs">
+      <button class="clause-tab active" onclick="switchClauseTab('obligations')" id="tab-obligations">الالتزامات والشروط</button>
+      <button class="clause-tab" onclick="switchClauseTab('penalties')" id="tab-penalties">الشروط الجزائية</button>
+      <button class="clause-tab" onclick="switchClauseTab('termination')" id="tab-termination">الإنهاء والفسخ</button>
+    </div>
+  </div>
+
+  <div class="clause-section active" id="section-obligations">
+    <div class="section-card">
+      <div class="section-head">
+        <h3>الالتزامات والشروط</h3>
+        <p>الشروط والالتزامات التي يلتزم بها كل طرف تجاه الآخر</p>
+      </div>
+      <div id="clauses-obligations"></div>
+      <button class="add-dashed-btn" onclick="addClause('obligations')">+ إضافة بند</button>
+    </div>
+  </div>
+
+  <div class="clause-section" id="section-penalties">
+    <div class="section-card">
+      <div class="section-head">
+        <h3>الشروط الجزائية والتعويضات</h3>
+        <p>الالتزامات في حال تأخر أحد الأطراف أو إخلاله بأحد البنود</p>
+      </div>
+      <div id="clauses-penalties"></div>
+      <button class="add-dashed-btn" onclick="addClause('penalties')">+ إضافة بند</button>
+    </div>
+  </div>
+
+  <div class="clause-section" id="section-termination">
+    <div class="section-card">
+      <div class="section-head">
+        <h3>حالات الإنهاء والفسخ</h3>
+        <p>الشروط والإجراءات التي تتيح لأحد الطرفين إنهاء العقد قبل موعده</p>
+      </div>
+      <div id="clauses-termination"></div>
+      <button class="add-dashed-btn" onclick="addClause('termination')">+ إضافة بند</button>
+    </div>
+  </div>
+
+  <p class="err-msg" id="err-clauses" style="text-align:center;margin:0 0 1rem;">
+    يجب إضافة بند واحد على الأقل في الالتزامات والشروط
+  </p>
+
+  <div class="bottom-actions">
+    <button class="btn light" onclick="goToStep(2)">← رجوع</button>
+    <button class="btn primary" onclick="goToStep(4)">التالي: المراجعة والتدقيق ←</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PANEL 4 — المراجعة والتدقيق
+══════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-4">
+  <div class="review-stack">
+
+    <div class="review-card">
+      <div class="card-head">
+        <h3>ملخص العقد</h3>
+        <p>نظرة عامة على بيانات العقد الأساسية</p>
+      </div>
+      <div class="summary-grid" id="review-summary"></div>
+    </div>
+
+    <div class="review-card">
+      <div class="card-head">
+        <h3>الأطراف والصلاحيات</h3>
+        <p>الأطراف التي سيتم إرسال طلب التوقيع لهم</p>
+      </div>
+      <div id="review-parties-list"></div>
+    </div>
+
+    <div class="review-card" id="review-timeline-card">
+      <div class="card-head">
+        <h3>ترتيب التوقيع</h3>
+        <p>يظهر عند وجود أكثر من طرف</p>
+      </div>
+      <div class="timeline-list" id="review-timeline"></div>
+    </div>
+
+    <div class="review-card">
+      <div class="card-head">
+        <h3>معاينة رسائل الدعوة</h3>
+        <p>معاينة مختصرة للرسالة التي ستصل لكل طرف على بريده الإلكتروني</p>
+      </div>
+      <div id="review-sms"></div>
+    </div>
+
+    <div class="review-card">
+      <div class="card-head">
+        <h3>معاينة العقد الرسمي</h3>
+        <p>نص العقد الكامل المولّد من البيانات المدخلة</p>
+      </div>
+      <div class="doc-preview" id="review-doc"></div>
+    </div>
+
+    <div class="review-card final-card">
+      <div class="card-head">
+        <h3>مراجعة نهائية</h3>
+        <p>تأكد من اكتمال البيانات قبل الإرسال</p>
+      </div>
+      <ul id="final-checklist"></ul>
+      <textarea id="final-notes" placeholder="ملاحظات اختيارية قبل الإرسال..."></textarea>
+    </div>
+
+  </div>
+
+  <div class="bottom-actions">
+    <button class="btn light" onclick="goToStep(3)">← رجوع</button>
+    <button class="btn primary" onclick="submitContract()" id="submit-btn">
+      ✓ إنشاء العقد وإرسال طلبات التوقيع
+    </button>
+  </div>
+</div>
+
+</div><!-- /page-body -->
+
+<!-- ══════════════════════════════════════════════════════
+     PARTY MODAL
+══════════════════════════════════════════════════════ -->
+<div class="party-modal" id="partyModal" aria-hidden="true">
+  <div class="modal-card">
+
+    <div class="modal-header">
+      <div>
+        <h3 id="modalTitle">إضافة طرف</h3>
+        <p>أدخل بيانات الطرف ودوره وصلاحياته في العقد</p>
+      </div>
+      <button class="modal-close" id="closeModal">×</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- نوع الطرف ودور التوقيع -->
+      <div class="modal-section">
+        <div class="modal-section-title">
+          <h4>نوع الطرف ودور التوقيع</h4>
+          <p>الطرف يأخذ رقمه تلقائياً (الثاني، الثالث...) حسب ترتيب إضافته</p>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>نوع الطرف</label>
+            <select id="partyType">
+              <option value="INDIVIDUAL">فرد</option>
+              <option value="ORGANIZATION">منشأة</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>دور التوقيع</label>
+            <select id="signingRole">
+              <option value="SIGNER">موقّع — يوقع باسمه الشخصي</option>
+              <option value="DELEGATED">مفوّض — يوقع نيابةً عن منشأة أو جهة</option>
+              <option value="REVIEWER">مراجع — يراجع ويعلّق بدون توقيع</option>
+            </select>
+          </div>
+        </div>
+        <div id="role-hint" style="margin-top:12px;padding:12px 14px;border-radius:11px;background:var(--gold-soft);border:1px solid #e8d8a0;font-size:13px;color:var(--text);line-height:1.7;"></div>
+      </div>
+
+      <!-- المعلومات الشخصية -->
+      <div class="modal-section">
+        <div class="modal-section-title">
+          <h4>المعلومات الشخصية</h4>
+          <p>بيانات التعريف الرسمية للطرف</p>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>اللقب <span style="color:var(--danger)">*</span></label>
+            <select id="partyTitle">
+              <option value="السيد">السيد</option>
+              <option value="السيدة">السيدة</option>
+              <option value="الآنسة">الآنسة</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>الاسم الكامل <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="partyName" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>رقم الهوية / الإقامة <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="nationalId" autocomplete="off" placeholder="10 أرقام">
+          </div>
+          <div class="form-group">
+            <label>الجنسية</label>
+            <input type="text" id="nationality" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>الدولة</label>
+            <input type="text" id="addressCountry" autocomplete="off" placeholder="المملكة العربية السعودية">
+          </div>
+          <div class="form-group">
+            <label>المدينة</label>
+            <input type="text" id="addressCity" autocomplete="off" placeholder="الرياض">
+          </div>
+        </div>
+      </div>
+
+      <!-- معلومات التواصل -->
+      <div class="modal-section">
+        <div class="modal-section-title">
+          <h4>معلومات التواصل</h4>
+          <p>تُستخدم لإرسال الدعوة والتحقق من الطرف</p>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>رقم الجوال <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="partyMobile" autocomplete="off" placeholder="+966512345678">
+          </div>
+          <div class="form-group">
+            <label>رقم الهاتف <span class="optional">اختياري</span></label>
+            <input type="tel" id="partyPhone" autocomplete="off" placeholder="+966 1xxxxxxxx" dir="ltr">
+          </div>
+          <div class="form-group full">
+            <label>البريد الإلكتروني <span style="color:var(--danger)">*</span></label>
+            <input type="email" id="partyEmail" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <!-- بيانات المنشأة -->
+      <div class="modal-section hidden" id="organizationFields">
+        <div class="modal-section-title">
+          <h4>بيانات المنشأة</h4>
+          <p>تظهر عند اختيار "منشأة" في نوع الطرف</p>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>اسم المنشأة <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="organizationName" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>السجل التجاري <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="commercialRegistration" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>الرقم الضريبي <span class="optional">اختياري</span></label>
+            <input type="text" id="taxNumber" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <!-- الصلاحيات — يدوية كلها -->
+      <div class="modal-section">
+        <div class="modal-section-title">
+          <h4>الصلاحيات</h4>
+          <p>تُضبط تلقائياً حسب دور التوقيع — يمكنك تعديلها يدوياً</p>
+        </div>
+        <div class="permissions-grid">
+          <label class="permission-item">
+            <span>عرض العقد</span>
+            <input type="checkbox" id="canViewContract" checked>
+          </label>
+          <label class="permission-item">
+            <span>إضافة ملاحظات</span>
+            <input type="checkbox" id="canComment">
+          </label>
+          <label class="permission-item">
+            <span>تعديل البنود</span>
+            <input type="checkbox" id="canEdit">
+          </label>
+          <label class="permission-item">
+            <span>رفع مرفقات</span>
+            <input type="checkbox" id="canUploadFiles">
+          </label>
+          <label class="permission-item">
+            <span>التوقيع</span>
+            <input type="checkbox" id="canSign" checked>
+          </label>
+        </div>
+      </div>
+
+      <!-- رسالة الدعوة -->
+      <div class="modal-section">
+        <div class="modal-section-title">
+          <h4>رسالة الدعوة <span class="optional">اختياري</span></h4>
+          <p>تظهر للطرف في رسالة الدعوة عند إرسال طلب التوقيع</p>
+        </div>
+        <div class="form-group full">
+          <textarea id="invitationMessage" placeholder="مثال: يرجى مراجعة العقد والتوقيع خلال 3 أيام."></textarea>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn light" id="cancelParty">إلغاء</button>
+      <button class="btn primary" id="saveParty">حفظ الطرف</button>
+    </div>
+
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-let currentStep = 1;
-let clauseCount = 0;
-let parties     = [];
 
+// ════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════
+let parties      = [];
+let editingIndex = null;
+let currentStep  = 1;
+let clauseCount  = 0;
+let durationType = 'fixed';
+
+// ── Constants ─────────────────────────────────────────
 const CLAUSE_TYPES = [
-    { value: 'GENERAL',  label: 'عام' },
-    { value: 'PAYMENT',  label: 'دفع' },
-    { value: 'DELIVERY', label: 'تسليم' },
-    { value: 'PENALTY',  label: 'غرامة' },
-    { value: 'CUSTOM',   label: 'مخصص' },
+  { value:'GENERAL',  label:'عام' },
+  { value:'PAYMENT',  label:'دفع' },
+  { value:'DELIVERY', label:'تسليم' },
+  { value:'PENALTY',  label:'غرامة' },
+  { value:'CUSTOM',   label:'مخصص' },
 ];
-
 const CLAUSE_LABELS = {
-    GENERAL:'عام', PAYMENT:'دفع', DELIVERY:'تسليم', PENALTY:'غرامة', CUSTOM:'مخصص'
+  GENERAL:'عام', PAYMENT:'دفع', DELIVERY:'تسليم', PENALTY:'غرامة', CUSTOM:'مخصص'
 };
 
-// ── Stepper ────────────────────────────────────────────
-function goToStep(n) {
-    if (n === 2 && !validateStep1()) return;
-    if (n === 3 && !validateStep2()) return;
-    if (n === 4 && !validateStep3()) return;
+const PARTY_TYPE_LABELS = { INDIVIDUAL:'فرد', ORGANIZATION:'منشأة' };
 
-    document.getElementById(`panel-${currentStep}`).classList.remove('active');
-    document.getElementById(`step-${currentStep}`).classList.remove('active');
+const SIGNING_ROLE_LABELS = {
+  SIGNER:    'موقّع — يوقع باسمه الشخصي',
+  DELEGATED: 'مفوّض — يوقع نيابةً عن منشأة أو جهة',
+  REVIEWER:  'مراجع — يراجع ويعلّق بدون توقيع',
+};
 
-    if (n > currentStep) {
-        document.getElementById(`step-${currentStep}`).classList.add('done');
-        document.getElementById(`circle-${currentStep}`).innerHTML = '✓';
-        document.getElementById(`line-${currentStep}`)?.classList.add('done');
-    } else {
-        document.getElementById(`step-${currentStep}`).classList.remove('done');
-        document.getElementById(`circle-${currentStep}`).innerHTML = currentStep;
-        document.getElementById(`line-${currentStep - 1}`)?.classList.remove('done');
-    }
+const SIGNING_ROLE_HINTS = {
+  SIGNER:    '✍ <strong>موقّع:</strong> طرف ملزَم قانونياً يوقع باسمه الشخصي. يحق له الاطلاع على العقد كاملاً والتوقيع عليه.',
+  DELEGATED: '🏢 <strong>مفوّض:</strong> يوقع نيابةً عن شركة أو جهة. يجب تحديد صفته ومستند التفويض في بيانات المنشأة.',
+  REVIEWER:  '👁 <strong>مراجع:</strong> يطّلع على العقد ويضيف ملاحظاته فقط — لا يُعدّ طرفاً ملزَماً ولا يوقع.',
+};
 
-    currentStep = n;
-    document.getElementById(`step-${currentStep}`).classList.add('active');
-    document.getElementById(`step-${currentStep}`).classList.remove('done');
-    document.getElementById(`circle-${currentStep}`).innerHTML = currentStep;
-    document.getElementById(`panel-${currentStep}`).classList.add('active');
+const ARABIC_ORDINALS = ['الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر'];
+const STEP_LABELS = ['','معلومات العقد','أطراف العقد','بنود العقد','المراجعة والتدقيق'];
 
-    if (n === 4) renderReview();
+const CLAUSE_SECTIONS = ['obligations', 'penalties', 'termination'];
+const SECTION_DEFAULT_TYPE = {
+  obligations: 'GENERAL',
+  penalties:   'PENALTY',
+  termination: 'CUSTOM',
+};
+
+function getLegalTitle(index) {
+  return `الطرف ${ARABIC_ORDINALS[index] || `رقم ${index + 2}`}`;
 }
 
-// ── Validation ─────────────────────────────────────────
+function buildPartyNameMap() {
+  const map = { '': 'جميع الأطراف', 'PARTY_1': 'الطرف الأول (المنشئ)' };
+  parties.forEach((p, i) => { map[`PARTY_${i + 2}`] = getLegalTitle(i); });
+  return map;
+}
+
+// ════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return '';
+}
+
+function getInitials(name) {
+  return name.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('');
+}
+
+function esc(v) {
+  return String(v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+function getPermLabels(p) {
+  const out = [];
+  if (p.can_view_contract) out.push('عرض العقد');
+  if (p.can_comment)       out.push('ملاحظات');
+  if (p.can_edit)          out.push('تعديل');
+  if (p.can_upload_files)  out.push('رفع مرفقات');
+  if (p.can_sign)          out.push('التوقيع');
+  return out;
+}
+
+// ════════════════════════════════════════════════════════
+//  PANEL 1
+// ════════════════════════════════════════════════════════
+function setDurationType(type) {
+  durationType = type;
+  document.getElementById('toggle-fixed').classList.toggle('active', type === 'fixed');
+  document.getElementById('toggle-open').classList.toggle('active', type === 'open');
+  document.getElementById('duration-fixed').style.display = type === 'fixed' ? 'block' : 'none';
+  document.getElementById('duration-open').style.display  = type === 'open'  ? 'block' : 'none';
+}
+
+function calcDuration() {
+  const start  = document.getElementById('start_date').value;
+  const end    = document.getElementById('end_date').value;
+  const result = document.getElementById('duration-result');
+  if (!start || !end) { result.style.display = 'none'; return; }
+
+  const diffMs = new Date(end) - new Date(start);
+  if (diffMs <= 0) {
+    result.style.display     = 'block';
+    result.style.background  = 'var(--danger-bg)';
+    result.style.borderColor = '#F6C4C0';
+    result.textContent = '⚠️ تاريخ النهاية يجب أن يكون بعد تاريخ البداية';
+    return;
+  }
+  const days   = Math.ceil(diffMs / 86400000);
+  const months = Math.floor(days / 30);
+  const years  = Math.floor(days / 365);
+  const label  = years >= 1  ? `${years} سنة (${days} يوم)` :
+                 months >= 1 ? `${months} شهر (${days} يوم)` : `${days} يوم`;
+  result.style.display     = 'block';
+  result.style.background  = 'var(--gold-soft)';
+  result.style.borderColor = '#e8d8a0';
+  result.innerHTML = `⏱ مدة العقد: <strong>${label}</strong>`;
+}
+
+function formatValue(input) { if (input.value < 0) input.value = 0; }
+
+// ════════════════════════════════════════════════════════
+//  STEPPER
+// ════════════════════════════════════════════════════════
+function goToStep(n) {
+  if (n === 2 && !validateStep1()) return;
+  if (n === 3 && !validateStep2()) return;
+  if (n === 4 && !validateStep3()) return;
+
+  document.getElementById(`panel-${currentStep}`).classList.remove('active');
+  document.getElementById(`ws-${currentStep}`).classList.remove('active');
+
+  if (n > currentStep) {
+    document.getElementById(`ws-${currentStep}`).classList.add('completed');
+    document.getElementById(`wc-${currentStep}`).innerHTML = '✓';
+    document.getElementById(`wl-${currentStep}`)?.classList.add('done');
+  } else {
+    document.getElementById(`ws-${currentStep}`).classList.remove('completed');
+    document.getElementById(`wc-${currentStep}`).innerHTML = currentStep;
+    document.getElementById(`wl-${currentStep - 1}`)?.classList.remove('done');
+  }
+
+  currentStep = n;
+  document.getElementById(`ws-${n}`).classList.add('active');
+  document.getElementById(`ws-${n}`).classList.remove('completed');
+  document.getElementById(`wc-${n}`).innerHTML = n;
+  document.getElementById(`panel-${n}`).classList.add('active');
+  document.getElementById('breadcrumb-step').textContent = STEP_LABELS[n];
+
+  if (n === 4) renderReview();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ════════════════════════════════════════════════════════
+//  VALIDATION
+// ════════════════════════════════════════════════════════
 function validateStep1() {
-    const title = document.getElementById('title_ar').value.trim();
-    if (!title) {
-        document.getElementById('err-title').classList.add('show');
-        document.getElementById('title_ar').focus();
-        return false;
+  let valid = true;
+
+  const title = document.getElementById('title_ar').value.trim();
+  document.getElementById('err-title').classList.toggle('show', !title);
+  if (!title) { document.getElementById('title_ar').focus(); valid = false; }
+
+  const contractType = document.getElementById('contract_type').value;
+  document.getElementById('err-contract-type').classList.toggle('show', !contractType);
+  if (!contractType) valid = false;
+
+  if (durationType === 'fixed') {
+    const start = document.getElementById('start_date').value;
+    const end   = document.getElementById('end_date').value;
+    document.getElementById('err-start-date').classList.toggle('show', !start);
+    if (!start) valid = false;
+
+    if (!end) {
+      document.getElementById('err-end-date').textContent = 'تاريخ النهاية مطلوب';
+      document.getElementById('err-end-date').classList.add('show');
+      valid = false;
+    } else if (start && new Date(end) <= new Date(start)) {
+      document.getElementById('err-end-date').textContent = 'تاريخ النهاية يجب أن يكون بعد البداية';
+      document.getElementById('err-end-date').classList.add('show');
+      valid = false;
+    } else {
+      document.getElementById('err-end-date').classList.remove('show');
     }
-    document.getElementById('err-title').classList.remove('show');
-    return true;
+  }
+  return valid;
 }
 
 function validateStep2() {
-    if (getClauses().length === 0) {
-        document.getElementById('err-clauses').classList.add('show');
-        return false;
-    }
-    document.getElementById('err-clauses').classList.remove('show');
-    return true;
+  const err = document.getElementById('parties-error');
+  if (parties.length === 0) {
+    err.textContent = 'يجب إضافة طرف واحد على الأقل قبل المتابعة.';
+    return false;
+  }
+  err.textContent = '';
+  return true;
 }
 
 function validateStep3() {
-    if (parties.length === 0) {
-        document.getElementById('err-parties').classList.add('show');
-        return false;
-    }
-    document.getElementById('err-parties').classList.remove('show');
-    return true;
+  const container = document.getElementById('clauses-obligations');
+  const hasObligation = Array.from(container?.querySelectorAll('[id^="ccontent-"]') || [])
+    .some(t => t.value.trim());
+  if (!hasObligation) {
+    document.getElementById('err-clauses').classList.add('show');
+    switchClauseTab('obligations');
+    return false;
+  }
+  document.getElementById('err-clauses').classList.remove('show');
+  return true;
 }
 
-// ── Clauses ────────────────────────────────────────────
-function addClause(content = '', type = 'GENERAL') {
-    clauseCount++;
-    const id  = clauseCount;
-    const div = document.createElement('div');
-    div.className = 'clause-item';
-    div.id        = `clause-${id}`;
-    div.innerHTML = `
-        <div class="clause-header">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <div class="clause-num">${id}</div>
-                <select class="clause-type-select" id="type-${id}">
-                    ${CLAUSE_TYPES.map(t =>
-                        `<option value="${t.value}" ${t.value===type?'selected':''}>${t.label}</option>`
-                    ).join('')}
-                </select>
-            </div>
-            <button class="clause-delete" onclick="removeClause(${id})">حذف</button>
-        </div>
-        <textarea class="input" id="content-${id}" rows="3"
-                  placeholder="اكتب نص البند هنا...">${content}</textarea>
-    `;
-    document.getElementById('clauses-container').appendChild(div);
-    document.getElementById(`content-${id}`).focus();
-    document.getElementById('err-clauses').classList.remove('show');
+// ════════════════════════════════════════════════════════
+//  CLAUSE TABS
+// ════════════════════════════════════════════════════════
+function switchClauseTab(section) {
+  CLAUSE_SECTIONS.forEach(s => {
+    document.getElementById(`tab-${s}`)?.classList.toggle('active', s === section);
+    document.getElementById(`section-${s}`)?.classList.toggle('active', s === section);
+  });
 }
 
-function removeClause(id) {
-    document.getElementById(`clause-${id}`)?.remove();
+// ════════════════════════════════════════════════════════
+//  CLAUSES
+// ════════════════════════════════════════════════════════
+function addClause(section = 'obligations', content = '', type = null, assignedParty = '') {
+  clauseCount++;
+  const id          = clauseCount;
+  const defaultType = type || SECTION_DEFAULT_TYPE[section] || 'GENERAL';
+  const container   = document.getElementById(`clauses-${section}`);
+  if (!container) return;
+
+  const partyNameMap = buildPartyNameMap();
+  const partyOptions = Object.entries(partyNameMap)
+    .map(([key, label]) => `<option value="${key}" ${assignedParty === key ? 'selected' : ''}>${label}</option>`)
+    .join('');
+
+  const sectionCount = container.querySelectorAll('.clause-item').length + 1;
+
+  const div = document.createElement('div');
+  div.className       = 'clause-item';
+  div.id              = `clause-${id}`;
+  div.dataset.section = section;
+
+  div.innerHTML = `
+    <div class="clause-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="clause-num">${sectionCount}</div>
+        <select class="clause-type-sel" id="ctype-${id}">
+          ${CLAUSE_TYPES.map(t => `<option value="${t.value}" ${t.value === defaultType ? 'selected' : ''}>${t.label}</option>`).join('')}
+        </select>
+      </div>
+      <button class="clause-del" onclick="removeClause(${id}, '${section}')">حذف</button>
+    </div>
+    <div style="margin-bottom:8px;">
+      <select id="cassigned-${id}"
+              style="width:100%;border:1px solid var(--border);border-radius:11px;
+                     height:40px;padding:0 12px;font-family:'Cairo',sans-serif;
+                     font-size:13px;color:var(--muted);background:#fff;outline:none;">
+        ${partyOptions}
+      </select>
+    </div>
+    <textarea id="ccontent-${id}" rows="3"
+              style="width:100%;border:1px solid var(--border);border-radius:11px;
+                     padding:10px 14px;font-family:'Cairo',sans-serif;
+                     font-size:14px;outline:none;resize:vertical;"
+              placeholder="${getSectionPlaceholder(section)}">${content}</textarea>
+  `;
+
+  container.appendChild(div);
+  document.getElementById(`ccontent-${id}`).focus();
+  document.getElementById('err-clauses').classList.remove('show');
+}
+
+function getSectionPlaceholder(section) {
+  return {
+    obligations: 'مثال: يلتزم الطرف الثاني بتسليم المنتج خلال 14 يوم عمل من تاريخ الإبرام...',
+    penalties:   'مثال: في حال التأخر عن موعد التسليم، يُلزم الطرف المخل بغرامة 2% من قيمة العقد عن كل أسبوع تأخير...',
+    termination: 'مثال: يحق لأي طرف إنهاء العقد بإشعار كتابي قبل 30 يوماً في حال إخلال الطرف الآخر بالتزاماته...',
+  }[section] || 'اكتب نص البند هنا...';
+}
+
+function removeClause(id, section) {
+  document.getElementById(`clause-${id}`)?.remove();
+  document.getElementById(`clauses-${section}`)
+    ?.querySelectorAll('.clause-num')
+    .forEach((el, i) => { el.textContent = i + 1; });
 }
 
 function getClauses() {
-    return Array.from(document.querySelectorAll('[id^="content-"]'))
-        .map(t => ({
-            content_ar:  t.value.trim(),
-            clause_type: document.getElementById(`type-${t.id.split('-')[1]}`).value,
-        }))
-        .filter(c => c.content_ar);
-}
-
-// ── Parties ────────────────────────────────────────────
-// ── Parties ────────────────────────────────────────────
-function addParty() {
-    const nameInput  = document.getElementById('party-name');
-    const phoneInput = document.getElementById('party-phone');
-    const emailInput = document.getElementById('party-email');
-    const errEl      = document.getElementById('err-party-email');
-
-    const name  = nameInput.value.trim();
-    const phone = phoneInput.value.trim();
-    const email = emailInput.value.trim().toLowerCase();
-
-    if (!name) {
-        errEl.textContent = 'الاسم مطلوب';
-        errEl.classList.add('show');
-        nameInput.focus();
-        return;
-    }
-
-    if (!phone) {
-        errEl.textContent = 'رقم الجوال مطلوب';
-        errEl.classList.add('show');
-        phoneInput.focus();
-        return;
-    }
-
-    if (!/^\d{10}$/.test(phone)) {
-        errEl.textContent = 'رقم الجوال يجب أن يكون 10 أرقام';
-        errEl.classList.add('show');
-        phoneInput.focus();
-        return;
-    }
-
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        errEl.textContent = 'البريد الإلكتروني غير صالح';
-        errEl.classList.add('show');
-        emailInput.focus();
-        return;
-    }
-
-    if (parties.some(p => p.phone === phone)) {
-        errEl.textContent = 'هذا الرقم مضاف مسبقاً';
-        errEl.classList.add('show');
-        return;
-    }
-
-    errEl.classList.remove('show');
-    parties.push({ name, phone, email });
-    renderParties();
-
-    nameInput.value  = '';
-    phoneInput.value = '';
-    emailInput.value = '';
-    nameInput.focus();
-    document.getElementById('err-parties').classList.remove('show');
-}
-
-function removeParty(phone) {
-    parties = parties.filter(p => p.phone !== phone);
-    renderParties();
-}
-
-function editParty(phone) {
-    const index = parties.findIndex(p => p.phone === phone);
-    if (index === -1) return;
-    const p = parties[index];
-
-    const item = document.getElementById(`party-item-${phone}`);
-    item.innerHTML = `
-        <div style="width:100%;">
-            <div style="display:flex;gap:8px;margin-bottom:6px;">
-                <input type="text"  id="edit-name-${phone}"  class="input"
-                       value="${p.name}"  placeholder="الاسم الكامل"
-                       style="flex:1.2;">
-                <input type="tel"   id="edit-phone-${phone}" class="input"
-                       value="${p.phone}" placeholder="05XXXXXXXX"
-                       dir="ltr" maxlength="10" style="flex:1;">
-            </div>
-            <div style="margin-bottom:8px;">
-                <input type="email" id="edit-email-${phone}" class="input"
-                       value="${p.email}" placeholder="البريد الإلكتروني (اختياري)"
-                       dir="ltr">
-            </div>
-            <p class="error-msg" id="edit-err-${phone}"></p>
-            <div style="display:flex;gap:8px;justify-content:flex-end;">
-                <button class="btn btn-outline"
-                        onclick="cancelPartyEdit('${phone}')"
-                        style="padding:4px 14px;font-size:0.8rem;">إلغاء</button>
-                <button class="btn btn-primary"
-                        onclick="savePartyEdit('${phone}')"
-                        style="padding:4px 14px;font-size:0.8rem;">حفظ</button>
-            </div>
-        </div>
-    `;
-
-    // أرقام فقط في حقل التعديل
-    document.getElementById(`edit-phone-${phone}`).addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g, '').slice(0, 10);
+  const all = [];
+  CLAUSE_SECTIONS.forEach(section => {
+    const container = document.getElementById(`clauses-${section}`);
+    if (!container) return;
+    container.querySelectorAll('[id^="ccontent-"]').forEach(t => {
+      const num     = t.id.split('-')[1];
+      const content = t.value.trim();
+      if (!content) return;
+      all.push({
+        content_ar:     content,
+        clause_type:    document.getElementById(`ctype-${num}`)?.value || 'GENERAL',
+        assigned_party: document.getElementById(`cassigned-${num}`)?.value || '',
+        section,
+      });
     });
-
-    document.getElementById(`edit-name-${phone}`).focus();
+  });
+  return all;
 }
 
-function savePartyEdit(oldPhone) {
-    const nameInput  = document.getElementById(`edit-name-${oldPhone}`);
-    const phoneInput = document.getElementById(`edit-phone-${oldPhone}`);
-    const emailInput = document.getElementById(`edit-email-${oldPhone}`);
-    const errEl      = document.getElementById(`edit-err-${oldPhone}`);
+// ════════════════════════════════════════════════════════
+//  PARTY MODAL
+// ════════════════════════════════════════════════════════
+const partyModal = document.getElementById('partyModal');
+const modalTitle = document.getElementById('modalTitle');
+const formError  = document.getElementById('parties-error');
 
-    const name  = nameInput.value.trim();
-    const phone = phoneInput.value.trim();
-    const email = emailInput.value.trim().toLowerCase();
-
-    if (!name) {
-        errEl.textContent = 'الاسم مطلوب';
-        errEl.classList.add('show');
-        nameInput.focus();
-        return;
-    }
-
-    if (!phone) {
-        errEl.textContent = 'رقم الجوال مطلوب';
-        errEl.classList.add('show');
-        phoneInput.focus();
-        return;
-    }
-
-    if (!/^\d{10}$/.test(phone)) {
-        errEl.textContent = 'رقم الجوال يجب أن يكون 10 أرقام';
-        errEl.classList.add('show');
-        phoneInput.focus();
-        return;
-    }
-
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        errEl.textContent = 'البريد الإلكتروني غير صالح';
-        errEl.classList.add('show');
-        emailInput.focus();
-        return;
-    }
-
-    // تحقق من تكرار الرقم الجديد (إلا لو نفس الرقم القديم)
-    if (phone !== oldPhone && parties.some(p => p.phone === phone)) {
-        errEl.textContent = 'هذا الرقم مضاف مسبقاً';
-        errEl.classList.add('show');
-        return;
-    }
-
-    // حدّث في الـ array
-    const index = parties.findIndex(p => p.phone === oldPhone);
-    parties[index] = { name, phone, email };
-    renderParties();
+function openPartyModal(index = null) {
+  editingIndex = index;
+  formError.textContent = '';
+  modalTitle.textContent = index === null ? 'إضافة طرف' : 'تعديل بيانات الطرف';
+  index === null ? resetModal() : fillModal(parties[index]);
+  partyModal.classList.add('show');
+  partyModal.setAttribute('aria-hidden', 'false');
 }
 
-function cancelPartyEdit(phone) {
-    renderParties();
+function closePartyModal() {
+  partyModal.classList.remove('show');
+  partyModal.setAttribute('aria-hidden', 'true');
+}
+
+function applyRoleDefaults(role) {
+  const isSigner = role === 'SIGNER' || role === 'DELEGATED';
+
+  document.getElementById('canViewContract').checked = true;
+  document.getElementById('canComment').checked      = true;
+  document.getElementById('canEdit').checked         = false;
+  document.getElementById('canUploadFiles').checked  = false;
+  document.getElementById('canSign').checked         = isSigner;
+
+  document.getElementById('role-hint').innerHTML = SIGNING_ROLE_HINTS[role] || '';
+}
+
+function toggleOrganizationFields() {
+  const show = document.getElementById('partyType').value === 'ORGANIZATION';
+  document.getElementById('organizationFields').classList.toggle('hidden', !show);
+}
+
+function resetModal() {
+  ['partyName','partyMobile','partyPhone','partyEmail','nationalId','nationality',
+   'addressCountry','addressCity',
+   'organizationName','commercialRegistration','taxNumber','invitationMessage']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('partyTitle').value  = 'السيد';
+  document.getElementById('partyType').value   = 'INDIVIDUAL';
+  document.getElementById('signingRole').value = 'SIGNER';
+  applyRoleDefaults('SIGNER');
+  toggleOrganizationFields();
+}
+
+function fillModal(p) {
+  document.getElementById('partyTitle').value             = p.title || 'السيد';
+  document.getElementById('partyName').value              = p.full_name || '';
+  document.getElementById('partyMobile').value            = p.mobile || '';
+  document.getElementById('partyPhone').value             = p.phone || '';
+  document.getElementById('partyEmail').value             = p.email || '';
+  document.getElementById('partyType').value              = p.party_type || 'INDIVIDUAL';
+  document.getElementById('signingRole').value            = p.signing_role || 'SIGNER';
+  document.getElementById('nationalId').value             = p.national_id || '';
+  document.getElementById('nationality').value            = p.nationality || '';
+  document.getElementById('addressCountry').value         = p.address_country || '';
+  document.getElementById('addressCity').value            = p.address_city || '';
+  document.getElementById('organizationName').value       = p.organization_name || '';
+  document.getElementById('commercialRegistration').value = p.commercial_registration || '';
+  document.getElementById('taxNumber').value              = p.tax_number || '';
+  document.getElementById('invitationMessage').value      = p.invitation_message || '';
+  document.getElementById('canViewContract').checked      = Boolean(p.can_view_contract);
+  document.getElementById('canComment').checked           = Boolean(p.can_comment);
+  document.getElementById('canEdit').checked              = Boolean(p.can_edit);
+  document.getElementById('canUploadFiles').checked       = Boolean(p.can_upload_files);
+  document.getElementById('canSign').checked              = Boolean(p.can_sign);
+  document.getElementById('role-hint').innerHTML          = SIGNING_ROLE_HINTS[p.signing_role] || '';
+  toggleOrganizationFields();
+}
+
+function getModalData() {
+  return {
+    title:                   document.getElementById('partyTitle').value,
+    full_name:               document.getElementById('partyName').value.trim(),
+    mobile:                  document.getElementById('partyMobile').value.trim(),
+    phone:                   document.getElementById('partyPhone').value.trim(),
+    email:                   document.getElementById('partyEmail').value.trim(),
+    party_type:              document.getElementById('partyType').value,
+    signing_role:            document.getElementById('signingRole').value,
+    national_id:             document.getElementById('nationalId').value.trim(),
+    nationality:             document.getElementById('nationality').value.trim(),
+    address_country:         document.getElementById('addressCountry').value.trim(),
+    address_city:            document.getElementById('addressCity').value.trim(),
+    organization_name:       document.getElementById('organizationName').value.trim(),
+    commercial_registration: document.getElementById('commercialRegistration').value.trim(),
+    tax_number:              document.getElementById('taxNumber').value.trim(),
+    can_view_contract:       document.getElementById('canViewContract').checked,
+    can_comment:             document.getElementById('canComment').checked,
+    can_edit:                document.getElementById('canEdit').checked,
+    can_upload_files:        document.getElementById('canUploadFiles').checked,
+    can_sign:                document.getElementById('canSign').checked,
+    invitation_message:      document.getElementById('invitationMessage').value.trim(),
+    signing_order:           editingIndex !== null ? parties[editingIndex].signing_order : parties.length + 1,
+  };
+}
+
+function validateParty(data) {
+  if (!data.full_name) return 'اسم الطرف مطلوب.';
+
+  if (!data.mobile) return 'رقم الجوال مطلوب.';
+  if (!/^\+?[0-9\-]{7,15}$/.test(data.mobile.replace(/\s/g, '')))
+    return 'رقم الجوال غير صحيح — أدخل الرقم مع رمز الدولة مثال: +966512345678';
+
+  if (!data.email) return 'البريد الإلكتروني مطلوب لإرسال الدعوة.';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
+    return 'صيغة البريد الإلكتروني غير صحيحة.';
+
+  if (data.party_type === 'INDIVIDUAL' && !data.national_id)
+    return 'رقم الهوية / الإقامة مطلوب إذا كان الطرف فرداً.';
+  if (data.party_type === 'ORGANIZATION') {
+    if (!data.organization_name)       return 'اسم المنشأة مطلوب.';
+    if (!data.commercial_registration) return 'رقم السجل التجاري مطلوب.';
+  }
+
+  if (['SIGNER','DELEGATED'].includes(data.signing_role) && !data.can_sign)
+    return 'الموقّع أو المفوّض يجب تفعيل صلاحية التوقيع.';
+
+  if (parties.some((p, i) => p.mobile === data.mobile && i !== editingIndex))
+    return 'رقم الجوال مضاف مسبقاً.';
+  if (parties.some((p, i) => p.email === data.email && i !== editingIndex))
+    return 'البريد الإلكتروني مضاف مسبقاً.';
+
+  return '';
+}
+
+function savePartyData() {
+  const data  = getModalData();
+  const error = validateParty(data);
+  if (error) { formError.textContent = error; return; }
+
+  if (editingIndex === null) { parties.push(data); }
+  else { parties[editingIndex] = data; }
+
+  renderParties();
+  closePartyModal();
+}
+
+function removeParty(index) {
+  parties.splice(index, 1);
+  parties = parties.map((p, i) => ({ ...p, signing_order: i + 1 }));
+  renderParties();
 }
 
 function renderParties() {
-    document.getElementById('parties-container').innerHTML = parties.map(p => `
-        <div class="party-item" id="party-item-${p.phone}">
-            <div class="party-avatar">${p.name[0]}</div>
-            <div class="party-info">
-                <div class="party-name">${p.name}</div>
-                <div class="party-role" dir="ltr" style="text-align:right;">
-                    ${p.phone}${p.email ? ' · ' + p.email : ''}
-                </div>
-            </div>
-            <div style="display:flex;gap:6px;flex-shrink:0;">
-                <button class="party-remove"
-                        onclick="editParty('${p.phone}')"
-                        style="color:var(--color-secondary);">تعديل</button>
-                <button class="party-remove"
-                        onclick="removeParty('${p.phone}')">إزالة</button>
-            </div>
+  const empty = document.getElementById('parties-empty');
+  const list  = document.getElementById('parties-list');
+  empty.style.display = parties.length === 0 ? 'block' : 'none';
+
+  list.innerHTML = parties.map((p, i) => `
+    <div class="party-row">
+      <div class="party-label blue">${getLegalTitle(i)}</div>
+      <div class="party-main-info">
+        <div class="avatar formal"><span>${getInitials(p.full_name)}</span></div>
+        <div class="party-details">
+          <div class="name-row"><h4>${esc(p.title||'')} ${esc(p.full_name)}</h4></div>
+          <p class="party-type-label">
+            ${PARTY_TYPE_LABELS[p.party_type]||'فرد'} ·
+            ${SIGNING_ROLE_LABELS[p.signing_role]||''}
+          </p>
+          <div class="party-meta">
+            ${p.national_id ? `<span class="meta-item">هوية: ${esc(p.national_id)}</span>` : ''}
+            ${p.nationality ? `<span class="meta-item">الجنسية: ${esc(p.nationality)}</span>` : ''}
+            ${p.organization_name ? `<span class="meta-item">المنشأة: ${esc(p.organization_name)}</span>` : ''}
+            ${p.address_country ? `<span class="meta-item">📍 ${esc(p.address_country)}${p.address_city ? `، ${esc(p.address_city)}` : ''}</span>` : ''}
+          </div>
         </div>
-    `).join('');
+      </div>
+      <div class="contact-info-col">
+        <h5>معلومات التواصل</h5>
+        <div class="contact-item">
+          <span class="mini-label">الجوال</span>
+          <span dir="ltr">${esc(p.mobile)}</span>
+        </div>
+        <div class="contact-item">
+          <span class="mini-label">البريد</span>
+          <span>${esc(p.email)}</span>
+        </div>
+      </div>
+      <div class="role-col">
+        <h5>الصلاحيات</h5>
+        <div class="permissions">
+          ${getPermLabels(p).map(l=>`<span>${l}</span>`).join('')}
+        </div>
+        <div class="row-actions">
+          <button class="small-btn" data-action="edit" data-index="${i}">تعديل</button>
+          <button class="small-btn danger" data-action="delete" data-index="${i}">حذف</button>
+        </div>
+      </div>
+    </div>`).join('');
 }
 
-// ── Review ─────────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+//  REVIEW
+// ════════════════════════════════════════════════════════
 function renderReview() {
-    const titleAr = document.getElementById('title_ar').value.trim();
-    const titleEn = document.getElementById('title_en').value.trim();
-    const desc    = document.getElementById('description_ar').value.trim();
+  const titleAr = document.getElementById('title_ar').value.trim();
+  const titleEn = document.getElementById('title_en').value.trim();
+  const desc    = document.getElementById('description_ar').value.trim();
+  const clauses = getClauses();
 
-    document.getElementById('review-title').textContent       = titleAr;
-    document.getElementById('review-title-en').textContent    = titleEn;
-    document.getElementById('review-description').textContent = desc || 'لا يوجد وصف';
+  const contractTypeLabels = {
+    SERVICES:'عقد خدمات', SUPPLY:'عقد توريد', RENT:'عقد إيجار',
+    PARTNERSHIP:'عقد شراكة', CONSULTING:'عقد استشاري',
+    EMPLOYMENT:'عقد عمل', OTHER:'أخرى',
+  };
+  const paymentLabels = {
+    UPFRONT:'دفعة مقدمة كاملة', INSTALLMENTS:'دفعات مرحلية',
+    ON_DELIVERY:'عند التسليم', CUSTOM:'مخصصة حسب البنود',
+  };
 
-    const clauses = getClauses();
-    document.getElementById('review-clauses').innerHTML = clauses.map((c, i) => `
-        <div style="display:flex;gap:10px;padding:8px 0;
-                    border-bottom:1px solid var(--color-border);
-                    ${i === clauses.length - 1 ? 'border-bottom:none;' : ''}">
-            <span style="width:22px;height:22px;background:var(--color-primary);
-                         color:var(--color-secondary);border-radius:50%;
-                         display:flex;align-items:center;justify-content:center;
-                         font-size:0.7rem;font-weight:700;flex-shrink:0;">${i + 1}</span>
+  const contractType  = document.getElementById('contract_type')?.value || '';
+  const contractValue = document.getElementById('contract_value')?.value || '';
+  const currency      = document.getElementById('currency')?.value || '';
+  const paymentMethod = document.getElementById('payment_method')?.value || '';
+  const startDate     = document.getElementById('start_date')?.value || '';
+  const endDate       = document.getElementById('end_date')?.value || '';
+  const location      = document.getElementById('execution_location')?.value.trim() || '';
+
+  // ── Summary ──
+  document.getElementById('review-summary').innerHTML = [
+    ['اسم العقد',     titleAr || '—'],
+    ['نوع العقد',     contractTypeLabels[contractType] || '—'],
+    ['المدة الزمنية', durationType === 'open' ? 'غير محددة' : (startDate && endDate ? `${startDate} → ${endDate}` : '—')],
+    ['قيمة العقد',    contractValue ? `${contractValue} ${currency}` : '—'],
+    ['طريقة الدفع',   paymentLabels[paymentMethod] || '—'],
+    ['مكان التنفيذ',  location || '—'],
+    ['عدد الأطراف',   parties.length + 1],
+    ['عدد البنود',    clauses.length],
+    ['الحالة',        'مسودة — بانتظار الإنشاء'],
+  ].map(([l,v]) => `<div class="summary-item"><span>${l}</span><strong>${esc(String(v))}</strong></div>`).join('');
+
+  // ── Parties ──
+  document.getElementById('review-parties-list').innerHTML = parties.length
+    ? parties.map((p, i) => `
+        <div class="party-row-review">
+          <div class="party-identity">
+            <div class="party-avatar-sm">${getInitials(p.full_name)}</div>
             <div>
-                <span style="font-size:0.7rem;color:var(--color-text-muted);
-                             background:var(--color-border);padding:2px 8px;
-                             border-radius:10px;margin-bottom:4px;display:inline-block;">
-                    ${CLAUSE_LABELS[c.clause_type] || c.clause_type}
-                </span>
-                <p style="font-size:0.875rem;color:var(--color-text-primary);margin-top:4px;">
-                    ${c.content_ar}
-                </p>
+              <h4>${esc(p.title||'')} ${esc(p.full_name)} <span style="font-weight:400;color:var(--muted);font-size:12px;">— ${getLegalTitle(i)}</span></h4>
+              <p>${PARTY_TYPE_LABELS[p.party_type]||''}</p>
+              <p style="font-size:11px;color:var(--muted-2);">${SIGNING_ROLE_LABELS[p.signing_role]||''}</p>
+              <span dir="ltr">${esc(p.mobile)}</span>
             </div>
-        </div>
-    `).join('');
+          </div>
+          <div class="permission-tags">
+            ${getPermLabels(p).map(l=>`<span>${l}</span>`).join('')}
+          </div>
+        </div>`).join('')
+    : '<div class="empty-state">لا توجد أطراف مضافة</div>';
 
-    document.getElementById('review-parties').innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
-                    border-bottom:1px solid var(--color-border);">
-            <div style="width:32px;height:32px;border-radius:50%;
-                        background:var(--color-primary);color:var(--color-secondary);
-                        display:flex;align-items:center;justify-content:center;
-                        font-size:0.75rem;font-weight:700;">أ</div>
-            <div>
-                <p style="font-size:0.875rem;font-weight:600;color:var(--color-text-primary);">أنت</p>
-                <p style="font-size:0.75rem;color:var(--color-text-muted);">منشئ العقد</p>
-            </div>
-            <span style="margin-right:auto;font-size:0.75rem;
-                         color:var(--color-success);font-weight:600;">✓ منشئ</span>
+  // ── Timeline ──
+  const tlCard = document.getElementById('review-timeline-card');
+  if (parties.length > 1) {
+    tlCard.style.display = 'block';
+    document.getElementById('review-timeline').innerHTML = parties.map((p, i) => `
+      <div class="timeline-item">
+        <div class="timeline-num">${i + 2}</div>
+        <div>
+          <strong>${esc(p.title||'')} ${esc(p.full_name)}</strong>
+          <span>${getLegalTitle(i)} · ${SIGNING_ROLE_LABELS[p.signing_role]||''}</span>
         </div>
-        ${parties.map(p => `
-            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;
-                        border-bottom:1px solid var(--color-border);">
-                <div style="width:32px;height:32px;border-radius:50%;
-                            background:#e8d8f0;color:#6b21a8;
-                            display:flex;align-items:center;justify-content:center;
-                            font-size:0.75rem;font-weight:700;">
-                    ${p.name[0]}
-                </div>
-                <div>
-                    <p style="font-size:0.875rem;font-weight:600;
-                            color:var(--color-text-primary);">${p.name}</p>
-                    <p style="font-size:0.75rem;color:var(--color-text-muted);" dir="ltr">
-                        ${p.phone}${p.email ? ' · ' + p.email : ''}
-                    </p>
-                </div>
-                <span style="margin-right:auto;font-size:0.75rem;
-                            color:var(--color-text-muted);">⏳ بانتظار القبول</span>
-            </div>
-        `).join('')}
-    `;
-}
+      </div>`).join('');
+  } else {
+    tlCard.style.display = 'none';
+  }
 
-// ── Submit ─────────────────────────────────────────────
+  // ── Invitations ──
+  document.getElementById('review-sms').innerHTML = parties.map(p => `
+    <div class="sms-item">
+      <div class="sms-head">
+        <strong>${esc(p.title||'')} ${esc(p.full_name)}</strong>
+        <span>${esc(p.email)}</span>
+      </div>
+      <p>منصة ميثاق: لديك طلب توقيع على عقد "${esc(titleAr)}". يرجى تسجيل الدخول للمراجعة والتوقيع.
+      ${p.invitation_message ? `<br>${esc(p.invitation_message)}` : ''}</p>
+    </div>`).join('');
+
+  // ════════════════════════════════════════════════════════
+  //  نص العقد الرسمي
+  // ════════════════════════════════════════════════════════
+
+  // ── تاريخ بالعربي مع اسم اليوم — مُعرَّف مرة واحدة فقط ──
+  const now      = new Date();
+  const dayNames = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const dayName  = dayNames[now.getDay()];
+  const miladi   = now.toLocaleDateString('ar-SA', { day:'numeric', month:'long', year:'numeric' });
+
+  const arabicNums = ['','الأولى','الثانية','الثالثة','الرابعة','الخامسة',
+                      'السادسة','السابعة','الثامنة','التاسعة','العاشرة','الحادية عشرة','الثانية عشرة'];
+  let artIdx = 1;
+  const articles = [];
+
+  // ── تصنيف البنود ──
+  const obligationClauses  = clauses.filter(c => c.section === 'obligations');
+  const penaltyClauses     = clauses.filter(c => c.section === 'penalties');
+  const terminationClauses = clauses.filter(c => c.section === 'termination');
+
+  const sharedClauses  = obligationClauses.filter(c => !c.assigned_party || c.assigned_party === '');
+  const party1Clauses  = obligationClauses.filter(c => c.assigned_party === 'PARTY_1');
+  const otherPartyClauses = {};
+  obligationClauses
+    .filter(c => c.assigned_party && c.assigned_party !== 'PARTY_1' && c.assigned_party !== '')
+    .forEach(c => {
+      if (!otherPartyClauses[c.assigned_party]) otherPartyClauses[c.assigned_party] = [];
+      otherPartyClauses[c.assigned_party].push(c);
+    });
+
+  const paymentClauses = obligationClauses.filter(c =>
+    c.clause_type === 'PAYMENT' || c.clause_type === 'DELIVERY'
+  );
+
+  // ── المادة الأولى: موضوع العقد ──
+  articles.push(`
+    <div class="contract-article">
+      <h4>المادة ${arabicNums[artIdx]}: موضوع العقد</h4>
+      <p>يُعنى هذا العقد بتنظيم العلاقة بين الأطراف فيما يخص <strong>"${esc(titleAr)}"</strong>${desc ? `، ويشمل: ${esc(desc)}` : ''}.</p>
+    </div>`);
+  artIdx++;
+
+  // ── التزامات مشتركة ──
+  if (sharedClauses.length > 0) {
+    articles.push(`
+      <div class="contract-article">
+        <h4>المادة ${arabicNums[artIdx]}: التزامات الطرفين معاً</h4>
+        <p>يلتزم جميع الأطراف بكل مما يلي:</p>
+        <ol class="contract-clauses-list">
+          ${sharedClauses.map(c => `<li>${esc(c.content_ar)}</li>`).join('')}
+        </ol>
+      </div>`);
+    artIdx++;
+  }
+
+  // ── التزامات الطرف الأول ──
+  if (party1Clauses.length > 0) {
+    articles.push(`
+      <div class="contract-article">
+        <h4>المادة ${arabicNums[artIdx]}: التزامات الطرف الأول</h4>
+        <p>يلتزم الطرف الأول بكل مما يلي:</p>
+        <ol class="contract-clauses-list">
+          ${party1Clauses.map(c => `<li>${esc(c.content_ar)}</li>`).join('')}
+        </ol>
+      </div>`);
+    artIdx++;
+  }
+
+  // ── التزامات الأطراف الأخرى ──
+  Object.entries(otherPartyClauses).forEach(([key, pClauses]) => {
+    const idx   = parseInt(key.replace('PARTY_','')) - 2;
+    const label = parties[idx] ? getLegalTitle(idx) : key;
+    articles.push(`
+      <div class="contract-article">
+        <h4>المادة ${arabicNums[artIdx]}: التزامات ${label}</h4>
+        <p>يلتزم ${label} بكل مما يلي:</p>
+        <ol class="contract-clauses-list">
+          ${pClauses.map(c => `<li>${esc(c.content_ar)}</li>`).join('')}
+        </ol>
+      </div>`);
+    artIdx++;
+  });
+
+  // ── المقابل المالي ──
+  if (contractValue || paymentClauses.length > 0) {
+    articles.push(`
+      <div class="contract-article">
+        <h4>المادة ${arabicNums[artIdx]}: المقابل المالي وآلية الدفع</h4>
+        ${contractValue ? `<p>اتفق الطرفان على أن إجمالي القيمة المالية لهذا العقد هي <strong>${esc(contractValue)} ${esc(currency)}</strong>، وتُسدَّد وفق الآلية التالية: ${paymentLabels[paymentMethod] || ''}.</p>` : ''}
+        ${paymentClauses.length > 0 ? `<ol class="contract-clauses-list">${paymentClauses.map(c => `<li>${esc(c.content_ar)}</li>`).join('')}</ol>` : ''}
+      </div>`);
+    artIdx++;
+  }
+
+  // ── الشروط الجزائية ──
+  if (penaltyClauses.length > 0) {
+    articles.push(`
+      <div class="contract-article">
+        <h4>المادة ${arabicNums[artIdx]}: الشروط الجزائية والتعويضات</h4>
+        <p>في حال إخلال أي طرف بالتزاماته، تُطبَّق الشروط الجزائية التالية:</p>
+        <ol class="contract-clauses-list">
+          ${penaltyClauses.map(c => `<li>${esc(c.content_ar)}</li>`).join('')}
+        </ol>
+      </div>`);
+    artIdx++;
+  }
+
+  // ── الإنهاء والفسخ — ثابتة + بنود المستخدم ──
+  articles.push(`
+    <div class="contract-article">
+      <h4>المادة ${arabicNums[artIdx]}: حالات الإنهاء والفسخ</h4>
+      <p>يحق لأي من الأطراف إنهاء العقد في حال إخلال الطرف الآخر بأي بند من بنوده، بعد توجيه إشعار خطي عبر منصة <strong>ميثاق</strong> بمهلة لا تقل عن سبعة (7) أيام لتصحيح الإخلال.</p>
+      ${terminationClauses.length > 0 ? `
+        <p>وتشمل حالات الإنهاء على وجه الخصوص ما يلي:</p>
+        <ol class="contract-clauses-list">
+          ${terminationClauses.map(c => `<li>${esc(c.content_ar)}</li>`).join('')}
+        </ol>` : ''}
+    </div>`);
+  artIdx++;
+
+  // ── السرية — ثابتة ──
+  articles.push(`
+    <div class="contract-article">
+      <h4>المادة ${arabicNums[artIdx]}: السرية والملكية الفكرية</h4>
+      <p>يلتزم جميع الأطراف بالمحافظة على سرية كافة المعلومات والبيانات التي يطلعون عليها بموجب هذا العقد، ولا يجوز إفشاؤها لأي طرف ثالث دون موافقة خطية مسبقة.</p>
+    </div>`);
+  artIdx++;
+
+  // ── القانون وفض النزاعات — ثابتة ──
+  articles.push(`
+    <div class="contract-article">
+      <h4>المادة ${arabicNums[artIdx]}: القانون الواجب التطبيق وفض النزاعات</h4>
+      <p>يخضع هذا العقد للأنظمة واللوائح المعمول بها في المملكة العربية السعودية، وفي حال نشوء أي نزاع — لا سمح الله — يُسعى لحله ودياً بين الطرفين، فإن تعذّر ذلك يُحال إلى المحاكم السعودية المختصة.</p>
+    </div>`);
+  artIdx++;
+
+  // ── النسخ والتوقيع — ثابتة ──
+  articles.push(`
+    <div class="contract-article">
+      <h4>المادة ${arabicNums[artIdx]}: النسخ والتوقيع</h4>
+      <p>أُبرم هذا العقد إلكترونياً عبر منصة <strong>ميثاق</strong>، ويُعدّ التوقيع الرقمي عليه بمثابة موافقة نهائية وملزمة لجميع الأطراف، وتسري أحكامه من تاريخ توقيع آخر طرف.</p>
+    </div>`);
+
+  document.getElementById('review-doc').innerHTML = `
+    <div class="contract-doc" dir="rtl">
+      <div class="contract-title-block">
+        <h2>${esc(titleAr)}</h2>
+        <p class="contract-bismillah">بسم الله الرحمن الرحيم</p>
+        ${titleEn ? `<p class="contract-title-en">${esc(titleEn)}</p>` : ''}
+      </div>
+
+      <div class="contract-preamble">
+        تم بعون الله وتوفيقه في يوم (<strong>${dayName}</strong>) الموافق <strong>${miladi}</strong>،
+        تحرير هذا العقد بين كل من:
+        <br><br>
+        <strong>الطرف الأول:</strong> منشئ العقد، والمُشار إليه في هذا العقد بـ "الطرف الأول"
+        ${parties.map((p, i) => {
+          const legalRef = `"${getLegalTitle(i)}"`;
+          if (p.party_type === 'ORGANIZATION') {
+            return `
+              <br><br>
+              <strong>${getLegalTitle(i)}:</strong>
+              منشأة <strong>${esc(p.organization_name)}</strong>
+              ${p.commercial_registration ? `، السجل التجاري رقم (${esc(p.commercial_registration)})` : ''}
+              ${p.tax_number ? `، الرقم الضريبي (${esc(p.tax_number)})` : ''}
+              ، يمثلها في هذا العقد ${esc(p.title||'')} ${esc(p.full_name)}
+              ${p.national_id ? `، صاحب/ة الهوية رقم (${esc(p.national_id)})` : ''}
+              ، والمُشار إليها في هذا العقد بـ ${legalRef}`;
+          } else {
+            return `
+              <br><br>
+              <strong>${getLegalTitle(i)}:</strong>
+              ${esc(p.title||'')} ${esc(p.full_name)}
+              ${p.national_id ? `، صاحب/ة الهوية أو الإقامة رقم (${esc(p.national_id)})` : ''}
+              ، والمُشار إليه في هذا العقد بـ ${legalRef}`;
+          }
+        }).join('')}
+      </div>
+
+      <div class="contract-preamble" style="margin-top:1.5rem;">
+        <strong>تمهيد:</strong><br>
+        بما أن الطرف الأول يرغب في إبرام هذا العقد المتعلق بـ <strong>"${esc(titleAr)}"</strong>،
+        ${desc ? `والذي يهدف إلى: ${esc(desc)}،` : ''}
+        وبما أن الأطراف لديهم الأهلية الكاملة والرغبة الصادقة في الالتزام، فقد اتفق الطرفان على ما يلي:
+      </div>
+
+      ${articles.join('')}
+
+      <div class="contract-signatures">
+        <div class="sig-block">
+          <p class="sig-label">توقيع الطرف الأول</p>
+          <div class="sig-line"></div>
+          <p class="sig-name">المنشئ</p>
+        </div>
+        ${parties.map((p,i) => `
+          <div class="sig-block">
+            <p class="sig-label">توقيع ${getLegalTitle(i)}</p>
+            <div class="sig-line"></div>
+            <p class="sig-name">${esc(p.title||'')} ${esc(p.full_name)}</p>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  // ── Checklist ──
+  document.getElementById('final-checklist').innerHTML = [
+    'تم التحقق من بيانات العقد',
+    `تم إضافة ${parties.length} طرف للعقد`,
+    `تم إدخال ${clauses.length} بند للعقد`,
+    'العقد جاهز لإرسال طلبات التوقيع',
+  ].map(t => `<li>${t}</li>`).join('');
+
+} // ← نهاية renderReview
+
+// ════════════════════════════════════════════════════════
+//  SUBMIT
+// ════════════════════════════════════════════════════════
 async function submitContract() {
-    const btn = document.getElementById('submit-btn');
-    btn.disabled    = true;
-    btn.textContent = 'جاري الإنشاء...';
+  const btn = document.getElementById('submit-btn');
+  btn.disabled    = true;
+  btn.textContent = 'جاري الإنشاء...';
 
-    try {
-        const res = await fetch('/api/contracts/', {
-            method:  'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken':  getCookie('csrftoken'),
-            },
-            body: JSON.stringify({
-                title_ar:       document.getElementById('title_ar').value.trim(),
-                title_en:       document.getElementById('title_en').value.trim(),
-                description_ar: document.getElementById('description_ar').value.trim(),
-                clauses:        getClauses(),
-                invite_parties: parties,
-            }),
-        });
+  try {
+    const res = await fetch('/api/contracts/', {
+      method:  'POST',
+      headers: { 'Content-Type':'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({
+        title_ar:           document.getElementById('title_ar').value.trim(),
+        title_en:           document.getElementById('title_en').value.trim(),
+        description_ar:     document.getElementById('description_ar').value.trim(),
+        contract_type:      document.getElementById('contract_type').value,
+        duration_type:      durationType,
+        start_date:         durationType === 'fixed' ? document.getElementById('start_date').value : null,
+        end_date:           durationType === 'fixed' ? document.getElementById('end_date').value   : null,
+        contract_value:     document.getElementById('contract_value').value || null,
+        currency:           document.getElementById('currency').value,
+        payment_method:     document.getElementById('payment_method').value,
+        execution_location: document.getElementById('execution_location').value.trim(),
+        clauses:            getClauses(),
+        invite_parties:     parties,
+        final_notes:        document.getElementById('final-notes').value.trim(),
+      }),
+    });
 
-        const data = await res.json();
-
-        if (res.ok) {
-            window.location.href = `/api/contracts/${data.id}/detail/`;
-        } else {
-            alert('خطأ: ' + JSON.stringify(data));
-            btn.disabled    = false;
-            btn.textContent = '✓ إنشاء العقد الآن';
-        }
-    } catch (e) {
-        alert('خطأ في الاتصال');
-        btn.disabled    = false;
-        btn.textContent = '✓ إنشاء العقد الآن';
+    const data = await res.json();
+    if (res.ok) {
+      window.location.href = `/api/contracts/${data.id}/detail/`;
+    } else {
+      alert('خطأ: ' + JSON.stringify(data));
+      btn.disabled    = false;
+      btn.textContent = '✓ إنشاء العقد وإرسال طلبات التوقيع';
     }
+  } catch (e) {
+    alert('خطأ في الاتصال');
+    btn.disabled    = false;
+    btn.textContent = '✓ إنشاء العقد وإرسال طلبات التوقيع';
+  }
 }
 
-// ── Init ───────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('party-phone').addEventListener('keydown', e => {
-        if (e.key === 'Enter') { e.preventDefault(); addParty(); }
-    });
-
-    document.getElementById('party-phone').addEventListener('input', function() {
-        this.value = this.value.replace(/\D/g, '').slice(0, 10);
-    });
-
-    addClause();
+// ════════════════════════════════════════════════════════
+//  EVENT LISTENERS
+// ════════════════════════════════════════════════════════
+document.getElementById('closeModal').addEventListener('click', closePartyModal);
+document.getElementById('cancelParty').addEventListener('click', closePartyModal);
+document.getElementById('saveParty').addEventListener('click', savePartyData);
+document.getElementById('partyType').addEventListener('change', toggleOrganizationFields);
+document.getElementById('signingRole').addEventListener('change', function () {
+  applyRoleDefaults(this.value);
 });
+
+partyModal.addEventListener('click', e => {
+  if (e.target === partyModal) closePartyModal();
+});
+
+document.getElementById('parties-list').addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const idx = Number(btn.dataset.index);
+  if (btn.dataset.action === 'edit')   openPartyModal(idx);
+  if (btn.dataset.action === 'delete') removeParty(idx);
+});
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+toggleOrganizationFields();
+applyRoleDefaults('SIGNER');
+renderParties();
+addClause('obligations');
+
 </script>
 {% endblock %}
