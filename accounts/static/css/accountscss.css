@@ -821,3 +821,25 @@ a {
 .settings-item-title-danger {
     color: var(--color-danger);
 }
+
+/* ==========================================================
+   Password Tips
+   ========================================================== */
+.password-tip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.password-tip:last-child {
+    border-bottom: none;
+}
+
+.password-tip i {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
