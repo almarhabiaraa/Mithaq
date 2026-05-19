@@ -1,0 +1,101 @@
+{% extends "core/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}ميثاق — الخصوصية{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accountscss.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="mithaq-dashboard" dir="rtl">
+
+    <!-- Page Header -->
+    <div class="profile-header">
+        <h1 class="profile-header-title">الخصوصية</h1>
+        <p class="profile-header-subtitle">إدارة إعدادات الخصوصية وبياناتك</p>
+    </div>
+
+    <!-- Privacy Info Card -->
+    <div class="profile-card" style="margin-bottom: 16px;">
+        <div class="profile-card-header">
+            <h3 class="profile-card-title">
+                <i class="bi bi-shield-check" style="color: var(--color-secondary);"></i>
+                سياسة الخصوصية
+            </h3>
+        </div>
+
+        <div class="privacy-item">
+            <div>
+                <h4><i class="bi bi-collection"></i> المعلومات التي نجمعها</h4>
+                <p>الاسم الكامل، البريد الإلكتروني، رقم الجوال، رقم الهوية/الإقامة — يتم جمعها عبر التسجيل المباشر فقط.</p>
+            </div>
+        </div>
+
+        <div class="privacy-item">
+            <div>
+                <h4><i class="bi bi-bullseye"></i> سبب الجمع</h4>
+                <p>إنشاء العقود الرقمية وتوثيقها، والتحقق من هوية الأطراف، وإرسال الإشعارات المتعلقة بالعقود.</p>
+            </div>
+        </div>
+
+        <div class="privacy-item">
+            <div>
+                <h4><i class="bi bi-lock-fill"></i> حماية البيانات</h4>
+                <p>بياناتك محمية ومشفرة ولا نشاركها مع أي طرف ثالث تحت أي ظرف.</p>
+            </div>
+        </div>
+
+        <div class="privacy-item">
+            <div>
+                <h4><i class="bi bi-person-check"></i> حقوقك</h4>
+                <p>يحق لك تعديل بياناتك الشخصية في أي وقت، أو طلب حذف حسابك وجميع بياناتك نهائياً.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Delete Account Card -->
+    <div class="profile-card privacy-danger-card" style="margin-top: 24px;">
+        <div class="profile-card-header">
+            <h3 class="profile-card-title" style="color: var(--color-danger);">
+                <i class="bi bi-trash3"></i>
+                حذف الحساب
+            </h3>
+        </div>
+
+        <p class="privacy-danger-desc">
+            سيتم حذف حسابك وجميع بياناتك نهائياً من المنصة ولا يمكن التراجع عن هذا الإجراء.
+        </p>
+
+        <form method="POST" action="{% url 'accounts:privacy' %}" id="delete-form">
+            {% csrf_token %}
+
+            <div class="privacy-confirm">
+                <input type="checkbox" id="confirm-delete" onchange="toggleDeleteBtn()">
+                <label for="confirm-delete">
+                    أفهم أن هذا الإجراء لا يمكن التراجع عنه وأريد حذف حسابي نهائياً
+                </label>
+            </div>
+
+            <button type="submit" class="privacy-delete-btn" id="delete-btn" disabled>
+                <i class="bi bi-trash3"></i>
+                حذف حسابي نهائياً
+            </button>
+
+        </form>
+
+        <a href="{% url 'accounts:settings' %}" class="profile-edit-btn"
+            style="margin-top: 12px; display: inline-flex;">
+            <i class="bi bi-arrow-right"></i>
+            العودة للإعدادات
+        </a>
+
+    </div>
+
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/privacy.js' %}"></script>
+{% endblock %}

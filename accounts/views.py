@@ -107,3 +107,57 @@ def profile(request: HttpRequest):
     #  can display plan name, status, contracts used, and expiry date)
     sub = get_user_subscription(user)
     return render(request, "accounts/profile.html", {"user": user, "subscription": sub})
+
+@login_required(login_url="accounts:sign_in")
+def settings(request):
+    return render(request, "accounts/settings.html", {"user": request.user})
+
+@login_required(login_url="accounts:sign_in")
+def change_password(request: HttpRequest):
+    if request.method == "POST":
+        current_password = request.POST.get("current_password")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+
+        # Validate current password
+        if not request.user.check_password(current_password):
+            messages.error(request, "كلمة المرور الحالية غير صحيحة", "alert-danger")
+            return render(request, "accounts/change_password.html")
+
+        # Validate new password match
+        if new_password != confirm_password:
+            messages.error(request, "كلمة المرور الجديدة غير متطابقة", "alert-danger")
+            return render(request, "accounts/change_password.html")
+
+        # Validate new password is different
+        if current_password == new_password:
+            messages.error(request, "كلمة المرور الجديدة يجب أن تختلف عن الحالية", "alert-danger")
+            return render(request, "accounts/change_password.html")
+
+        # Update password
+        request.user.set_password(new_password)
+        request.user.save()
+
+        # Keep user logged in after password change
+        login(request, request.user)
+
+        messages.success(request, "تم تغيير كلمة المرور بنجاح", "alert-success")
+        return redirect("accounts:settings")
+
+    return render(request, "accounts/change_password.html")
+
+@login_required(login_url="accounts:sign_in")
+def privacy(request: HttpRequest):
+    if request.method == "POST":
+        # Delete account permanently
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(request, "تم حذف حسابك بنجاح", "alert-success")
+        return redirect("accounts:sign_in")
+
+    return render(request, "accounts/privacy.html")
+
+@login_required(login_url="accounts:sign_in")
+def help_support(request):
+    return render(request, "accounts/help_support.html")
