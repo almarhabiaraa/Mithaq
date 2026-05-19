@@ -5,15 +5,23 @@ from contracts.views import (
     VersionListView, VersionDetailView,
     contract_create_view, contract_detail_view,
     version_history_view, audit_timeline_view,
+    contract_pdf_view,  # Step 5: added by Remas
+    contract_list_view,  # added by Remas
 )
 from audit.views import AuditTimelineView
+
+app_name = 'contracts'
 
 urlpatterns = [
     # ── Template URLs ──────────────────────────
     path('create/', contract_create_view),
-    path('<uuid:pk>/detail/', contract_detail_view), 
+    path('<uuid:pk>/detail/', contract_detail_view, name='detail'),
     path('<uuid:pk>/versions/history/', version_history_view),
     path('<uuid:pk>/audit/timeline/', audit_timeline_view),
+    # Step 5: added by Remas — PDF download URL
+    path('<uuid:pk>/pdf/', contract_pdf_view, name='contract_pdf'),
+    path('list/', contract_list_view, name='contract_list'),  # added by Remas
+
 
     # ── API URLs ───────────────────────────────
     path('', ContractListCreateView.as_view()),

@@ -1365,6 +1365,7 @@ async function submitContract() {
         clauses:            getClauses(),
         invite_parties:     parties,
         final_notes:        document.getElementById('final-notes').value.trim(),
+        contract_html:      document.getElementById('review-doc').innerHTML, // Step 2: added by Remas — sends the full contract HTML to the backend for PDF generation
       }),
     });
 

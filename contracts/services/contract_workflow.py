@@ -47,6 +47,7 @@ class ContractWorkflowService:
             title_en       = data.get('title_en', ''),
             description_ar = data.get('description_ar', ''),
             description_en = data.get('description_en', ''),
+            contract_type  = data.get('contract_type', ''),
             status         = Contract.Status.DRAFT,
             creator        = creator,
             template       = data.get('template'),
@@ -58,6 +59,9 @@ class ContractWorkflowService:
             version_number = 1,
             created_by     = creator,
             change_summary = 'النسخة الأولى',
+             canonical_json = {
+                     'contract_html': data.get('contract_html', ''),  # Step 3: added by Remas — saves contract HTML for PDF generation
+                 }
         )
 
         # ── 4. أنشئ Clauses ───────────────────────────────────
