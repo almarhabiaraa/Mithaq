@@ -41,6 +41,9 @@ urlpatterns = [
     path('dashboard/',                   views.subscription_dashboard_page, name='dashboard'),
 
     # (added by ghadi: result pages — the payments callback redirects here after Moyasar responds)
-    path('payment/success/', views.payment_success_page, name='payment_success'),
-    path('payment/failed/',  views.payment_failed_page,  name='payment_failed'),
+    path('payment/success/', views.payment_success_page,     name='payment_success'),
+    path('payment/failed/',  views.payment_failed_page,      name='payment_failed'),
+
+    # (added by ghadi: cancel subscription endpoint — called by the modal JS in subscription_dashboard.html)
+    path('cancel/',          views.CancelSubscriptionView.as_view(), name='subscription-cancel'),
 ]
