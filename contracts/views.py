@@ -24,6 +24,10 @@ from contracts.services.contract_workflow import ContractWorkflowService
 from contracts.services.signing_service import SigningService
 from signatures.models import Signature
 
+# Contracts list page — added by Remas
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+
 
 # ══════════════════════════════════════════════════════════════
 #  Template Views
@@ -32,6 +36,45 @@ from signatures.models import Signature
 
 def contract_create_view(request):
     return render(request, 'contracts/contract_create.html')
+
+
+@login_required(login_url='accounts:sign_in')
+def contract_list_view(request):
+    # Filters
+    status_filter = request.GET.get('status', '')
+    type_filter   = request.GET.get('type', '')
+    date_filter   = request.GET.get('date', 'newest')
+
+    STATUS_MAP = {
+        'draft':             Contract.Status.DRAFT,
+        'pending_signature': Contract.Status.PENDING_SIGNATURES,
+        'signed':            Contract.Status.SIGNED,
+        'completed':         Contract.Status.COMPLETED,
+        'cancelled':         Contract.Status.CANCELLED,
+    }
+
+    # All contracts for this user
+    qs = Contract.objects.filter(
+        Q(creator=request.user) | Q(parties__user=request.user)
+    ).distinct()
+
+    # Apply filters
+    if status_filter and status_filter in STATUS_MAP:
+        qs = qs.filter(status=STATUS_MAP[status_filter])
+
+    if type_filter == 'created':
+        qs = qs.filter(creator=request.user)
+    elif type_filter == 'received':
+        qs = qs.exclude(creator=request.user)
+
+    qs = qs.order_by('created_at' if date_filter == 'oldest' else '-created_at')
+
+    return render(request, 'contracts/contract_list.html', {
+        'contracts':       qs,
+        'selected_status': status_filter,
+        'selected_type':   type_filter,
+        'selected_date':   date_filter,
+    })
 
 
 

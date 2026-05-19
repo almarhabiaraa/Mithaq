@@ -93,6 +93,11 @@ class ContractCreateSerializer(serializers.Serializer):
     title_en       = serializers.CharField(max_length=255, required=False, allow_blank=True)
     description_ar = serializers.CharField(required=False, allow_blank=True)
     description_en = serializers.CharField(required=False, allow_blank=True)
+    contract_type  = serializers.ChoiceField(
+                         choices=Contract.ContractType.choices,
+                         required=False,
+                         allow_blank=True,
+                     )
     contract_html  = serializers.CharField(required=False, allow_blank=True)
     clauses        = ClauseSerializer(many=True)
 

@@ -47,6 +47,7 @@ class ContractWorkflowService:
             title_en       = data.get('title_en', ''),
             description_ar = data.get('description_ar', ''),
             description_en = data.get('description_en', ''),
+            contract_type  = data.get('contract_type', ''),
             status         = Contract.Status.DRAFT,
             creator        = creator,
             template       = data.get('template'),
