@@ -21,7 +21,7 @@
             </p>
         </div>
         <div class="mithaq-dashboard-actions">
-            <a href="#" class="mithaq-btn-primary">
+            <a href="/api/contracts/create/" class="mithaq-btn-primary">
                 + إنشاء عقد جديد
             </a>
             <a href="#" class="mithaq-btn-secondary">
@@ -96,7 +96,7 @@
 
                 <div class="mithaq-progress-line">
                     <div class="mithaq-progress-fill"
-                         data-progress="{{ current_subscription.usage_percentage|default:'0' }}">
+                        data-progress="{{ current_subscription.usage_percentage|default:'0' }}">
                     </div>
                 </div>
             </div>
@@ -127,7 +127,8 @@
 
                 <div>
                     <span>الدعوات المستلمة</span>
-                    <strong>{{ received_invitations|default:0 }}</strong></div>
+                    <strong>{{ received_invitations|default:0 }}</strong>
+                </div>
                 <div>
                     <span>العقود المرفوضة</span>
                     <strong>{{ rejected_contracts }}</strong>
@@ -200,8 +201,7 @@
             </div>
 
             <div class="mithaq-progress-overview">
-                <div class="mithaq-circle-progress"
-                     data-progress="{{ avg_completion|default:'0' }}">
+                <div class="mithaq-circle-progress" data-progress="{{ avg_completion|default:'0' }}">
                     <span>
                         {{ avg_completion|default:0 }}%
                     </span>
@@ -232,93 +232,63 @@
     </div>
 
     <div class="mithaq-contracts-section">
-        <div class="mithaq-section-top">
-            <h3>جميع العقود</h3>
-            <form method="get" class="mithaq-filters-form">
-                <input
-                    type="text"
-                    id="mithaqContractSearch"
-                    placeholder="ابحث عن عقد..."
-                >
+    <div class="mithaq-section-top">
+        <h3>جميع العقود</h3>
+        <form method="get" class="mithaq-filters-form">
+            <input type="text" id="mithaqContractSearch" placeholder="ابحث عن عقد...">
 
-                <select name="status">
-                    <option value="">كل الحالات</option>
+            <select name="status">
+                <option value="">كل الحالات</option>
+                <option value="draft" {% if selected_status == "draft" %}selected{% endif %}>
+                    مسودة
+                </option>
+                <option value="pending_signature" {% if selected_status == "pending_signature" %}selected{% endif %}>
+                    بانتظار التوقيع
+                </option>
+                <option value="active" {% if selected_status == "active" %}selected{% endif %}>
+                    نشط
+                </option>
+                <option value="completed" {% if selected_status == "completed" %}selected{% endif %}>
+                    مكتمل
+                </option>
+                <option value="rejected" {% if selected_status == "rejected" %}selected{% endif %}>
+                    مرفوض
+                </option>
+            </select>
 
-                    <option value="draft"
-                        {% if selected_status == "draft" %}selected{% endif %}>
-                        مسودة
-                    </option>
+            <select name="type">
+                <option value="">كل الأنواع</option>
+                <option value="created" {% if selected_type == "created" %}selected{% endif %}>
+                    تم إنشاؤه
+                </option>
+                <option value="received" {% if selected_type == "received" %}selected{% endif %}>
+                    مستلم
+                </option>
+            </select>
 
-                    <option value="pending_signature"
-                        {% if selected_status == "pending_signature" %}selected{% endif %}>
-                        بانتظار التوقيع
-                    </option>
+            <select name="date">
+                <option value="newest" {% if selected_date == "newest" %}selected{% endif %}>
+                    الأحدث
+                </option>
+                <option value="oldest" {% if selected_date == "oldest" %}selected{% endif %}>
+                    الأقدم
+                </option>
+            </select>
 
-                    <option value="active"
-                        {% if selected_status == "active" %}selected{% endif %}>
-                        نشط
-                    </option>
+            <button type="submit">
+                تصفية
+            </button>
 
-                    <option value="completed"{% if selected_status == "completed" %}selected{% endif %}>
-                        مكتمل
-                    </option>
+            <a href="{% url 'dashboard:dashboard' %}" class="mithaq-reset-btn">
+                إعادة تعيين
+            </a>
 
-                    <option value="rejected"
-                        {% if selected_status == "rejected" %}selected{% endif %}>
-                        مرفوض
-                    </option>
-
-                </select>
-
-                <select name="type">
-
-                    <option value="">كل الأنواع</option>
-
-                    <option value="created"
-                        {% if selected_type == "created" %}selected{% endif %}>
-                        تم إنشاؤه
-                    </option>
-
-                    <option value="received"
-                        {% if selected_type == "received" %}selected{% endif %}>
-                        مستلم
-                    </option>
-
-                </select>
-
-                <select name="date">
-
-                    <option value="newest"
-                        {% if selected_date == "newest" %}selected{% endif %}>
-                        الأحدث
-                    </option>
-
-                    <option value="oldest"
-                        {% if selected_date == "oldest" %}selected{% endif %}>
-                        الأقدم
-                    </option>
-
-                </select>
-
-                <button type="submit">
-                    تصفية
-                </button>
-
-                <a href="{% url 'dashboard:dashboard' %}"
-                   class="mithaq-reset-btn">
-
-                    إعادة تعيين
-
-                </a>
-
-            </form>
-
-        </div>
+        </form>
+    </div>
 
         <div class="mithaq-table-wrapper">
 
-            <table class="mithaq-contracts-table"
-                   id="mithaqContractsTable">
+            <table class="mithaq-contracts-table" id="mithaqContractsTable">
 
                 <thead>
 
@@ -378,7 +348,7 @@
                                 <div class="mithaq-progress-line">
 
                                     <div class="mithaq-progress-fill"
-                                         data-progress="{{ contract.progress|default:'0' }}">
+                                        data-progress="{{ contract.progress|default:'0' }}">
                                     </div>
 
                                 </div>
@@ -389,8 +359,7 @@
 
                         <td>
 
-                            <a href="{% url 'contracts:detail' contract.id %}"
-                               class="mithaq-table-btn">
+                            <a href="{% url 'contracts:detail' contract.id %}" class="mithaq-table-btn">
 
                                 عرض
 
@@ -402,8 +371,8 @@
 
                     {% empty %}
 
-                    <tr><td colspan="6"
-                            class="mithaq-empty-table">
+                    <tr>
+                        <td colspan="6" class="mithaq-empty-table">
 
                             لا توجد عقود حالياً.
 
