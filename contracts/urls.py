@@ -5,34 +5,27 @@ from contracts.views import (
     VersionListView, VersionDetailView,
     contract_create_view, contract_detail_view,
     version_history_view, audit_timeline_view,
-    contract_pdf_view,  # Step 5: added by Remas
-    contract_list_view,  # added by Remas
 )
 from audit.views import AuditTimelineView
 
-app_name = 'contracts'
+app_name = "contracts"
 
 urlpatterns = [
     # ── Template URLs ──────────────────────────
-    path('create/', contract_create_view),
-    path('<uuid:pk>/detail/', contract_detail_view, name='detail'),
-    path('<uuid:pk>/versions/history/', version_history_view),
-    path('<uuid:pk>/audit/timeline/', audit_timeline_view),
-    # Step 5: added by Remas — PDF download URL
-    path('<uuid:pk>/pdf/', contract_pdf_view, name='contract_pdf'),
-    path('list/', contract_list_view, name='contract_list'),  # added by Remas
-
+    path('create/', contract_create_view, name="contract_create"),
+    path('<uuid:pk>/detail/', contract_detail_view, name="contract_detail"),
+    path('<uuid:pk>/versions/history/', version_history_view, name="contract_version_history"),
+    path('<uuid:pk>/audit/timeline/', audit_timeline_view, name="contract_audit_timeline"),
 
     # ── API URLs ───────────────────────────────
-    path('', ContractListCreateView.as_view()),
-    path('<uuid:pk>/', ContractDetailView.as_view()),
-    path('<uuid:pk>/versions/', VersionListView.as_view()),
-    path('<uuid:pk>/versions/<int:version_number>/', VersionDetailView.as_view()),
-    path('<uuid:pk>/approve/', ApproveView.as_view()),
-    path('<uuid:pk>/sign/', SignView.as_view()),
-    path('<uuid:pk>/cancel/', CancelView.as_view()),
-    path('<uuid:pk>/audit/', AuditTimelineView.as_view()),
+    path('',ContractListCreateView.as_view(),name='contract-list_create'),
+    path('<uuid:pk>/',ContractDetailView.as_view(),name='contract-api_detail'),
+    path('<uuid:pk>/versions/',VersionListView.as_view(),name='version_list'),
+    path('<uuid:pk>/versions/<int:version_number>/',VersionDetailView.as_view(),name='version_detail'),
+    path('<uuid:pk>/approve/',ApproveView.as_view(),name='contract_approve'),
+    path('<uuid:pk>/sign/',SignView.as_view(),name='contract_sign'),
+    path('<uuid:pk>/cancel/',CancelView.as_view(),name='contract_cancel'),
+    path('<uuid:pk>/audit/',AuditTimelineView.as_view(),name='contract_audit'),
 ]
-
 
 

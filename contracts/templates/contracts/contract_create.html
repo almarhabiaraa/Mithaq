@@ -221,7 +221,7 @@
   </div>
 
   <div class="note-box">
-    💡 منصة ميثاق تُثبت حقوق جميع الأطراف إلكترونياً — سيتلقى كل طرف دعوة على بريده الإلكتروني للمراجعة والتوقيع
+     منصة ميثاق تُثبت حقوق جميع الأطراف إلكترونياً — سيتلقى كل طرف دعوة على بريده الإلكتروني للمراجعة والتوقيع
   </div>
 
   <div class="bottom-actions">
@@ -345,8 +345,8 @@
 
   <div class="bottom-actions">
     <button class="btn light" onclick="goToStep(3)">← رجوع</button>
-    <button class="btn primary" onclick="submitContract()" id="submit-btn">
-      ✓ إنشاء العقد وإرسال طلبات التوقيع
+    <button type="button" class="btn primary" onclick="submitContract()" id="submit-btn">
+      إنشاء العقد وإرسال طلبات التوقيع
     </button>
   </div>
 </div>
@@ -563,9 +563,9 @@ const SIGNING_ROLE_LABELS = {
 };
 
 const SIGNING_ROLE_HINTS = {
-  SIGNER:    '✍ <strong>موقّع:</strong> طرف ملزَم قانونياً يوقع باسمه الشخصي. يحق له الاطلاع على العقد كاملاً والتوقيع عليه.',
-  DELEGATED: '🏢 <strong>مفوّض:</strong> يوقع نيابةً عن شركة أو جهة. يجب تحديد صفته ومستند التفويض في بيانات المنشأة.',
-  REVIEWER:  '👁 <strong>مراجع:</strong> يطّلع على العقد ويضيف ملاحظاته فقط — لا يُعدّ طرفاً ملزَماً ولا يوقع.',
+  SIGNER:    ' <strong>موقّع:</strong> طرف ملزَم قانونياً يوقع باسمه الشخصي. يحق له الاطلاع على العقد كاملاً والتوقيع عليه.',
+  DELEGATED: ' <strong>مفوّض:</strong> يوقع نيابةً عن شركة أو جهة. يجب تحديد صفته ومستند التفويض في بيانات المنشأة.',
+  REVIEWER:  ' <strong>مراجع:</strong> يطّلع على العقد ويضيف ملاحظاته فقط — لا يُعدّ طرفاً ملزَماً ولا يوقع.',
 };
 
 const ARABIC_ORDINALS = ['الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر'];
@@ -1371,11 +1371,11 @@ async function submitContract() {
 
     const data = await res.json();
     if (res.ok) {
-      window.location.href = `/api/contracts/${data.id}/detail/`;
+      window.location.href = `/invitations/my-contracts/${data.invitation_id}/`;
     } else {
       alert('خطأ: ' + JSON.stringify(data));
       btn.disabled    = false;
-      btn.textContent = '✓ إنشاء العقد وإرسال طلبات التوقيع';
+      btn.textContent = ' إنشاء العقد وإرسال طلبات التوقيع';
     }
   } catch (e) {
     alert('خطأ في الاتصال');

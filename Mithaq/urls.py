@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/payments/", include("payments.urls")),           # (added by ghadi: Moyasar checkout, callback, success/failed pages)
     path("api/subscriptions/", include("subscriptions.urls")), # (added by ghadi: subscription plans, status, upgrade options, and checkout page)
     path("wallet/", include("wallet.urls")),
+    path("contracts/", include("contracts.urls")),
 
     # (added by ghadi: public contract verification — no login needed)
     path("verify/",     include("verification.urls")),   # HTML page for humans: /verify/

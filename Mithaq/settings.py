@@ -14,6 +14,8 @@ from pathlib import Path
 from decouple import config
 import os
 
+from decouple import config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,6 +26,20 @@ TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID", default="")
 TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN", default="")
 TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER", default="")
 
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_PORT = config("EMAIL_PORT", cast=int)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+
+SITE_URL = config("SITE_URL", default="http://127.0.0.1:8000")
+
+
+SECRET_KEY = config('SECRET_KEY')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -33,7 +49,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = [
-     'localhost',
+    'localhost',
     '127.0.0.1',
     'kept-justify-wincing.ngrok-free.dev',
 ]
@@ -71,8 +87,6 @@ INSTALLED_APPS = [
     'subscriptions',
     'wallet',
     'templates_lib',
-    'verification',
-  
 ]
 
 MIDDLEWARE = [
@@ -193,5 +207,10 @@ AUTH_USER_MODEL = 'accounts.User'
 # Note: .env uses MOYASAR_SECRET_KEY — mapped here to MOYASAR_API_KEY for internal consistency
 MOYASAR_API_KEY         = config('MOYASAR_SECRET_KEY')
 MOYASAR_PUBLISHABLE_KEY = config('MOYASAR_PUBLISHABLE_KEY')
+
 MOYASAR_BASE_URL        = 'https://api.moyasar.com/v1'
 MOYASAR_CALLBACK_URL    = config('MOYASAR_CALLBACK_URL', default='http://localhost:8000/api/payments/callback/')
+
+LOGIN_URL = "accounts:sign_in"
+LOGIN_REDIRECT_URL = "accounts:profile"
+

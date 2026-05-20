@@ -4,30 +4,23 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-# Step 4: added by Remas — import WeasyPrint for PDF generation
-from django.http import HttpResponse
-from weasyprint import HTML as WeasyHTML
-
 from django.shortcuts import get_object_or_404, render
-
 from notifications.services import NotificationService
 from notifications.models import Notification
-
 from contracts.models import Contract, ContractParty, ContractVersion
-from contracts.serializers import (
-    ContractSerializer, ContractCreateSerializer, ContractVersionSerializer
-)
-from contracts.permissions import (
-    IsContractParty, IsContractCreator, CanEditClauses, CanSign
-)
+from contracts.serializers import (ContractSerializer, ContractCreateSerializer, ContractVersionSerializer)
+from contracts.permissions import (IsContractParty, IsContractCreator, CanEditClauses, CanSign)
 from contracts.services.contract_workflow import ContractWorkflowService
 from contracts.services.signing_service import SigningService
 from signatures.models import Signature
-
-# Contracts list page — added by Remas
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-
+from django.db import transaction
+from django.http import HttpResponse
+from invitations.models import SigningInvitation
+from invitations.services import SigningInvitationService
+from weasyprint import HTML as WeasyHTML
+from .models import Contract, ContractParty, ContractVersion, ContractInvitedParty
 
 # ══════════════════════════════════════════════════════════════
 #  Template Views
@@ -145,6 +138,10 @@ def audit_timeline_view(request, pk):
 # ══════════════════════════════════════════════════════════════
 #  API Views
 # ══════════════════════════════════════════════════════════════
+
+def _as_bool(value):
+    return value in [True, "true", "True", "1", 1, "on"]
+
 class ContractListCreateView(APIView):
     permission_classes = [AllowAny]
 
@@ -152,21 +149,84 @@ class ContractListCreateView(APIView):
         from django.contrib.auth import get_user_model
         User = get_user_model()
 
-        # مؤقت — استخدم أول user في قاعدة البيانات
         user = request.user if request.user.is_authenticated else User.objects.first()
+
+        invite_parties = request.data.get("invite_parties", [])
 
         serializer = ContractCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        contract = ContractWorkflowService.create_contract(
-            creator=user,
-            data=serializer.validated_data,
-        )
+        with transaction.atomic():
+            contract = ContractWorkflowService.create_contract(
+                creator=user,
+                data=serializer.validated_data,
+            )
 
-        return Response(
-            ContractSerializer(contract).data,
-            status=status.HTTP_201_CREATED
-        )
+        for index, party in enumerate(invite_parties, start=1):
+            invited_party = ContractInvitedParty.objects.create(
+                contract=contract,
+                title=party.get("title", "").strip(),
+                full_name=party.get("full_name", "").strip(),
+                mobile=party.get("mobile", "").strip(),
+                phone=party.get("phone", "").strip(),
+                email=party.get("email", "").strip(),
+
+                party_type=party.get("party_type", "INDIVIDUAL"),
+                signing_role=party.get("signing_role", "SIGNER"),
+
+                national_id=party.get("national_id", "").strip(),
+                nationality=party.get("nationality", "").strip(),
+                address_country=party.get("address_country", "").strip(),
+                address_city=party.get("address_city", "").strip(),
+
+                organization_name=party.get("organization_name", "").strip(),
+                commercial_registration=party.get("commercial_registration", "").strip(),
+                tax_number=party.get("tax_number", "").strip(),
+
+                can_view_contract=_as_bool(party.get("can_view_contract", True)),
+                can_comment=_as_bool(party.get("can_comment", False)),
+                can_edit=_as_bool(party.get("can_edit", False)),
+                can_upload_files=_as_bool(party.get("can_upload_files", False)),
+                can_sign=_as_bool(party.get("can_sign", True)),
+
+                signing_order=int(party.get("signing_order") or index),
+                invitation_message=party.get("invitation_message", "").strip(),
+            )
+
+            invitation, secret = SigningInvitation.create_invitation(
+                contract=contract,
+                invited_by=user,
+                signer_full_name=party.get("full_name", "").strip(),
+                signer_mobile=party.get("mobile", "").strip(),
+                signer_email=party.get("email", "").strip(),
+                party_type=party.get("party_type", SigningInvitation.PartyType.INDIVIDUAL),
+                contract_role=party.get("contract_role", SigningInvitation.ContractRole.SECOND_PARTY),
+                signing_role=party.get("signing_role", SigningInvitation.SigningRole.SIGNER),
+                signer_national_id=party.get("national_id", "").strip(),
+                signer_nationality=party.get("nationality", "").strip(),
+                organization_name=party.get("organization_name", "").strip(),
+                commercial_registration=party.get("commercial_registration", "").strip(),
+                tax_number=party.get("tax_number", "").strip(),
+                can_view_contract=_as_bool(party.get("can_view_contract", True)),
+                can_comment=_as_bool(party.get("can_comment", False)),
+                can_edit=_as_bool(party.get("can_edit", False)),
+                can_upload_files=_as_bool(party.get("can_upload_files", False)),
+                can_sign=_as_bool(party.get("can_sign", True)),
+                signing_order=int(party.get("signing_order") or index),
+                invitation_message=party.get("invitation_message", "").strip(),
+            )
+
+            invited_party.invitation = invitation
+            invited_party.save(update_fields=["invitation"])
+
+            SigningInvitationService.send_existing_invitation(invitation, secret)
+
+        first_invitation = contract.signing_invitations.first()
+
+        return Response({
+            "id": str(contract.id),
+            "invitation_id": str(first_invitation.id) if first_invitation else None,
+        }, status=status.HTTP_201_CREATED)
         
 '''
 class ContractListCreateView(APIView):

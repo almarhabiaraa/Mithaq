@@ -8,6 +8,8 @@ from django.db import transaction, IntegrityError
 # (added by ghadi: imports two subscription functions used in sign_up and profile)
 from subscriptions.services.subscription_service import assign_free_plan, get_user_subscription
 from .models import User
+from invitations.models import SigningInvitation
+from contracts.models import ContractParty
 
 
 def sign_up(request: HttpRequest):
@@ -80,6 +82,22 @@ def sign_up(request: HttpRequest):
                     date_of_birth=date_of_birth or None,
                 )
                 assign_free_plan(user)  # (added by ghadi)
+                pending_invitations = SigningInvitation.objects.filter(
+                    signer_email__iexact=user.email,
+                    invitee_user__isnull=True
+                )
+
+                for invitation in pending_invitations:
+                    invitation.invitee_user = user
+                    invitation.save(update_fields=["invitee_user"])
+
+                    ContractParty.objects.get_or_create(
+                        contract=invitation.contract,
+                        user=user,
+                        defaults={
+                            "role": invitation.contract_role,
+                        }
+                    )
         except IntegrityError as e:
             err = str(e)
             if "national_id" in err:
