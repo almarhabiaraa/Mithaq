@@ -1,7 +1,27 @@
-{% extends "base.html" %}
+{% extends "core/dashboard_base.html" %}
 {% load static %}
 
 {% block title %}الدفع — {{ plan.name_ar }} — ميثاق{% endblock %}
+
+{% block extra_css %}
+{# Tailwind is not loaded by dashboard_base — this page uses Tailwind utilities so we load it here #}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          'brand-bg':       '#F8F7F4',
+          'brand-gold':     '#C9A84C',
+          'brand-gold-dark':'#A68A3C',
+          'brand-green':    '#2D7A4F',
+          'brand-red':      '#C0392B',
+        }
+      }
+    }
+  }
+</script>
+{% endblock %}
 
 {% block content %}
 <section class="bg-brand-bg min-h-screen flex items-center justify-center px-4 py-16">

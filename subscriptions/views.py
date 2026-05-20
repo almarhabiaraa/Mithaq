@@ -40,7 +40,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from payments.models import PaymentRecord  # (added by ghadi: to show invoice history and payment details)
-from .models import SubscriptionPlan
+from .models import SubscriptionPlan, UserSubscription
 from .serializers import SubscriptionPlanSerializer
 from .services.subscription_service import get_user_subscription
 
@@ -230,7 +230,15 @@ def subscription_dashboard_page(request):
     (added by ghadi: shows current subscription info + full invoice history
      from PaymentRecord — imported from the payments app)
     """
-    sub = get_user_subscription(request.user)
+    # (added by ghadi: fetch the subscription regardless of status so Section 1
+    #  stays visible even when the subscription is CANCELLED or EXPIRED.
+    #  get_user_subscription() would return None for non-ACTIVE subscriptions.)
+    sub = (
+        UserSubscription.objects
+        .select_related('plan')
+        .filter(user=request.user)
+        .first()
+    )
 
     # (added by ghadi: fetch all payment records for this user, newest first)
     payments = (
