@@ -41,6 +41,8 @@ class User(AbstractUser):
     avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False) # (added by ghadi: to track if the user's identity has been verified)
+    verified_at = models.DateTimeField(null=True, blank=True) # (added by ghadi: timestamp of when the user's identity was verified)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
@@ -53,3 +55,6 @@ class User(AbstractUser):
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+    
+
+    

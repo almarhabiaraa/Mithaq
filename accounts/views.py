@@ -197,3 +197,46 @@ def privacy(request: HttpRequest):
 @login_required(login_url="accounts:sign_in")
 def help_support(request):
     return render(request, "accounts/help_support.html")
+
+
+# ── Face Verification Views ───────────────────────────────────────────────────
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from accounts.services.face_verification_service import mark_user_verified
+
+@login_required(login_url='accounts:sign_in')
+def verify_identity_page(request):
+    """
+    GET /accounts/verify-identity/
+    Renders the face verification page.
+    Shows success state if already verified.
+    """
+    return render(request, 'accounts/verify_identity.html', {
+        'is_verified': request.user.is_verified,
+        'verified_at': request.user.verified_at,
+    })
+
+
+@require_POST
+@login_required(login_url='accounts:sign_in')
+def confirm_verification(request):
+    """
+    POST /accounts/verify-identity/confirm/
+    Called by JavaScript after face-api.js confirms a match.
+    Marks the user as verified in the database.
+    """
+    result = mark_user_verified(request.user)
+
+    if result:
+        return JsonResponse({
+            'success': True,
+            'message': 'تم التحقق من هويتك بنجاح',
+            'verified_at': request.user.verified_at.isoformat(),
+        })
+    else:
+        return JsonResponse({
+            'success': False,
+            'message': 'تم التحقق من هويتك مسبقاً',
+        })
