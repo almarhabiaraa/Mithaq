@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     'subscriptions',
     'wallet',
     'templates_lib',
+    'verification',    # (added by ghadi: public contract hash verification app)
 ]
 
 MIDDLEWARE = [

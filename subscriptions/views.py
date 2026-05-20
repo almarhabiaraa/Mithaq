@@ -301,3 +301,31 @@ def payment_failed_page(request):
     return render(request, 'subscriptions/payment_failed.html', {
         'plan_id': plan_id,
     })
+
+
+class CancelSubscriptionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        sub = get_user_subscription(request.user)
+
+        if not sub:
+            return Response(
+                {'error': 'لا يوجد اشتراك نشط'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        if sub.plan.plan_type == 'FREE':
+            return Response(
+                {'error': 'لا يمكن إلغاء الباقة المجانية'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if sub.status == 'CANCELLED':
+            return Response(
+                {'error': 'اشتراكك ملغى بالفعل'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        sub.status = 'CANCELLED'
+        sub.save(update_fields=['status', 'updated_at'])
+
+        return Response({'message': 'تم إلغاء اشتراكك بنجاح'})

@@ -45,5 +45,5 @@ urlpatterns = [
     path('payment/failed/',  views.payment_failed_page,      name='payment_failed'),
 
     # (added by ghadi: cancel subscription endpoint — called by the modal JS in subscription_dashboard.html)
-    path('cancel/',          views.CancelSubscriptionView.as_view(), name='subscription-cancel'),
+    path('cancel/', views.CancelSubscriptionView.as_view(), name='subscription-cancel'),
 ]

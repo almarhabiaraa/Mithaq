@@ -1,32 +1,11 @@
 {% extends "core/dashboard_base.html" %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/subscriptions_dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
-<style>
-  :root {
-    --navy:#1B2A4A; --gold:#C9A84C; --gold-light:#E8C97A;
-    --off-white:#F8F7F4; --border:#E5E7EB;
-    --text-dark:#1C1C1C; --text-grey:#6B7280;
-    --success:#16A34A; --success-bg:#DCFCE7;
-    --error:#C0392B; --error-bg:#FEE2E2;
-  }
-  .card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.08); padding:28px; }
-  .badge { display:inline-block; font-size:12px; font-weight:700; border-radius:20px; padding:4px 14px; }
-  .badge-green  { background:var(--success-bg); color:var(--success); }
-  .badge-red    { background:var(--error-bg);    color:var(--error);   }
-  .badge-grey   { background:#E5E7EB;            color:var(--text-grey);}
-  .badge-yellow { background:#FEF3C7;            color:#92400E;        }
-  .progress-bar-wrap { background:#E5E7EB; border-radius:20px; height:8px; overflow:hidden; margin:8px 0; }
-  .progress-bar-fill { height:100%; background:var(--navy); border-radius:20px; transition:width .4s; }
-  .table-row:hover { background:#F9FAFB; }
-  .btn-outlined { background:#fff; border:1.5px solid var(--navy); color:var(--navy); border-radius:8px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer; transition:background .15s; font-family:inherit; }
-  .btn-outlined:hover { background:var(--navy); color:#fff; }
-  .btn-icon { background:#F9FAFB; border:1px solid var(--border); border-radius:6px; padding:6px 10px; cursor:pointer; transition:background .15s; }
-  .btn-icon:hover { background:#E5E7EB; }
-  .section-title { font-size:18px; font-weight:800; color:var(--navy); margin:0; }
-  .feature-item { display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:14px; }
-  .check-icon { flex-shrink:0; width:18px; height:18px; background:var(--success-bg); border-radius:50%; display:flex; align-items:center; justify-content:center; }
-</style>
 
 <!-- Breadcrumb -->
 <nav style="font-size:13px; color:var(--text-grey); margin-bottom:24px;">
@@ -107,13 +86,21 @@
         </p>
       </div>
 
-      <a href="/api/subscriptions/plans-page/" class="btn-outlined" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-        إدارة الاشتراك
-      </a>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <a href="/api/subscriptions/plans-page/" class="btn-outlined" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          إدارة الاشتراك
+        </a>
+
+        {% if subscription.plan.plan_type != 'FREE' %}
+        <button class="btn-cancel" onclick="openCancelModal()">
+          إلغاء الاشتراك
+        </button>
+        {% endif %}
+      </div>
     </div>
 
     <!-- Left column — features + plan icon -->
@@ -243,5 +230,49 @@
   </div>
   {% endif %}
 </div>
+
+{# Cancel modal — using CSS variables + inline styles (Tailwind not loaded in dashboard_base) #}
+{% if subscription and subscription.plan.plan_type != 'FREE' %}
+<div id="cancel-modal"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100; align-items:center; justify-content:center;"
+     onclick="closeCancelModal()">
+
+  <div style="background:#fff; border-radius:16px; padding:32px; max-width:460px; width:calc(100% - 32px); box-shadow:0 20px 60px rgba(0,0,0,.2);"
+       onclick="event.stopPropagation()">
+
+    <div style="width:64px; height:64px; background:var(--error-bg); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+      <svg width="28" height="28" fill="none" stroke="var(--error)" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      </svg>
+    </div>
+
+    <h2 style="font-size:18px; font-weight:800; text-align:center; color:var(--text-dark); margin:0 0 12px;">
+      هل أنت متأكد من إلغاء الاشتراك؟
+    </h2>
+    <p style="font-size:14px; color:var(--text-grey); text-align:center; line-height:1.7; margin:0 0 28px;">
+      إذا قمت بإلغاء اشتراكك، ستفقد الوصول إلى مزايا الباقة الحالية فور انتهاء الفترة المدفوعة.
+    </p>
+
+    <div style="display:flex; gap:12px;">
+      <button id="confirm-cancel-btn"
+              onclick="cancelSubscription()"
+              style="flex:1; background:var(--error); color:#fff; border:none; border-radius:8px; padding:12px; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit; transition:opacity .15s;"
+              onmouseover="this.style.opacity='.87'" onmouseout="this.style.opacity='1'">
+        نعم، إلغاء الاشتراك
+      </button>
+      <button onclick="closeCancelModal()"
+              style="flex:1; background:#fff; border:1.5px solid var(--navy); color:var(--navy); border-radius:8px; padding:12px; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit; transition:background .15s, color .15s;"
+              onmouseover="this.style.background='var(--navy)'; this.style.color='#fff'"
+              onmouseout="this.style.background='#fff'; this.style.color='var(--navy)'">
+        لا، تراجع
+      </button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script src="{% static 'js/subscriptions_dashboard.js' %}"></script>
+{% endblock %}
 
 {% endblock %}

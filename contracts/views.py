@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from django.shortcuts import get_object_or_404, render
+from django.core.exceptions import PermissionDenied  # (added by ghadi: to catch subscription limit errors from check_contract_limit)
 from notifications.services import NotificationService
 from notifications.models import Notification
 from contracts.models import Contract, ContractParty, ContractVersion
@@ -156,11 +157,16 @@ class ContractListCreateView(APIView):
         serializer = ContractCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        with transaction.atomic():
-            contract = ContractWorkflowService.create_contract(
-                creator=user,
-                data=serializer.validated_data,
-            )
+        # (added by ghadi: check_contract_limit() inside create_contract raises
+        #  PermissionDenied if the user has no subscription or hit their plan limit)
+        try:
+            with transaction.atomic():
+                contract = ContractWorkflowService.create_contract(
+                    creator=user,
+                    data=serializer.validated_data,
+                )
+        except PermissionDenied as exc:
+            return Response({'error': str(exc)}, status=status.HTTP_403_FORBIDDEN)
 
         for index, party in enumerate(invite_parties, start=1):
             invited_party = ContractInvitedParty.objects.create(

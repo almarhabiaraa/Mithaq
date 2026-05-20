@@ -1,0 +1,25 @@
+/* subscriptions_dashboard.css — styles for subscription_dashboard.html */
+:root {
+  --navy:#1B2A4A; --gold:#C9A84C; --gold-light:#E8C97A;
+  --off-white:#F8F7F4; --border:#E5E7EB;
+  --text-dark:#1C1C1C; --text-grey:#6B7280;
+  --success:#16A34A; --success-bg:#DCFCE7;
+  --error:#C0392B; --error-bg:#FEE2E2;
+}
+.card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.08); padding:28px; }
+.badge { display:inline-block; font-size:12px; font-weight:700; border-radius:20px; padding:4px 14px; }
+.badge-green  { background:var(--success-bg); color:var(--success); }
+.badge-red    { background:var(--error-bg);    color:var(--error);   }
+.badge-grey   { background:#E5E7EB;            color:var(--text-grey);}
+.badge-yellow { background:#FEF3C7;            color:#92400E;        }
+.progress-bar-wrap { background:#E5E7EB; border-radius:20px; height:8px; overflow:hidden; margin:8px 0; }
+.progress-bar-fill { height:100%; background:var(--navy); border-radius:20px; transition:width .4s; }
+.table-row:hover { background:#F9FAFB; }
+.btn-outlined { background:#fff; border:1.5px solid var(--navy); color:var(--navy); border-radius:8px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer; transition:background .15s, color .15s; font-family:inherit; }
+.btn-outlined:hover { background:var(--navy); color:#fff; }
+.btn-cancel { background:#fff; border:1.5px solid var(--error); color:var(--error); border-radius:8px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer; transition:background .15s, color .15s; font-family:inherit; }
+.btn-cancel:hover { background:var(--error); color:#fff; }
+.section-title { font-size:18px; font-weight:800; color:var(--navy); margin:0; }
+.feature-item { display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:14px; }
+.check-icon { flex-shrink:0; width:18px; height:18px; background:var(--success-bg); border-radius:50%; display:flex; align-items:center; justify-content:center; }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100; display:flex; align-items:center; justify-content:center; padding:16px; }
