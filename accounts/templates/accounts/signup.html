@@ -46,14 +46,14 @@
                     <div class="signin-field">
                         <label>الاسم الأول</label>
                         <div class="signin-input-wrapper">
-                            <input type="text" name="first_name" placeholder="الاسم الأول" required>
+                            <input type="text" name="first_name" placeholder="الاسم الأول" value="{{ form_data.first_name|default:'' }}" required>
                             <i class="bi bi-person field-icon"></i>
                         </div>
                     </div>
                     <div class="signin-field">
                         <label>اسم العائلة</label>
                         <div class="signin-input-wrapper">
-                            <input type="text" name="last_name" placeholder="اسم العائلة" required>
+                            <input type="text" name="last_name" placeholder="اسم العائلة" value="{{ form_data.last_name|default:'' }}" required>
                             <i class="bi bi-person field-icon"></i>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
                 <div class="signin-field">
                     <label>البريد الإلكتروني</label>
                     <div class="signin-input-wrapper">
-                        <input type="email" name="email" placeholder="name@company.com" required>
+                        <input type="email" name="email" placeholder="name@company.com" value="{{ form_data.email|default:'' }}" required>
                         <i class="bi bi-envelope field-icon"></i>
                     </div>
                 </div>
@@ -72,7 +72,7 @@
                 <div class="signin-field">
                     <label>رقم الهوية / الإقامة</label>
                     <div class="signin-input-wrapper">
-                        <input type="text" name="national_id" placeholder="رقم الهوية" required>
+                        <input type="text" name="national_id" placeholder="رقم الهوية" value="{{ form_data.national_id|default:'' }}" required>
                         <i class="bi bi-card-text field-icon"></i>
                     </div>
                 </div>
@@ -82,14 +82,14 @@
                     <div class="signin-field">
                         <label>رقم الجوال</label>
                         <div class="signin-input-wrapper">
-                            <input type="text" name="mobile" placeholder="05xxxxxxxx" required>
+                            <input type="text" name="mobile" placeholder="05xxxxxxxx" value="{{ form_data.mobile|default:'' }}" required>
                             <i class="bi bi-phone field-icon"></i>
                         </div>
                     </div>
                     <div class="signin-field">
                         <label>تاريخ الميلاد</label>
                         <div class="signin-input-wrapper">
-                            <input type="date" name="date_of_birth">
+                            <input type="date" name="date_of_birth" value="{{ form_data.date_of_birth|default:'' }}">
                             <i class="bi bi-calendar field-icon"></i>
                         </div>
                     </div>
