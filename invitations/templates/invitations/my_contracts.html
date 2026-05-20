@@ -1,0 +1,212 @@
+{% extends "core/dashboard_base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="{% static 'css/my_contracts.css' %}">
+
+<main class="contracts-page" dir="rtl">
+
+    <section class="contracts-header">
+        <div>
+            <p class="contracts-breadcrumb">الرئيسية / العقود</p>
+            <h1>العقود</h1>
+            <p>إدارة جميع عقودك الصادرة والواردة ومتابعة حالتها من مكان واحد.</p>
+        </div>
+
+    <div class="contracts-top-actions">
+        <a href="#" class="contracts-create-btn">
+            <i class="bi bi-plus-lg"></i>
+            <span>إنشاء عقد جديد</span>
+        </a>
+    </div>
+     
+    </section>
+
+    <section class="contracts-stats">
+        <div class="contract-stat">
+            <span class="stat-icon purple"><i class="bi bi-files"></i></span>
+            <p>إجمالي العقود</p>
+            <strong>{{ stats.total }}</strong>
+            <small>كل العقود المرتبطة بك</small>
+        </div>
+
+        <div class="contract-stat">
+            <span class="stat-icon green"><i class="bi bi-check2-circle"></i></span>
+            <p>مكتملة</p>
+            <strong>{{ stats.signed }}</strong>
+            <small>تم توقيعها بنجاح</small>
+        </div>
+
+        <div class="contract-stat">
+            <span class="stat-icon blue"><i class="bi bi-pen"></i></span>
+            <p>قيد المتابعة</p>
+            <strong>{{ stats.pending }}</strong>
+            <small>بانتظار إجراء أو مراجعة</small>
+        </div>
+
+        <div class="contract-stat">
+            <span class="stat-icon gold"><i class="bi bi-hourglass-split"></i></span>
+            <p>مرفوضة</p>
+            <strong>{{ stats.rejected }}</strong>
+            <small>تم رفضها أو إيقافها</small>
+        </div>
+    </section>
+
+    <section class="contracts-filters-card">
+        <form method="get" class="contracts-filter-form">
+
+            <div class="filter-field">
+                <label for="direction">الاتجاه</label>
+                <div class="select-box">
+                    <select id="direction" name="direction">
+                        <option value="all" {% if direction == "all" %}selected{% endif %}>كل العقود</option>
+                        <option value="sent" {% if direction == "sent" %}selected{% endif %}>صادرة</option>
+                        <option value="received" {% if direction == "received" %}selected{% endif %}>واردة</option>
+                    </select>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+            </div>
+
+            <div class="filter-field">
+                <label for="status">الحالة</label>
+                <div class="select-box">
+                    <select id="status" name="status">
+                        <option value="" {% if not status_filter %}selected{% endif %}>كل الحالات</option>
+                        {% for value, label in statuses %}
+                            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="filter-submit">
+                <i class="bi bi-funnel"></i>
+                تطبيق التصفية
+            </button>
+
+            <a href="{% url 'invitations:my_contracts' %}" class="filter-reset">
+                <i class="bi bi-arrow-counterclockwise"></i>
+                إعادة تعيين
+            </a>
+        </form>
+    </section>
+
+    <section class="contracts-table-card">
+        <div class="contracts-table-header">
+            <div>
+                <h2>قائمة العقود</h2>
+            </div>
+        </div>
+
+        <div class="contracts-table-wrap">
+            <table class="contracts-table">
+                <thead>
+                    <tr>
+                        <th>اسم العقد</th>
+                        <th>النوع</th>
+                        <th>الاتجاه</th>
+                        <th>الطرف الآخر</th>
+                        <th>الحالة</th>
+                        <th>تاريخ الإرسال</th><th>آخر تحديث</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in invitations %}
+                    <tr>
+                        <td>
+                            <div class="contract-name">
+                                <div>
+                                    <strong>{{ item.contract.title_ar|default:"عقد بدون عنوان" }}</strong>
+                                    <small>{{ item.reference_number }}</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="soft-pill gold">{{ item.get_contract_role_display }}</span>
+                        </td>
+
+                        <td>
+                            {% if item.invited_by == request.user %}
+                                <span class="soft-pill blue">صادر</span>
+                            {% else %}
+                                <span class="soft-pill green">وارد</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="party-info">
+                                {% if item.invited_by == request.user %}
+                                    <strong>{{ item.signer_full_name }}</strong>
+                                    <small>{{ item.signer_email }}</small>
+                                {% else %}
+                                    <strong>{{ item.invited_by.get_full_name|default:item.invited_by.username }}</strong>
+                                    <small>منشئ العقد</small>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="status-badge status-{{ item.status|lower }}">
+                                {{ item.get_status_display }}
+                            </span>
+                        </td>
+
+                        <td>{{ item.sent_at|date:"Y-m-d"|default:"-" }}</td>
+                        <td>{{ item.updated_at|date:"Y-m-d H:i" }}</td>
+
+                        <td>
+                            <div class="table-actions">
+                                <a href="{% url 'invitations:invitation_contract_detail' item.id %}" class="view-btn">
+                                    عرض
+                                </a>
+
+                                <button type="button" class="more-btn">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-contracts">
+                                <i class="bi bi-folder2-open"></i>
+                                <strong>لا توجد عقود</strong>
+                                <p>ستظهر هنا العقود الصادرة والواردة بعد إرسال الدعوات.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="contracts-pagination">
+            {% if page_obj.has_previous %}
+                <a href="?direction={{ direction }}&status={{ status_filter }}&page={{ page_obj.previous_page_number }}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="active">{{ num }}</span>
+                {% else %}
+                    <a href="?direction={{ direction }}&status={{ status_filter }}&page={{ num }}">{{ num }}</a>
+                {% endif %}{% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?direction={{ direction }}&status={{ status_filter }}&page={{ page_obj.next_page_number }}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            {% endif %}
+        </div>
+    </section>
+
+</main>
+{% endblock %}

@@ -33,13 +33,16 @@
                     <span>لوحة التحكم</span>
                 </a>
 
-                <a href="{% url 'contracts:contract_list' %}"
-                    class="mithaq-menu-link {% if 'list' in request.path %}active{% endif %}">
+                <a href="{% url 'invitations:my_contracts' %}"
+                    class="mithaq-menu-link {% if 'contracts' in request.path %}active{% endif %}">
+
+
                     <i class="bi bi-file-earmark-text"></i>
                     <span>العقود</span>
                 </a>
 
-                <a href="/api/contracts/create/" class="mithaq-menu-link">
+                <a href="{% url 'contracts:contract_create' %}"
+                    class="mithaq-menu-link">
                     <i class="bi bi-plus-square"></i>
                     <span>إنشاء عقد</span>
                 </a>
