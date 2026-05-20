@@ -8,6 +8,21 @@ from contracts.models import Contract, ContractParty
 from signatures.models import Signature
 from audit.services import log_event
 from audit.constants import EventType
+from accounts.services.face_verification_service import is_user_verified # (added by ghadi: to check if user is verified before allowing contract signatures)
+
+
+
+# (added by ghadi: helper function to check identity verification before signing)
+def sign_contract(contract, signer, request):
+    """
+    Handle contract signing with identity verification check.
+    """
+    # Check identity verification first
+    if not is_user_verified(signer):
+        raise PermissionError(
+            'يجب التحقق من هويتك أولاً قبل توقيع العقد. '
+            'اذهب إلى صفحة التحقق من الهوية.'
+        )
 
 
 class SigningService:

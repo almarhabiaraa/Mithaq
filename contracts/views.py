@@ -3,10 +3,18 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
+# =============================================================================
 
 # Step 4: added by Remas — import WeasyPrint for PDF generation
+# NOTE (ghadi): wrapped in try/except because WeasyPrint requires GTK system
+# libraries (libgobject/Pango) which are not available on Windows dev machines.
+# The server crashes on startup without this guard. PDF export will return 503
+# until GTK is installed or the team switches to a Windows-compatible library.
 from django.http import HttpResponse
-from weasyprint import HTML as WeasyHTML
+try:
+    from weasyprint import HTML as WeasyHTML
+except OSError:
+    WeasyHTML = None
 
 from django.shortcuts import get_object_or_404, render
 
@@ -27,6 +35,8 @@ from signatures.models import Signature
 # Contracts list page — added by Remas
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+
+
 
 
 # ══════════════════════════════════════════════════════════════
