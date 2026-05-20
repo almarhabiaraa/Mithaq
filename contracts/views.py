@@ -20,7 +20,7 @@ from django.http import HttpResponse
 from invitations.models import SigningInvitation
 from invitations.services import SigningInvitationService
 from weasyprint import HTML as WeasyHTML
-
+from .models import Contract, ContractParty, ContractVersion, ContractInvitedParty
 
 # ══════════════════════════════════════════════════════════════
 #  Template Views
@@ -162,46 +162,64 @@ class ContractListCreateView(APIView):
                 data=serializer.validated_data,
             )
 
-            for index, party in enumerate(invite_parties, start=1):
-                invitation, secret = SigningInvitation.create_invitation(
-                    contract=contract,
-                    invited_by=user,
+        for index, party in enumerate(invite_parties, start=1):
+            invited_party = ContractInvitedParty.objects.create(
+                contract=contract,
+                title=party.get("title", "").strip(),
+                full_name=party.get("full_name", "").strip(),
+                mobile=party.get("mobile", "").strip(),
+                phone=party.get("phone", "").strip(),
+                email=party.get("email", "").strip(),
 
-                    signer_full_name=party.get("full_name", "").strip(),
-                    signer_mobile=party.get("mobile", "").strip(),
-                    signer_email=party.get("email", "").strip(),
+                party_type=party.get("party_type", "INDIVIDUAL"),
+                signing_role=party.get("signing_role", "SIGNER"),
 
-                    party_type=party.get(
-                        "party_type",
-                        SigningInvitation.PartyType.INDIVIDUAL
-                    ),
-                    contract_role=party.get(
-                        "contract_role",
-                        SigningInvitation.ContractRole.SECOND_PARTY
-                    ),
-                    signing_role=party.get(
-                        "signing_role",
-                        SigningInvitation.SigningRole.SIGNER
-                    ),
+                national_id=party.get("national_id", "").strip(),
+                nationality=party.get("nationality", "").strip(),
+                address_country=party.get("address_country", "").strip(),
+                address_city=party.get("address_city", "").strip(),
 
-                    signer_national_id=party.get("national_id", "").strip(),
-                    signer_nationality=party.get("nationality", "").strip(),
+                organization_name=party.get("organization_name", "").strip(),
+                commercial_registration=party.get("commercial_registration", "").strip(),
+                tax_number=party.get("tax_number", "").strip(),
 
-                    organization_name=party.get("organization_name", "").strip(),
-                    commercial_registration=party.get("commercial_registration", "").strip(),
-                    tax_number=party.get("tax_number", "").strip(),
+                can_view_contract=_as_bool(party.get("can_view_contract", True)),
+                can_comment=_as_bool(party.get("can_comment", False)),
+                can_edit=_as_bool(party.get("can_edit", False)),
+                can_upload_files=_as_bool(party.get("can_upload_files", False)),
+                can_sign=_as_bool(party.get("can_sign", True)),
 
-                    can_view_contract=_as_bool(party.get("can_view_contract", True)),
-                    can_comment=_as_bool(party.get("can_comment", False)),
-                    can_edit=_as_bool(party.get("can_edit", False)),
-                    can_upload_files=_as_bool(party.get("can_upload_files", False)),
-                    can_sign=_as_bool(party.get("can_sign", True)),
+                signing_order=int(party.get("signing_order") or index),
+                invitation_message=party.get("invitation_message", "").strip(),
+            )
 
-                    signing_order=int(party.get("signing_order") or index),
-                    invitation_message=party.get("invitation_message", "").strip(),
-                )
+            invitation, secret = SigningInvitation.create_invitation(
+                contract=contract,
+                invited_by=user,
+                signer_full_name=party.get("full_name", "").strip(),
+                signer_mobile=party.get("mobile", "").strip(),
+                signer_email=party.get("email", "").strip(),
+                party_type=party.get("party_type", SigningInvitation.PartyType.INDIVIDUAL),
+                contract_role=party.get("contract_role", SigningInvitation.ContractRole.SECOND_PARTY),
+                signing_role=party.get("signing_role", SigningInvitation.SigningRole.SIGNER),
+                signer_national_id=party.get("national_id", "").strip(),
+                signer_nationality=party.get("nationality", "").strip(),
+                organization_name=party.get("organization_name", "").strip(),
+                commercial_registration=party.get("commercial_registration", "").strip(),
+                tax_number=party.get("tax_number", "").strip(),
+                can_view_contract=_as_bool(party.get("can_view_contract", True)),
+                can_comment=_as_bool(party.get("can_comment", False)),
+                can_edit=_as_bool(party.get("can_edit", False)),
+                can_upload_files=_as_bool(party.get("can_upload_files", False)),
+                can_sign=_as_bool(party.get("can_sign", True)),
+                signing_order=int(party.get("signing_order") or index),
+                invitation_message=party.get("invitation_message", "").strip(),
+            )
 
-                SigningInvitationService.send_existing_invitation(invitation, secret)
+            invited_party.invitation = invitation
+            invited_party.save(update_fields=["invitation"])
+
+            SigningInvitationService.send_existing_invitation(invitation, secret)
 
         first_invitation = contract.signing_invitations.first()
 

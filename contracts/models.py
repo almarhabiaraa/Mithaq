@@ -33,15 +33,8 @@ class Contract(SoftDeleteModel):
    description_en  = models.TextField(blank=True)
    status          = models.CharField(max_length=30, choices=Status.choices, default=Status.DRAFT)
    contract_type   = models.CharField(max_length=20, choices=ContractType.choices, blank=True, default='')
-   creator         = models.ForeignKey(
-                         settings.AUTH_USER_MODEL,
-                         on_delete=models.RESTRICT,
-                         related_name='created_contracts'
-                     )
-   current_version = models.ForeignKey(
-                         'ContractVersion',
-                         on_delete=models.SET_NULL,
-                         null=True, blank=True,
+   creator         = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.RESTRICT,related_name='created_contracts')
+   current_version = models.ForeignKey('ContractVersion',on_delete=models.SET_NULL,null=True, blank=True,
                          related_name='active_for_contract'
                      )
    template        = models.ForeignKey(
@@ -179,7 +172,59 @@ class ContractParty(models.Model):
 
    def __str__(self):
        return f"{self.user} — {self.contract.title_ar} ({self.role})"
-   
+
+class ContractInvitedParty(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    contract = models.ForeignKey(
+        Contract,
+        on_delete=models.CASCADE,
+        related_name="invited_parties"
+    )
+
+    invitation = models.OneToOneField(
+        "invitations.SigningInvitation",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contract_invited_party"
+    )
+
+    title = models.CharField(max_length=20, blank=True)
+    full_name = models.CharField(max_length=255)
+    mobile = models.CharField(max_length=30)
+    phone = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(db_index=True)
+
+    party_type = models.CharField(max_length=30, default="INDIVIDUAL")
+    signing_role = models.CharField(max_length=30, default="SIGNER")
+
+    national_id = models.CharField(max_length=50, blank=True)
+    nationality = models.CharField(max_length=100, blank=True)
+    address_country = models.CharField(max_length=100, blank=True)
+    address_city = models.CharField(max_length=100, blank=True)
+
+    organization_name = models.CharField(max_length=255, blank=True)
+    commercial_registration = models.CharField(max_length=100, blank=True)
+    tax_number = models.CharField(max_length=100, blank=True)
+
+    can_view_contract = models.BooleanField(default=True)
+    can_comment = models.BooleanField(default=False)
+    can_edit = models.BooleanField(default=False)
+    can_upload_files = models.BooleanField(default=False)
+    can_sign = models.BooleanField(default=True)
+
+    signing_order = models.PositiveIntegerField(default=1)
+    invitation_message = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "contract_invited_parties"
+        unique_together = [["contract", "email"]]
+
+    def __str__(self):
+        return f"{self.full_name} — {self.email}"
 
 class ContractModificationRequest(models.Model):
 

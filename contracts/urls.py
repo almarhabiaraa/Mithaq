@@ -8,12 +8,14 @@ from contracts.views import (
 )
 from audit.views import AuditTimelineView
 
+app_name = "contracts"
+
 urlpatterns = [
     # ── Template URLs ──────────────────────────
-    path('create/', contract_create_view),
-    path('<uuid:pk>/detail/', contract_detail_view), 
-    path('<uuid:pk>/versions/history/', version_history_view),
-    path('<uuid:pk>/audit/timeline/', audit_timeline_view),
+    path('create/', contract_create_view, name="contract_create"),
+    path('<uuid:pk>/detail/', contract_detail_view, name="contract_detail"),
+    path('<uuid:pk>/versions/history/', version_history_view, name="contract_version_history"),
+    path('<uuid:pk>/audit/timeline/', audit_timeline_view, name="contract_audit_timeline"),
 
     # ── API URLs ───────────────────────────────
     path('',ContractListCreateView.as_view(),name='contract-list_create'),

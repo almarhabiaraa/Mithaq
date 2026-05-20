@@ -49,7 +49,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = [
-     'localhost',
+    'localhost',
     '127.0.0.1',
     'kept-justify-wincing.ngrok-free.dev',
 ]
@@ -207,18 +207,10 @@ AUTH_USER_MODEL = 'accounts.User'
 # Note: .env uses MOYASAR_SECRET_KEY — mapped here to MOYASAR_API_KEY for internal consistency
 MOYASAR_API_KEY         = config('MOYASAR_SECRET_KEY')
 MOYASAR_PUBLISHABLE_KEY = config('MOYASAR_PUBLISHABLE_KEY')
-<<<<<<< HEAD
-MOYASAR_BASE_URL      = 'https://api.moyasar.com/v1'
-MOYASAR_CALLBACK_URL  = config('MOYASAR_CALLBACK_URL', default='http://localhost:8000/api/payments/callback/')
-# Set this in your Moyasar dashboard under Settings → Webhooks → Secret Token
-MOYASAR_WEBHOOK_SECRET = config('MOYASAR_WEBHOOK_SECRET', default='')
 
-
-
-LOGIN_URL = '/accounts/signin/'
-LOGIN_REDIRECT_URL = '/dashboard/dashboard/'
-LOGOUT_REDIRECT_URL = '/accounts/signin/'
-=======
 MOYASAR_BASE_URL        = 'https://api.moyasar.com/v1'
 MOYASAR_CALLBACK_URL    = config('MOYASAR_CALLBACK_URL', default='http://localhost:8000/api/payments/callback/')
->>>>>>> de8c2ece5be24f9fa745a00e511f45a04857136b
+
+LOGIN_URL = "accounts:sign_in"
+LOGIN_REDIRECT_URL = "accounts:profile"
+
