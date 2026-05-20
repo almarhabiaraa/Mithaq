@@ -3,59 +3,98 @@ from django.http import HttpRequest
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
+from django.db import transaction, IntegrityError
 
 # (added by ghadi: imports two subscription functions used in sign_up and profile)
-#   assign_free_plan    → gives every new user the Free plan (1 contract limit)
-#   get_user_subscription → fetches the active subscription to show on the profile page
 from subscriptions.services.subscription_service import assign_free_plan, get_user_subscription
 from .models import User
 
 
 def sign_up(request: HttpRequest):
+    form_data = {}
     if request.method == "POST":
-        email = request.POST.get("email")
-        first_name = request.POST.get("first_name")
-        last_name = request.POST.get("last_name")
-        national_id = request.POST.get("national_id")
-        mobile = request.POST.get("mobile")
-        date_of_birth = request.POST.get("date_of_birth")
-        password = request.POST.get("password")
-        confirm_password = request.POST.get("confirm_password")
+        email = request.POST.get("email", "").strip()
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        national_id = request.POST.get("national_id", "").strip()
+        mobile = request.POST.get("mobile", "").strip()
+        date_of_birth = request.POST.get("date_of_birth", "").strip()
+        password = request.POST.get("password", "")
+        confirm_password = request.POST.get("confirm_password", "")
+
+        form_data = {
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "national_id": national_id,
+            "mobile": mobile,
+            "date_of_birth": date_of_birth,
+        }
+
+        # Guard: all required fields must be present
+        if not all([email, first_name, last_name, national_id, mobile, password, confirm_password]):
+            messages.error(request, "يرجى تعبئة جميع الحقول المطلوبة", "alert-danger")
+            return render(request, "accounts/signup.html", {"form_data": form_data})
+
+        # Validate national_id — 10 digits
+        if not national_id.isdigit() or len(national_id) != 10:
+            messages.error(request, "رقم الهوية يجب أن يكون 10 أرقام", "alert-danger")
+            return render(request, "accounts/signup.html", {"form_data": form_data})
+
+        # Validate mobile — starts with 05
+        if not mobile.isdigit() or len(mobile) != 10 or not mobile.startswith("05"):
+            messages.error(request, "رقم الجوال غير صحيح — يجب أن يبدأ بـ 05 ويكون 10 أرقام", "alert-danger")
+            return render(request, "accounts/signup.html", {"form_data": form_data})
+
+        # Validate password length
+        if len(password) < 8:
+            messages.error(request, "كلمة المرور يجب أن تكون 8 أحرف على الأقل", "alert-danger")
+            return render(request, "accounts/signup.html", {"form_data": form_data})
 
         # Validate password match
         if password != confirm_password:
             messages.error(request, "كلمة المرور غير متطابقة", "alert-danger")
-            return render(request, "accounts/signup.html")
+            return render(request, "accounts/signup.html", {"form_data": form_data})
 
         # Check if email already exists
         if User.objects.filter(email=email).exists():
             messages.error(request, "البريد الإلكتروني مستخدم مسبقاً", "alert-danger")
-            return render(request, "accounts/signup.html")
+            return render(request, "accounts/signup.html", {"form_data": form_data})
 
         # Check if national_id already exists
         if User.objects.filter(national_id=national_id).exists():
             messages.error(request, "رقم الهوية مستخدم مسبقاً", "alert-danger")
-            return render(request, "accounts/signup.html")
+            return render(request, "accounts/signup.html", {"form_data": form_data})
 
-        # Create new user
-        with transaction.atomic():
-            user = User.objects.create_user(
-                email=email,
-                password=password,
-                first_name=first_name,
-                last_name=last_name,
-                national_id=national_id,
-                mobile=mobile,
-                date_of_birth=date_of_birth or None,
-            )
+        # Create new user — try/except catches race-condition IntegrityErrors
+        # that slip past the pre-checks above when two requests arrive simultaneously.
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                    national_id=national_id,
+                    mobile=mobile,
+                    date_of_birth=date_of_birth or None,
+                )
+                assign_free_plan(user)  # (added by ghadi)
+        except IntegrityError as e:
+            err = str(e)
+            if "national_id" in err:
+                messages.error(request, "رقم الهوية مستخدم مسبقاً", "alert-danger")
+            elif "email" in err:
+                messages.error(request, "البريد الإلكتروني مستخدم مسبقاً", "alert-danger")
+            else:
+                messages.error(request, "حدث خطأ أثناء إنشاء الحساب، يرجى المحاولة مرة أخرى", "alert-danger")
+            return render(request, "accounts/signup.html", {"form_data": form_data})
 
-        assign_free_plan(user)  # (added by ghadi: auto-assigns the Free plan to every new user on registration)
         login(request, user)
         messages.success(request, "تم إنشاء الحساب بنجاح", "alert-success")
         return redirect("accounts:profile")
 
-    return render(request, "accounts/signup.html")
+    return render(request, "accounts/signup.html", {"form_data": form_data})
 
 
 def sign_in(request: HttpRequest):
@@ -63,7 +102,12 @@ def sign_in(request: HttpRequest):
         email = request.POST.get("email")
         password = request.POST.get("password")
 
-        # Authenticate user
+        # Check if user exists first
+        if not User.objects.filter(email=email).exists():
+            messages.error(request, "لا يوجد حساب مرتبط بهذا البريد الإلكتروني", "alert-danger")
+            return render(request, "accounts/signin.html")
+
+        # Authenticate
         user = authenticate(request, email=email, password=password)
 
         if user:
@@ -72,7 +116,7 @@ def sign_in(request: HttpRequest):
             next_url = request.GET.get("next")
             return redirect(next_url if next_url else "accounts:profile")
         else:
-            messages.error(request, "البريد الإلكتروني أو كلمة المرور غير صحيحة", "alert-danger")
+            messages.error(request, "كلمة المرور غير صحيحة", "alert-danger")
 
     return render(request, "accounts/signin.html")
 
@@ -88,14 +132,12 @@ def profile(request: HttpRequest):
     user = request.user
 
     if request.method == "POST":
-        # Update personal info
         user.first_name = request.POST.get("first_name", user.first_name)
         user.last_name = request.POST.get("last_name", user.last_name)
         user.bio = request.POST.get("bio", user.bio)
         user.date_of_birth = request.POST.get("date_of_birth") or user.date_of_birth
         user.mobile = request.POST.get("mobile", user.mobile)
 
-        # Update avatar if uploaded
         if request.FILES.get("avatar"):
             user.avatar = request.FILES["avatar"]
 
@@ -103,14 +145,14 @@ def profile(request: HttpRequest):
         messages.success(request, "تم تحديث المعلومات بنجاح", "alert-success")
         return redirect("accounts:profile")
 
-    # (added by ghadi: fetch the user's active subscription so the profile page
-    #  can display plan name, status, contracts used, and expiry date)
     sub = get_user_subscription(user)
     return render(request, "accounts/profile.html", {"user": user, "subscription": sub})
+
 
 @login_required(login_url="accounts:sign_in")
 def settings(request):
     return render(request, "accounts/settings.html", {"user": request.user})
+
 
 @login_required(login_url="accounts:sign_in")
 def change_password(request: HttpRequest):
@@ -119,37 +161,30 @@ def change_password(request: HttpRequest):
         new_password = request.POST.get("new_password")
         confirm_password = request.POST.get("confirm_password")
 
-        # Validate current password
         if not request.user.check_password(current_password):
             messages.error(request, "كلمة المرور الحالية غير صحيحة", "alert-danger")
             return render(request, "accounts/change_password.html")
 
-        # Validate new password match
         if new_password != confirm_password:
             messages.error(request, "كلمة المرور الجديدة غير متطابقة", "alert-danger")
             return render(request, "accounts/change_password.html")
 
-        # Validate new password is different
         if current_password == new_password:
             messages.error(request, "كلمة المرور الجديدة يجب أن تختلف عن الحالية", "alert-danger")
             return render(request, "accounts/change_password.html")
 
-        # Update password
         request.user.set_password(new_password)
         request.user.save()
-
-        # Keep user logged in after password change
         login(request, request.user)
-
         messages.success(request, "تم تغيير كلمة المرور بنجاح", "alert-success")
         return redirect("accounts:settings")
 
     return render(request, "accounts/change_password.html")
 
+
 @login_required(login_url="accounts:sign_in")
 def privacy(request: HttpRequest):
     if request.method == "POST":
-        # Delete account permanently
         user = request.user
         logout(request)
         user.delete()
@@ -157,6 +192,7 @@ def privacy(request: HttpRequest):
         return redirect("accounts:sign_in")
 
     return render(request, "accounts/privacy.html")
+
 
 @login_required(login_url="accounts:sign_in")
 def help_support(request):

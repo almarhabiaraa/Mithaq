@@ -107,26 +107,17 @@ def _session(retry_post: bool = False) -> requests.Session:
 
 
 # ── Public service functions ───────────────────────────────────────────────────
-
-def initiate_payment(user, plan: SubscriptionPlan, payment_method: str = 'creditcard') -> str:
+def initiate_payment(user, plan: SubscriptionPlan, card_data: dict = None) -> dict:
     """
-    Create a PaymentRecord and call the Moyasar API to open a payment session.
+    Create a PaymentRecord and charge the card via Moyasar API.
 
-    A temporary unique placeholder is written to moyasar_payment_id so the record
-    can be saved before the API call (its ID is included in metadata sent to Moyasar).
-    The real Moyasar payment ID replaces it once the API responds successfully.
-
-    Amount is converted from SAR to halalas (× 100) as required by Moyasar.
-
-    An Idempotency-Key header (= payment_record.id) is sent so Moyasar treats
-    all retries of the same request as a single payment — no duplicate charges.
+    card_data must contain: name, number, month, year, cvc
 
     Returns:
-        The Moyasar-hosted payment URL to redirect the user to.
+        dict with status and payment_record.
 
     Raises:
-        MoyasarError: if the API is unreachable, all retries are exhausted,
-                      or the response structure is unexpected.
+        MoyasarError: if the API call fails.
     """
     amount_halalas = int(plan.price * 100)
 
@@ -139,29 +130,34 @@ def initiate_payment(user, plan: SubscriptionPlan, payment_method: str = 'credit
         status=PaymentRecord.Status.INITIATED,
     )
 
+    source = {
+        'type':   'creditcard',
+        'name':   card_data.get('name'),
+        'number': card_data.get('number'),
+        'month':  card_data.get('month'),
+        'year':   card_data.get('year'),
+        'cvc':    card_data.get('cvc'),
+    }
+
     payload = {
         'amount':       amount_halalas,
         'currency':     'SAR',
         'description':  f'Mithaq - {plan.name_ar}',
         'callback_url': settings.MOYASAR_CALLBACK_URL,
-        'source': {
-            'type': payment_method,   # 'creditcard', 'stcpay', or 'applepay'
-        },
+        'source':       source,
         'metadata': {
-            'user_id':            str(user.id),
-            'plan_id':            str(plan.id),
-            'payment_record_id':  str(payment_record.id),
+            'user_id':           str(user.id),
+            'plan_id':           str(plan.id),
+            'payment_record_id': str(payment_record.id),
         },
     }
 
     logger.info(
-        'Initiating Moyasar payment | user=%s plan=%s amount_halalas=%s attempt_max=%s',
-        user.id, plan.id, amount_halalas, _RETRY_TOTAL + 1,
+        'Initiating Moyasar payment | user=%s plan=%s amount_halalas=%s',
+        user.id, plan.id, amount_halalas,
     )
 
     try:
-        # retry_post=True is safe here because of the Idempotency-Key header.
-        # Moyasar returns the same payment object for the same key on retries.
         response = _session(retry_post=True).post(
             f'{settings.MOYASAR_BASE_URL}/payments',
             json=payload,
@@ -170,7 +166,7 @@ def initiate_payment(user, plan: SubscriptionPlan, payment_method: str = 'credit
             headers={'Idempotency-Key': str(payment_record.id)},
         )
         logger.info(
-            'Moyasar initiate response | http_status=%s body=%.500s',
+            'Moyasar response | http_status=%s body=%.500s',
             response.status_code, response.text,
         )
         response.raise_for_status()
@@ -179,32 +175,31 @@ def initiate_payment(user, plan: SubscriptionPlan, payment_method: str = 'credit
     except requests.exceptions.Timeout:
         payment_record.delete()
         raise MoyasarError(
-            f'Moyasar API timed out after {_REQUEST_TIMEOUT}s '
-            f'(tried {_RETRY_TOTAL + 1} time(s))'
+            f'Moyasar API timed out after {_REQUEST_TIMEOUT}s'
         )
     except requests.exceptions.RequestException as exc:
         payment_record.delete()
-        raise MoyasarError(f'Moyasar API request failed after retries: {exc}')
+        raise MoyasarError(f'Moyasar API request failed: {exc}')
 
-    moyasar_id  = data.get('id')
-    # Card payments return the hosted-page redirect URL under source.transaction_url
-    payment_url = (
-        data.get('source', {}).get('transaction_url')
-        or data.get('url')
-    )
+    moyasar_id = data.get('id')
 
-    if not moyasar_id or not payment_url:
+    if not moyasar_id:
         payment_record.delete()
-        raise MoyasarError(f'Unexpected Moyasar response structure: {data}')
+        raise MoyasarError(f'Unexpected Moyasar response: {data}')
 
     payment_record.moyasar_payment_id = moyasar_id
     payment_record.save(update_fields=['moyasar_payment_id'])
 
     logger.info(
-        'PaymentRecord id=%s linked to Moyasar payment_id=%s',
+        'PaymentRecord id=%s linked to moyasar_id=%s',
         payment_record.id, moyasar_id,
     )
-    return payment_url
+
+    return {
+        'status':         data.get('status'),
+        'payment_record': payment_record,
+        'data':           data,
+    }
 
 
 def handle_callback(moyasar_payment_id: str) -> str:

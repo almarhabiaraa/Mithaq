@@ -16,12 +16,23 @@ class Contract(SoftDeleteModel):
        CANCELLED          = 'CANCELLED',          'ملغي'
 
 
+   class ContractType(models.TextChoices):
+       SERVICES    = 'SERVICES',    'عقد خدمات'
+       SUPPLY      = 'SUPPLY',      'عقد توريد'
+       RENT        = 'RENT',        'عقد إيجار'
+       PARTNERSHIP = 'PARTNERSHIP', 'عقد شراكة'
+       CONSULTING  = 'CONSULTING',  'عقد استشاري'
+       EMPLOYMENT  = 'EMPLOYMENT',  'عقد عمل'
+       OTHER       = 'OTHER',       'أخرى'
+
+
    id              = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
    title_ar        = models.CharField(max_length=255)
    title_en        = models.CharField(max_length=255, blank=True)
    description_ar  = models.TextField(blank=True)
    description_en  = models.TextField(blank=True)
    status          = models.CharField(max_length=30, choices=Status.choices, default=Status.DRAFT)
+   contract_type   = models.CharField(max_length=20, choices=ContractType.choices, blank=True, default='')
    creator         = models.ForeignKey(
                          settings.AUTH_USER_MODEL,
                          on_delete=models.RESTRICT,
@@ -43,6 +54,17 @@ class Contract(SoftDeleteModel):
    created_at      = models.DateTimeField(auto_now_add=True)
    updated_at      = models.DateTimeField(auto_now=True)
    completed_at    = models.DateTimeField(null=True, blank=True)
+
+
+   @property
+   def progress(self):
+       return {
+           self.Status.DRAFT:              25,
+           self.Status.PENDING_SIGNATURES: 50,
+           self.Status.SIGNED:             75,
+           self.Status.COMPLETED:          100,
+           self.Status.CANCELLED:          0,
+       }.get(self.status, 0)
 
 
    class Meta:

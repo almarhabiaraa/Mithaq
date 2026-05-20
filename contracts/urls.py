@@ -1,17 +1,19 @@
 from django.urls import path
-from contracts.views import (ContractListCreateView, ContractDetailView,ApproveView, SignView, CancelView,VersionListView, VersionDetailView,contract_create_view, contract_detail_view,version_history_view, audit_timeline_view,)
+from contracts.views import (
+    ContractListCreateView, ContractDetailView,
+    ApproveView, SignView, CancelView,
+    VersionListView, VersionDetailView,
+    contract_create_view, contract_detail_view,
+    version_history_view, audit_timeline_view,
+)
 from audit.views import AuditTimelineView
-
-
-app_name = "contracts"
 
 urlpatterns = [
     # ── Template URLs ──────────────────────────
-    path('create/', contract_create_view, name='contract_create'),
-    
-    path('<uuid:pk>/detail/',contract_detail_view,name='contract_detail'),
-    path('<uuid:pk>/versions/history/',version_history_view,name='version_history'),
-    path('<uuid:pk>/audit/timeline/',audit_timeline_view,name='audit_timeline'),
+    path('create/', contract_create_view),
+    path('<uuid:pk>/detail/', contract_detail_view), 
+    path('<uuid:pk>/versions/history/', version_history_view),
+    path('<uuid:pk>/audit/timeline/', audit_timeline_view),
 
     # ── API URLs ───────────────────────────────
     path('',ContractListCreateView.as_view(),name='contract-list_create'),

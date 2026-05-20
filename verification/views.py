@@ -5,11 +5,11 @@
 #
 # PURPOSE:
 #   Two views that together make the verification feature work:
-#     1. PublicVerifyAPIView  — a JSON API called by JavaScript
-#     2. VerifyPageView       — the HTML page a human actually visits
+#     1. PublicVerifyAPIView  — a JSON API called by JavaScript (PUBLIC)
+#     2. VerifyPageView       — the HTML standalone page (PUBLIC)
 #
 # HOW THE FEATURE WORKS END-TO-END:
-#   User opens /verify/ → sees the HTML page (VerifyPageView)
+#   User opens /verify/ → sees the standalone page (VerifyPageView)
 #   User types a 64-char hash and clicks "تحقق الآن"
 #   JavaScript calls GET /api/verify/<hash>/ (PublicVerifyAPIView)
 #   The API calls verify_contract_hash() in services.py
@@ -23,11 +23,12 @@
 #     unknown hashes would let attackers enumerate existing hashes
 #
 # URL MAP (registered in Mithaq/urls.py by Ghadi):
-#   GET /verify/                → VerifyPageView   (HTML page for humans)
+#   GET /verify/                → VerifyPageView   (HTML page for anyone)
 #   GET /api/verify/<hash>/     → PublicVerifyAPIView (JSON for JavaScript)
 # =============================================================================
 
 from django.views.generic import TemplateView
+
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
@@ -47,17 +48,12 @@ class PublicVerifyAPIView(APIView):
     Always returns HTTP 200 — see security note in the file header above.
     """
 
-    # Intentionally empty — this endpoint is public by design
     permission_classes = []
-
-    # Rate limiting to prevent abuse (configured in settings.REST_FRAMEWORK)
     throttle_classes = [AnonRateThrottle]
 
     def get(self, request, hash_hex):
-        # All verification logic lives in services.py — view stays thin
         result = verify_contract_hash(hash_hex)
         serializer = VerificationResultSerializer(result)
-        # Always 200 — never 404 (prevents hash enumeration)
         return Response(serializer.data)
 
 
@@ -65,7 +61,7 @@ class VerifyPageView(TemplateView):
     """
     GET /verify/
 
-    Public HTML page — no authentication required.
+    Public standalone HTML page — no authentication required.
     Renders verify.html and passes the API base URL as context
     so the JavaScript knows where to send its fetch() calls.
     """
@@ -74,6 +70,5 @@ class VerifyPageView(TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        # Injected into verify.html as {{ api_url }} → used by JS fetch()
         ctx['api_url'] = '/api/verify/'
         return ctx

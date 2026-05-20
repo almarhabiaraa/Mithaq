@@ -19,13 +19,16 @@
   .progress-bar-wrap { background:#E5E7EB; border-radius:20px; height:8px; overflow:hidden; margin:8px 0; }
   .progress-bar-fill { height:100%; background:var(--navy); border-radius:20px; transition:width .4s; }
   .table-row:hover { background:#F9FAFB; }
-  .btn-outlined { background:#fff; border:1.5px solid var(--navy); color:var(--navy); border-radius:8px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer; transition:background .15s; font-family:inherit; }
+  .btn-outlined { background:#fff; border:1.5px solid var(--navy); color:var(--navy); border-radius:8px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer; transition:background .15s, color .15s; font-family:inherit; }
   .btn-outlined:hover { background:var(--navy); color:#fff; }
-  .btn-icon { background:#F9FAFB; border:1px solid var(--border); border-radius:6px; padding:6px 10px; cursor:pointer; transition:background .15s; }
-  .btn-icon:hover { background:#E5E7EB; }
+  /* (added by ghadi: red cancel button — only shown for non-free plans) */
+  .btn-cancel { background:#fff; border:1.5px solid var(--error); color:var(--error); border-radius:8px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer; transition:background .15s, color .15s; font-family:inherit; }
+  .btn-cancel:hover { background:var(--error); color:#fff; }
   .section-title { font-size:18px; font-weight:800; color:var(--navy); margin:0; }
   .feature-item { display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:14px; }
   .check-icon { flex-shrink:0; width:18px; height:18px; background:var(--success-bg); border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  /* (added by ghadi: cancel modal overlay and card) */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100; display:flex; align-items:center; justify-content:center; padding:16px; }
 </style>
 
 <!-- Breadcrumb -->
@@ -78,7 +81,7 @@
         </span>
       </div>
 
-      <!-- Payment method -->
+      <!-- Payment method — (task 5: show readable Arabic label) -->
       {% if last_payment %}
       <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px; font-size:14px; color:var(--text-dark);">
         <svg width="16" height="16" fill="none" stroke="var(--gold)" stroke-width="2" viewBox="0 0 24 24">
@@ -107,28 +110,37 @@
         </p>
       </div>
 
-      <a href="/api/subscriptions/plans-page/" class="btn-outlined" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-        إدارة الاشتراك
-      </a>
+      <!-- Action buttons -->
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+
+        {# Upgrade button — always visible so users can upgrade at any time #}
+        <a href="/api/subscriptions/plans-page/"
+           style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;
+                  background:var(--gold); color:var(--navy); border-radius:8px;
+                  padding:8px 20px; font-size:13px; font-weight:700; transition:opacity .15s;"
+           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+          </svg>
+          ترقية الخطة
+        </a>
+
+        {# (added by ghadi: cancel button — only for paid plans, opens confirmation modal) #}
+        {% if subscription.plan.plan_type != 'FREE' %}
+        <button class="btn-cancel" onclick="openCancelModal()">
+          إلغاء الاشتراك
+        </button>
+        {% endif %}
+      </div>
     </div>
 
     <!-- Left column — features + plan icon -->
     <div>
       <div style="display:flex; justify-content:flex-end; margin-bottom:20px;">
-        {% if subscription.plan.plan_type == 'PROFESSIONAL' %}
+        {% if subscription.plan.plan_type == 'MONTHLY' %}
         <div style="width:64px; height:64px; border-radius:50%; background:#FEF3C7; display:flex; align-items:center; justify-content:center;">
           <svg width="32" height="32" fill="none" stroke="var(--gold)" stroke-width="1.8" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 3l1.5 4.5L12 2l5.5 5.5L19 3l2 6-9 11L2 9l3-6z"/>
-          </svg>
-        </div>
-        {% elif subscription.plan.plan_type == 'ENTERPRISE' %}
-        <div style="width:64px; height:64px; border-radius:50%; background:#EFF6FF; display:flex; align-items:center; justify-content:center;">
-          <svg width="32" height="32" fill="none" stroke="var(--navy)" stroke-width="1.8" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
           </svg>
         </div>
         {% else %}
@@ -153,16 +165,10 @@
 </div>
 {% endif %}
 
-<!-- Section 2 — Invoice History -->
+<!-- Section 2 — Invoice History (task 6: removed الإجراء column; task 5: Arabic payment method labels) -->
 <div class="card">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
     <h2 class="section-title">سجل الفواتير</h2>
-    <button class="btn-outlined" style="display:flex; align-items:center; gap:6px; font-size:12px; padding:6px 14px;">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-      </svg>
-      تصدير الكل
-    </button>
   </div>
 
   {% if payments %}
@@ -175,7 +181,6 @@
           <th style="text-align:right; padding:10px 12px; color:var(--text-grey); font-weight:600; white-space:nowrap;">المبلغ</th>
           <th style="text-align:right; padding:10px 12px; color:var(--text-grey); font-weight:600; white-space:nowrap;">طريقة الدفع</th>
           <th style="text-align:right; padding:10px 12px; color:var(--text-grey); font-weight:600; white-space:nowrap;">الحالة</th>
-          <th style="text-align:right; padding:10px 12px; color:var(--text-grey); font-weight:600;">الإجراء</th>
         </tr>
       </thead>
       <tbody>
@@ -207,29 +212,11 @@
               <span class="badge badge-grey">معلّقة</span>
             {% endif %}
           </td>
-          <td style="padding:14px 12px;">
-            <button class="btn-icon" title="تحميل الفاتورة">
-              <svg width="14" height="14" fill="none" stroke="var(--navy)" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-              </svg>
-            </button>
-          </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-
-  {% if payments.has_next %}
-  <div style="text-align:center; margin-top:20px;">
-    <button class="btn-outlined">
-      عرض المزيد
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline; margin-right:4px; vertical-align:middle;">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-      </svg>
-    </button>
-  </div>
-  {% endif %}
 
   {% else %}
   <div style="text-align:center; padding:48px 20px;">
@@ -244,4 +231,111 @@
   {% endif %}
 </div>
 
-{% endblock %}
+{# (added by ghadi: cancel subscription confirmation modal — task 3) #}
+<div id="cancel-modal" class="modal-overlay" style="display:none;" onclick="handleOverlayClick(event)">
+  <div style="background:#fff; border-radius:16px; padding:32px; max-width:480px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.2);">
+
+    <!-- Warning icon -->
+    <div style="width:56px; height:56px; border-radius:50%; background:var(--error-bg); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+      <svg width="28" height="28" fill="none" stroke="var(--error)" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      </svg>
+    </div>
+
+    <h2 style="font-size:18px; font-weight:800; color:var(--text-dark); text-align:center; margin:0 0 12px;">
+      هل أنت متأكد من إلغاء الاشتراك؟
+    </h2>
+    <p style="font-size:14px; color:var(--text-grey); text-align:center; line-height:1.7; margin:0 0 28px;">
+      إذا قمت بإلغاء اشتراكك، ستفقد الوصول إلى مزايا الباقة الحالية فور انتهاء الفترة المدفوعة.
+    </p>
+
+    <div style="display:flex; gap:12px;">
+      <!-- Confirm cancel -->
+      <button id="confirm-cancel-btn" onclick="cancelSubscription()"
+              style="flex:1; background:var(--error); color:#fff; border:none; border-radius:8px; padding:12px; font-size:14px; font-weight:700; cursor:pointer; transition:opacity .15s; font-family:inherit;"
+              onmouseover="this.style.opacity='.87'" onmouseout="this.style.opacity='1'">
+        نعم، إلغاء الاشتراك
+      </button>
+      <!-- Close modal -->
+      <button onclick="closeCancelModal()"
+              style="flex:1; background:#fff; color:var(--navy); border:1.5px solid var(--navy); border-radius:8px; padding:12px; font-size:14px; font-weight:700; cursor:pointer; transition:background .15s, color .15s; font-family:inherit;"
+              onmouseover="this.style.background='var(--navy)'; this.style.color='#fff'"
+              onmouseout="this.style.background='#fff'; this.style.color='var(--navy)'">
+        لا، تراجع
+      </button>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+  // ── Modal controls ──────────────────────────────────────────────────────────
+  function openCancelModal() {
+    document.getElementById('cancel-modal').style.display = 'flex';
+  }
+  function closeCancelModal() {
+    document.getElementById('cancel-modal').style.display = 'none';
+  }
+  function handleOverlayClick(e) {
+    // Close when clicking the dark overlay (not the card itself)
+    if (e.target === document.getElementById('cancel-modal')) {
+      closeCancelModal();
+    }
+  }
+
+  // ── Cancel subscription API call ────────────────────────────────────────────
+  async function cancelSubscription() {
+    const btn = document.getElementById('confirm-cancel-btn');
+    btn.textContent = 'جارٍ الإلغاء...';
+    btn.disabled = true;
+
+    try {
+      const response = await fetch('/api/subscriptions/cancel/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        closeCancelModal();
+        showToast('تم إلغاء اشتراكك بنجاح');
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        throw new Error(data.error || 'حدث خطأ غير متوقع');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+      btn.textContent = 'نعم، إلغاء الاشتراك';
+      btn.disabled = false;
+    }
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+  function getCsrfToken() {
+    return document.cookie.split(';')
+      .map(c => c.trim())
+      .find(c => c.startsWith('csrftoken='))
+      ?.split('=')[1] || '';
+  }
+
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      padding:12px 24px; border-radius:10px; color:#fff; font-weight:700;
+      font-size:14px; box-shadow:0 4px 20px rgba(0,0,0,.2); z-index:200;
+      background:${type === 'error' ? 'var(--error)' : 'var(--success)'};
+      font-family:inherit;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+</script>
+{% endblock extra_js %}
+
+{% endblock content %}

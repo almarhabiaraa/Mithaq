@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
+
 from django.shortcuts import get_object_or_404, render
 from notifications.services import NotificationService
 from notifications.models import Notification
@@ -12,10 +13,13 @@ from contracts.permissions import (IsContractParty, IsContractCreator, CanEditCl
 from contracts.services.contract_workflow import ContractWorkflowService
 from contracts.services.signing_service import SigningService
 from signatures.models import Signature
-
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.db import transaction
+from django.http import HttpResponse
 from invitations.models import SigningInvitation
 from invitations.services import SigningInvitationService
+from weasyprint import HTML as WeasyHTML
 
 
 # ══════════════════════════════════════════════════════════════
@@ -25,6 +29,45 @@ from invitations.services import SigningInvitationService
 
 def contract_create_view(request):
     return render(request, 'contracts/contract_create.html')
+
+
+@login_required(login_url='accounts:sign_in')
+def contract_list_view(request):
+    # Filters
+    status_filter = request.GET.get('status', '')
+    type_filter   = request.GET.get('type', '')
+    date_filter   = request.GET.get('date', 'newest')
+
+    STATUS_MAP = {
+        'draft':             Contract.Status.DRAFT,
+        'pending_signature': Contract.Status.PENDING_SIGNATURES,
+        'signed':            Contract.Status.SIGNED,
+        'completed':         Contract.Status.COMPLETED,
+        'cancelled':         Contract.Status.CANCELLED,
+    }
+
+    # All contracts for this user
+    qs = Contract.objects.filter(
+        Q(creator=request.user) | Q(parties__user=request.user)
+    ).distinct()
+
+    # Apply filters
+    if status_filter and status_filter in STATUS_MAP:
+        qs = qs.filter(status=STATUS_MAP[status_filter])
+
+    if type_filter == 'created':
+        qs = qs.filter(creator=request.user)
+    elif type_filter == 'received':
+        qs = qs.exclude(creator=request.user)
+
+    qs = qs.order_by('created_at' if date_filter == 'oldest' else '-created_at')
+
+    return render(request, 'contracts/contract_list.html', {
+        'contracts':       qs,
+        'selected_status': status_filter,
+        'selected_type':   type_filter,
+        'selected_date':   date_filter,
+    })
 
 
 
@@ -345,3 +388,138 @@ class VersionDetailView(APIView):
             version_number=version_number
         )
         return Response(ContractVersionSerializer(version).data)
+    
+
+# Step 4: added by Remas — PDF generation view using WeasyPrint
+# Takes the saved contract HTML from canonical_json and converts it to a downloadable PDF
+def contract_pdf_view(request, pk):
+    # Get contract
+    contract = get_object_or_404(Contract, pk=pk)
+
+    # PDF only available after signing
+    if contract.status not in [Contract.Status.SIGNED, Contract.Status.COMPLETED]:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("العقد لم يكتمل بعد")
+
+    # Get HTML from canonical_json
+    contract_html = contract.current_version.canonical_json.get('contract_html', '')
+
+    # Logo URL
+    logo_url = request.build_absolute_uri('/static/images/mithaq-logo.png')
+
+    # Full PDF HTML
+    full_html = f"""
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                direction: rtl;
+                color: #0A1633;
+                font-size: 13px;
+                line-height: 1.8;
+                padding: 40px;
+            }}
+            .pdf-header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 2px solid #B99655;
+                padding-bottom: 16px;
+                margin-bottom: 32px;
+            }}
+            .pdf-logo {{ height: 48px; }}
+            .pdf-meta {{
+                text-align: left;
+                font-size: 11px;
+                color: #6F7482;
+            }}
+            .contract-bismillah {{
+                text-align: center;
+                font-size: 16px;
+                font-weight: bold;
+                margin: 16px 0;
+            }}
+            .contract-article {{
+                margin-bottom: 20px;
+            }}
+            .contract-article h4 {{
+                font-size: 14px;
+                font-weight: bold;
+                color: #061D3B;
+                margin-bottom: 8px;
+                border-bottom: 1px solid #E7E3DA;
+                padding-bottom: 4px;
+            }}
+            .contract-signatures {{
+                display: flex;
+                gap: 40px;
+                margin-top: 40px;
+                border-top: 1px solid #E7E3DA;
+                padding-top: 24px;
+            }}
+            .sig-block {{ flex: 1; text-align: center; }}
+            .sig-line {{
+                border-bottom: 1px solid #0A1633;
+                margin: 16px 0 8px;
+            }}
+            .sig-label {{ font-size: 11px; color: #6F7482; }}
+            .sig-name {{ font-size: 12px; font-weight: bold; }}
+            .contract-clauses-list {{ padding-right: 20px; }}
+            .contract-clauses-list li {{ margin-bottom: 6px; }}
+            .pdf-footer {{
+                margin-top: 40px;
+                border-top: 1px solid #E7E3DA;
+                padding-top: 12px;
+                text-align: center;
+                font-size: 10px;
+                color: #9AA1AE;
+            }}
+            .hash-box {{
+                background: #F8F7F4;
+                border: 1px solid #E7E3DA;
+                border-radius: 6px;
+                padding: 10px;
+                font-size: 9px;
+                color: #6F7482;
+                word-break: break-all;
+                font-family: monospace;
+                margin-top: 16px;
+            }}
+        </style>
+    </head>
+    <body>
+        <!-- Header -->
+        <div class="pdf-header">
+            <img src="{logo_url}" class="pdf-logo" alt="ميثاق">
+            <div class="pdf-meta">
+                <p>رقم العقد: {contract.id}</p>
+                <p>تاريخ الإنشاء: {contract.created_at.strftime('%Y/%m/%d')}</p>
+                <p>الحالة: {contract.get_status_display()}</p>
+            </div>
+        </div>
+
+        <!-- Contract HTML -->
+        {contract_html}
+
+        <!-- Blockchain Hash -->
+        {'<div class="hash-box">توثيق البلوكشين: ' + contract.canonical_hash + '</div>' if contract.canonical_hash else ''}
+
+        <!-- Footer -->
+        <div class="pdf-footer">
+            <p>تم إنشاء هذا المستند بواسطة منصة ميثاق — جميع الحقوق محفوظة</p>
+            <p>هذا العقد موثق رقمياً ومحمي بتقنية البلوكشين</p>
+        </div>
+    </body>
+    </html>
+    """
+
+    # Convert to PDF
+    pdf = WeasyHTML(string=full_html, base_url=request.build_absolute_uri()).write_pdf()
+
+    # Return PDF response
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="mithaq-contract-{contract.id}.pdf"'
+    return response

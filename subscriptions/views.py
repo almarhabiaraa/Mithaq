@@ -123,6 +123,47 @@ class UpgradeOptionsView(APIView):
         })
 
 
+class CancelSubscriptionView(APIView):
+    """
+    POST /api/subscriptions/cancel/
+    Cancels the user's current active subscription.
+    Sets status to CANCELLED. Does NOT process a refund — that is handled manually.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        sub = get_user_subscription(request.user)
+
+        if not sub:
+            return Response(
+                {'error': 'لا يوجد اشتراك نشط'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if sub.plan.plan_type == SubscriptionPlan.PlanType.FREE:
+            return Response(
+                {'error': 'لا يمكن إلغاء الباقة المجانية'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if sub.status == 'CANCELLED':
+            return Response(
+                {'error': 'اشتراكك ملغى بالفعل'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        sub.status = 'CANCELLED'
+        sub.save(update_fields=['status', 'updated_at'])
+
+        logger.info(
+            'Subscription cancelled | user=%s plan=%s',
+            request.user.id, sub.plan.name,
+        )
+
+        return Response({'message': 'تم إلغاء اشتراكك بنجاح'})
+
+
 # ── HTML Template Views ───────────────────────────────────────────────────────
 
 def plans_page(request):
@@ -207,7 +248,6 @@ def subscription_dashboard_page(request):
     })
 
 
-@login_required(login_url='accounts:sign_in')
 def payment_success_page(request):
     """
     GET /api/subscriptions/payment/success/
@@ -218,15 +258,19 @@ def payment_success_page(request):
      recent PAID PaymentRecord so the success page can display plan name,
      amount paid, renewal date, and reference number)
     """
-    sub = get_user_subscription(request.user)
+    sub = None
+    payment = None
 
     # (added by ghadi: get the most recent paid record for the reference number display)
-    payment = (
-        PaymentRecord.objects
-        .filter(user=request.user, status=PaymentRecord.Status.PAID)
-        .order_by('-created_at')
-        .first()
-    )
+    if request.user.is_authenticated:
+        sub = get_user_subscription(request.user)
+        payment = (
+            PaymentRecord.objects
+            .filter(user=request.user, status=PaymentRecord.Status.PAID)
+            .order_by('-created_at')
+            .first()
+        )
+
 
     return render(request, 'subscriptions/payment_success.html', {
         'subscription': sub,      # freshly activated UserSubscription

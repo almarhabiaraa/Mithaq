@@ -26,14 +26,11 @@
 #   Sessions work here because SessionAuthentication is in DRF settings.
 #
 # FUTURE WORK (Ghadi):
-#   - Add a PaymentHistoryView: GET /api/payments/history/ → list user's PaymentRecords
 #   - Handle refunds when Moyasar sends REFUNDED status
-#   - Add webhook endpoint if Moyasar supports server-side webhooks
 # =============================================================================
 
 import logging
 
-from django.conf import settings
 from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -54,7 +51,6 @@ METHOD_MAP = {
     'stcpay':   'stcpay',
     'applepay': 'applepay',
 }
-
 
 class CheckoutView(APIView):
     """POST /api/payments/checkout/<plan_id>/ — initiate a Moyasar payment session."""
@@ -83,23 +79,52 @@ class CheckoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        payment_method = METHOD_MAP.get(
-            request.data.get('payment_method', 'card'),
-            'creditcard',   # default if frontend sends an unexpected value
-        )
+        card_data = {
+            'name':   request.data.get('card_name'),
+            'number': request.data.get('card_number'),
+            'month':  request.data.get('card_month'),
+            'year':   request.data.get('card_year'),
+            'cvc':    request.data.get('card_cvc'),
+        }
+
+        if not all(card_data.values()):
+            return Response(
+                {'error': 'يرجى إدخال جميع بيانات البطاقة'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
-            payment_url = initiate_payment(request.user, plan, payment_method)
+            result = initiate_payment(request.user, plan, card_data)
         except MoyasarError as exc:
-            logger.error('Moyasar error during checkout | user=%s plan=%s error=%s',
-                         request.user.id, plan_id, exc)
+            logger.error(
+                'Moyasar error | user=%s plan=%s error=%s',
+                request.user.id, plan_id, exc,
+            )
             return Response(
                 {'error': 'خدمة الدفع غير متاحة حالياً، يرجى المحاولة لاحقاً'},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        return Response({'payment_url': payment_url})
+        moyasar_status = result.get('status')
+        data = result.get('data', {})
+        transaction_url = data.get('source', {}).get('transaction_url')
 
+        if transaction_url:
+            return Response({
+                'status': moyasar_status,
+                'transaction_url': transaction_url,
+            })
+
+        if moyasar_status == 'paid':
+            return Response({
+                'status': 'paid',
+                'redirect_url': '/subscriptions/payment/success/',
+            })
+
+        return Response({
+            'status': moyasar_status,
+            'redirect_url': '/subscriptions/payment/failed/',
+        })
 
 class PaymentCallbackView(APIView):
     """
@@ -180,63 +205,6 @@ class PaymentHistoryView(APIView):
             for r in records
         ]
         return Response(data)
-
-
-class WebhookView(APIView):
-    """
-    POST /api/payments/webhook/
-    Server-to-server notification from Moyasar (fires independently of the
-    browser callback). Moyasar includes a secret_token in the request body
-    that must match MOYASAR_WEBHOOK_SECRET in settings.
-
-    This reuses handle_callback() so all the same idempotency and amount-
-    integrity checks apply. Configure the webhook URL in your Moyasar dashboard:
-        https://dashboard.moyasar.com → Settings → Webhooks
-        URL: https://yourdomain.com/api/payments/webhook/
-    """
-
-    # Auth is done by verifying the secret_token in the body, not by JWT/session
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        # Step 1: verify the webhook secret — reject anything that doesn't match
-        incoming_secret = request.data.get('secret_token', '')
-        expected_secret = settings.MOYASAR_WEBHOOK_SECRET
-
-        if not expected_secret:
-            logger.error('MOYASAR_WEBHOOK_SECRET is not configured — rejecting webhook')
-            return Response({'error': 'webhook not configured'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-
-        if not incoming_secret or incoming_secret != expected_secret:
-            logger.warning(
-                'Webhook rejected: invalid secret_token | ip=%s',
-                request.META.get('REMOTE_ADDR'),
-            )
-            return Response({'error': 'unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Step 2: extract the Moyasar payment ID from the webhook body
-        moyasar_payment_id = request.data.get('id')
-        if not moyasar_payment_id:
-            logger.warning('Webhook received with no payment ID in body')
-            return Response({'error': 'missing payment id'}, status=status.HTTP_400_BAD_REQUEST)
-
-        logger.info('Webhook received | payment_id=%s', moyasar_payment_id)
-
-        # Step 3: process — same as the browser callback
-        # handle_callback() re-fetches from Moyasar, verifies amount, updates DB
-        try:
-            result = handle_callback(moyasar_payment_id)
-            logger.info('Webhook processed | payment_id=%s result=%s', moyasar_payment_id, result)
-        except ValueError as exc:
-            # PaymentRecord not found — Moyasar fired a webhook for an unknown payment
-            logger.error('Webhook: PaymentRecord not found | payment_id=%s error=%s', moyasar_payment_id, exc)
-            return Response({'error': str(exc)}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as exc:
-            logger.error('Webhook processing error | payment_id=%s error=%s', moyasar_payment_id, exc)
-            return Response({'error': 'processing failed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        # Return 200 so Moyasar stops retrying
-        return Response({'status': result})
 
 
 # ── Legacy result page URLs ───────────────────────────────────────────────────
