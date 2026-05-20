@@ -1,211 +1,22 @@
 import json
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect, render, redirect
 from django.views.decorators.http import require_POST
-from contracts.models import Contract
+from contracts.models import Contract, ContractVersion, ContractModificationRequest
 from .models import SigningInvitation
 from .services import SigningInvitationService
 import hashlib
 from django.utils import timezone
-from django.views.decorators.http import require_POST
-
 from signatures.models import Signature
+
+
+
 
 
 def _as_bool(value):
     return value in [True, "true", "True", "1", 1, "on"]
-
-
-@login_required
-def create_signing_invitation(request, contract_id):
-    contract = get_object_or_404(
-        Contract,
-        id=contract_id,
-        creator=request.user
-    )
-
-    if request.method == "POST":
-        parties_payload = request.POST.get("parties_payload", "[]")
-
-        try:
-            parties = json.loads(parties_payload)
-        except json.JSONDecodeError:
-            parties = []
-
-        if not parties:
-            messages.error(request, "يجب إضافة طرف واحد على الأقل قبل المتابعة")
-            return redirect("invitations:create_signing_invitation", contract_id=contract.id)
-
-        invitation_secrets = {}
-        last_invitation = None
-
-        for index, party in enumerate(parties, start=1):
-            signer_full_name = party.get("full_name", "").strip()
-            signer_mobile = party.get("mobile", "").strip()
-            signer_email = party.get("email", "").strip()
-
-            party_type = party.get("party_type", SigningInvitation.PartyType.INDIVIDUAL)
-            contract_role = party.get("contract_role", SigningInvitation.ContractRole.SECOND_PARTY)
-            signing_role = party.get("signing_role", SigningInvitation.SigningRole.SIGNER)
-
-            signer_national_id = party.get("national_id", "").strip()
-            signer_nationality = party.get("nationality", "").strip()
-
-            organization_name = party.get("organization_name", "").strip()
-            commercial_registration = party.get("commercial_registration", "").strip()
-            tax_number = party.get("tax_number", "").strip()
-
-            invitation_message = party.get("invitation_message", "").strip()
-
-            if not signer_full_name or not signer_mobile:
-                messages.error(request, "اسم الطرف ورقم الجوال مطلوبان لكل طرف")
-                return redirect("invitations:create_signing_invitation", contract_id=contract.id)
-
-            if not signer_email:
-                messages.error(request, "البريد الإلكتروني مطلوب لإرسال طلب التوقيع")
-                return redirect("invitations:create_signing_invitation", contract_id=contract.id)
-
-            if SigningInvitation.objects.filter(
-                contract=contract,
-                signer_mobile=signer_mobile
-            ).exists():
-                messages.error(request, f"رقم الجوال {signer_mobile} مضاف مسبقًا لهذا العقد")
-                return redirect("invitations:create_signing_invitation", contract_id=contract.id)
-
-            if party_type == SigningInvitation.PartyType.INDIVIDUAL and not signer_national_id:
-                messages.error(request, "رقم الهوية مطلوب إذا كان الطرف فردًا")
-                return redirect("invitations:create_signing_invitation", contract_id=contract.id)
-
-            if party_type == SigningInvitation.PartyType.ORGANIZATION:
-                if not organization_name or not commercial_registration:
-                    messages.error(request, "اسم المنشأة ورقم السجل التجاري مطلوبان إذا كان الطرف منشأة")
-                    return redirect("invitations:create_signing_invitation", contract_id=contract.id)
-
-            invitation, secret = SigningInvitation.create_invitation(
-                contract=contract,
-                invited_by=request.user,
-                signer_full_name=signer_full_name,
-                signer_mobile=signer_mobile,
-                signer_email=signer_email,
-                party_type=party_type,
-                contract_role=contract_role,
-                signing_role=signing_role,
-                signer_national_id=signer_national_id,
-                signer_nationality=signer_nationality,
-                organization_name=organization_name,
-                commercial_registration=commercial_registration,
-                tax_number=tax_number,
-                can_view_contract=_as_bool(party.get("can_view_contract", True)),
-                can_comment=_as_bool(party.get("can_comment", False)),
-                can_edit=_as_bool(party.get("can_edit", False)),
-                can_upload_files=_as_bool(party.get("can_upload_files", False)),
-                can_sign=_as_bool(party.get("can_sign", True)),
-                signing_order=int(party.get("signing_order") or index),
-                invitation_message=invitation_message,
-            )
-
-            invitation_secrets[str(invitation.id)] = secret
-            last_invitation = invitation
-
-        request.session["invitation_secrets"] = invitation_secrets
-
-        messages.success(request, "تم حفظ أطراف العقد بنجاح")
-        return redirect(
-            "invitations:review_signing_invitation",
-            invitation_id=last_invitation.id
-        )
-
-    return render(request, "invitations/create_signing_invitation.html", {
-        "contract": contract,
-        "party_types": SigningInvitation.PartyType.choices,
-        "contract_roles": SigningInvitation.ContractRole.choices,
-        "signing_roles": SigningInvitation.SigningRole.choices,
-    })
-
-
-@login_required
-def review_signing_invitation(request, invitation_id):
-    invitation = get_object_or_404(
-        SigningInvitation,
-        id=invitation_id,
-        invited_by=request.user
-    )
-
-    contract = invitation.contract
-
-    invitations_queryset = SigningInvitation.objects.filter(
-        contract=contract,
-        invited_by=request.user
-    ).order_by("signing_order", "created_at")
-
-    unique_invitations = []
-    seen_mobiles = set()
-
-    for item in invitations_queryset:
-        if item.signer_mobile not in seen_mobiles:
-            unique_invitations.append(item)
-            seen_mobiles.add(item.signer_mobile)
-
-    if request.method == "POST":
-        sent_count = 0
-        failed_count = 0
-        missing_secret_count = 0
-
-        invitation_secrets = request.session.get("invitation_secrets", {})
-
-        for item in unique_invitations:
-            if item.status in [
-                SigningInvitation.Status.PENDING,
-                SigningInvitation.Status.FAILED,
-            ]:
-                secret = invitation_secrets.get(str(item.id))
-
-                if not secret:
-                    item.mark_as_failed("رابط الدعوة غير متوفر. يرجى إعادة إنشاء الدعوة")
-                    missing_secret_count += 1
-                    failed_count += 1
-                    continue
-
-                SigningInvitationService.send_existing_invitation(item, secret)
-                item.refresh_from_db()
-
-                if item.status == SigningInvitation.Status.SENT:
-                    sent_count += 1
-                elif item.status == SigningInvitation.Status.FAILED:
-                    failed_count += 1
-
-        if sent_count and not failed_count:
-            messages.success(request, "تم إرسال طلبات التوقيع عبر البريد الإلكتروني بنجاح")
-        elif sent_count and failed_count:
-            messages.warning(
-                request,
-                f"تم إرسال {sent_count} دعوة، وتعذر إرسال {failed_count} دعوة"
-            )
-        elif missing_secret_count:
-            messages.error(
-                request,
-                "رابط الدعوة غير متوفر لهذه الدعوات. احذفي الدعوات القديمة أو أعيدي إنشاء أطراف العقد ثم أرسليها من جديد"
-            )
-        else:
-            messages.error(
-                request,
-                "تعذر إرسال طلبات التوقيع. تأكدي من البريد الإلكتروني أو أعيدي إنشاء الدعوة"
-            )
-
-        return redirect(
-            "invitations:review_signing_invitation",
-            invitation_id=invitation.id
-        )
-
-    return render(request, "invitations/review_signing_invitation.html", {
-        "invitation": invitation,
-        "invitations": unique_invitations,
-        "contract": contract,
-    })
-
 
 @login_required
 def access_invitation(request, secret):
@@ -310,16 +121,55 @@ def invitation_contract_detail(request, invitation_id):
     )
 
     contract = invitation.contract
+    selected_version_id = request.GET.get("version")
 
-    is_owner = contract.creator == request.user
-    is_invited_user = invitation.invitee_user == request.user
+    contract_versions = contract.versions.all().order_by("version_number")
 
-    if not is_owner and not is_invited_user:
-        messages.error(request, "ليس لديك صلاحية للوصول إلى هذا العقد")
-        return redirect("invitations:my_contracts")
+    selected_version = None
+    version_data = None
 
-    contract_invitations = SigningInvitation.objects.filter(
-        contract=contract
+    if selected_version_id:
+        selected_version = get_object_or_404(
+            ContractVersion,
+            id=selected_version_id,
+            contract=contract
+        )
+        version_data = selected_version.canonical_json
+
+    base_clauses = []
+    if contract.current_version:
+        base_clauses = contract.current_version.clauses.all().order_by("order_index")
+        selected_version_id = request.GET.get("version")
+
+        contract_versions = contract.versions.all().order_by("version_number")
+
+        if selected_version_id:
+            selected_version = get_object_or_404(
+                ContractVersion,
+                id=selected_version_id,
+                contract=contract
+            )
+        elif contract.current_version:
+            selected_version = contract.current_version
+        else:
+            selected_version = contract_versions.last()
+
+        version_data = selected_version.canonical_json if selected_version else {}
+
+        pending_modification = ContractModificationRequest.objects.filter(
+            contract=contract,
+            status=ContractModificationRequest.Status.PENDING
+        ).select_related("proposed_version").first()
+
+        is_owner = contract.creator == request.user
+        is_invited_user = invitation.invitee_user == request.user
+
+        if not is_owner and not is_invited_user:
+            messages.error(request, "ليس لديك صلاحية للوصول إلى هذا العقد")
+            return redirect("invitations:my_contracts")
+
+        contract_invitations = SigningInvitation.objects.filter(
+            contract=contract
     ).select_related(
         "invited_by",
         "invitee_user",
@@ -373,26 +223,39 @@ def invitation_contract_detail(request, invitation_id):
     role_label = "منشئ العقد" if is_owner else invitation.get_contract_role_display()
     direction_label = "صادر" if is_owner else "وارد"
 
-    can_create_new_version = False
-    contract_versions = []
+    can_create_new_version = True
 
-    return render(request, "invitations/invitation_contract_detail.html", {
-        "contract": contract,
+    if is_owner:
+        template_name = "invitations/sent_contract_detail.html"
+    else:
+        template_name = "invitations/received_contract_detail.html"
+
+    return render(request, template_name, {
         "invitation": invitation,
+        "contract": contract,
         "contract_invitations": contract_invitations,
-        "permissions": permissions,
         "is_owner": is_owner,
-        "is_invited_user": is_invited_user,
+        "permissions": permissions,
         "role_label": role_label,
         "direction_label": direction_label,
-        "total_parties": total_parties,
-        "signed_parties": signed_parties,
         "progress_percentage": progress_percentage,
+        "signed_parties": signed_parties,
+        "total_parties": total_parties,
         "display_contract_status": display_contract_status,
         "display_contract_status_class": display_contract_status_class,
         "can_create_new_version": can_create_new_version,
         "contract_versions": contract_versions,
-    })
+        "has_pending_modification": False,
+        "contract_versions": contract_versions,
+        "selected_version": selected_version,
+        "version_data": version_data,
+        "pending_modification": pending_modification,
+        "has_pending_modification": pending_modification is not None,
+        "contract_versions": contract_versions,
+        "selected_version": selected_version,
+        "version_data": version_data,
+        "base_clauses": base_clauses,
+            })
 
 @login_required
 @require_POST
@@ -511,3 +374,291 @@ def sign_invitation_contract(request, invitation_id):
 
     messages.success(request, "تم توقيع العقد وحفظ بيانات التوقيع بنجاح")
     return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
+
+
+@login_required
+@require_POST
+def cancel_contract(request, invitation_id):
+    invitation = get_object_or_404(
+        SigningInvitation,
+        id=invitation_id,
+        invited_by=request.user
+    )
+
+    contract = invitation.contract
+
+    contract.status = "CANCELLED"
+    contract.save(update_fields=["status", "updated_at"])
+
+    SigningInvitation.objects.filter(contract=contract).update(
+        status=SigningInvitation.Status.CANCELLED,
+        failure_reason="تم إلغاء العقد من قبل المنشئ"
+    )
+
+    messages.success(
+        request,
+        "تم إلغاء العقد بنجاح، وسيظهر للطرف الآخر أن العقد ملغي"
+    )
+
+    return redirect(
+        "invitations:invitation_contract_detail",
+        invitation_id=invitation.id
+    )
+
+@login_required
+@require_POST
+def submit_contract_modification(request, contract_id):
+    contract = get_object_or_404(
+        Contract,
+        id=contract_id,
+        creator=request.user
+    )
+
+    title_ar = request.POST.get("title_ar", "").strip()
+    description_ar = request.POST.get("description_ar", "").strip()
+    content_ar = request.POST.get("content_ar", "").strip()
+    modification_reason = request.POST.get("modification_reason", "").strip()
+    modification_type = request.POST.get("modification_type", "").strip()
+
+    if not title_ar or not content_ar or not modification_reason or not modification_type:
+        messages.error(request, "جميع الحقول المطلوبة يجب تعبئتها.")
+        invitation = contract.signing_invitations.first()
+        return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
+
+    pending_request = ContractModificationRequest.objects.filter(
+        contract=contract,
+        status=ContractModificationRequest.Status.PENDING
+    ).first()
+
+    if pending_request:
+        messages.error(request, "يوجد طلب تعديل سابق بانتظار الموافقة.")
+        invitation = contract.signing_invitations.first()
+        return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
+
+    last_version_number = contract.versions.count() + 1
+
+    proposed_version = ContractVersion.objects.create(
+        contract=contract,
+        version_number=last_version_number,
+        created_by=request.user,
+        canonical_json={
+            "title_ar": title_ar,
+            "description_ar": description_ar,
+            "content_ar": content_ar,
+            "modification_type": modification_type,
+        },
+        change_summary=modification_reason,
+    )
+
+    ContractModificationRequest.objects.create(
+        contract=contract,
+        proposed_version=proposed_version,
+        requested_by=request.user,
+        reason=modification_reason,
+    )
+
+    messages.success(request, "تم إرسال النسخة المعدلة بانتظار موافقة الطرف الآخر.")
+
+    invitation = contract.signing_invitations.first()
+
+    return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
+
+
+@login_required
+@require_POST
+def add_contract_invitation(request, contract_id):
+    contract = get_object_or_404(
+        Contract,
+        id=contract_id,
+        creator=request.user
+    )
+
+    redirect_invitation = contract.signing_invitations.first()
+
+    if not redirect_invitation:
+        messages.error(request, "لا يمكن إضافة دعوة لأن العقد لا يحتوي على دعوات أساسية.")
+        return redirect("invitations:my_contracts")
+
+    signer_full_name = request.POST.get("full_name", "").strip()
+
+    signer_mobile = request.POST.get("mobile", "").strip()
+
+    signer_email = request.POST.get("email", "").strip().lower()
+
+    signer_national_id = request.POST.get("national_id", "").strip()
+
+    if not signer_full_name:
+        messages.error(request, "الاسم الكامل مطلوب.")
+        return redirect(
+            "invitations:invitation_contract_detail",
+            invitation_id=redirect_invitation.id
+        )
+
+    clean_mobile = signer_mobile.replace(" ", "").replace("-", "")
+
+    if not clean_mobile:
+        messages.error(request, "رقم الجوال مطلوب.")
+        return redirect(
+            "invitations:invitation_contract_detail",
+            invitation_id=redirect_invitation.id
+        )
+
+    if not clean_mobile.startswith("+"):
+        messages.error(request, "رقم الجوال يجب أن يبدأ برمز الدولة مثل +966.")
+        return redirect(
+            "invitations:invitation_contract_detail",
+            invitation_id=redirect_invitation.id
+        )
+
+    if not clean_mobile[1:].isdigit() or len(clean_mobile) < 10 or len(clean_mobile) > 15:
+        messages.error(request, "رقم الجوال غير صالح.")
+        return redirect(
+            "invitations:invitation_contract_detail",
+            invitation_id=redirect_invitation.id
+        )
+
+    if not signer_email:
+        messages.error(request, "البريد الإلكتروني مطلوب.")
+        return redirect(
+            "invitations:invitation_contract_detail",
+            invitation_id=redirect_invitation.id
+        )
+
+    if "@" not in signer_email or "." not in signer_email:
+        messages.error(request, "البريد الإلكتروني غير صالح.")
+        return redirect(
+            "invitations:invitation_contract_detail",
+            invitation_id=redirect_invitation.id
+        )
+
+    if signer_national_id:
+        if not signer_national_id.isdigit() or len(signer_national_id) != 10:
+            messages.error(request, "رقم الهوية يجب أن يتكون من 10 أرقام.")
+            return redirect(
+                "invitations:invitation_contract_detail",
+                invitation_id=redirect_invitation.id
+            )
+
+    if request.user.email and signer_email == request.user.email.lower():
+        messages.error(request, "لا يمكنك إرسال دعوة لنفسك.")
+        return redirect(
+            "invitations:invitation_contract_detail",
+            invitation_id=redirect_invitation.id
+        )
+
+    already_exists = SigningInvitation.objects.filter(
+        contract=contract,
+        signer_email__iexact=signer_email
+    ).exists()
+
+    if already_exists:
+        messages.error(request, "تمت إضافة هذا الطرف مسبقًا لهذا العقد.")
+        return redirect(
+            "invitations:invitation_contract_detail",
+            invitation_id=redirect_invitation.id
+        )
+
+    new_invitation, secret = SigningInvitation.create_invitation(
+        contract=contract,
+        invited_by=request.user,
+        signer_full_name=signer_full_name,
+        signer_mobile=clean_mobile,
+        signer_email=signer_email,
+        party_type=request.POST.get("party_type", SigningInvitation.PartyType.INDIVIDUAL),
+        signing_role=request.POST.get("signing_role", SigningInvitation.SigningRole.SIGNER),
+        signer_national_id=signer_national_id,
+        signer_nationality=request.POST.get("signer_nationality", "").strip(),
+        organization_name=request.POST.get("organization_name", "").strip(),
+        commercial_registration=request.POST.get("commercial_registration", "").strip(),
+        tax_number=request.POST.get("tax_number", "").strip(),
+        can_view_contract=bool(request.POST.get("can_view_contract")),
+        can_comment=bool(request.POST.get("can_comment")),
+        can_edit=bool(request.POST.get("can_edit")),
+        can_upload_files=bool(request.POST.get("can_upload_files")),
+        can_sign=bool(request.POST.get("can_sign")),
+        invitation_message=request.POST.get("invitation_message", "").strip(),
+    )
+
+    SigningInvitationService.send_existing_invitation(new_invitation, secret)
+
+    messages.success(request, "تمت إضافة الطرف وإرسال الدعوة إلى بريده الإلكتروني.")
+
+    return redirect(
+        "invitations:invitation_contract_detail",
+        invitation_id=redirect_invitation.id
+    )
+
+@login_required
+@require_POST
+def submit_contract_modification(request, contract_id):
+    contract = get_object_or_404(
+        Contract,
+        id=contract_id,
+        creator=request.user
+    )
+
+    pending_request = ContractModificationRequest.objects.filter(
+        contract=contract,
+        status=ContractModificationRequest.Status.PENDING
+    ).first()
+
+    if pending_request:
+        messages.error(request, "يوجد تعديل مرسل مسبقًا بانتظار موافقة الطرف الآخر.")
+        invitation = contract.signing_invitations.first()
+        return redirect(
+            "invitations:invitation_contract_detail",
+            invitation_id=invitation.id
+        )
+
+    last_version_number = contract.versions.count() + 1
+
+    proposed_version = ContractVersion.objects.create(
+        contract=contract,
+        version_number=last_version_number,
+        created_by=request.user,
+        canonical_json={
+            "title_ar": request.POST.get("title_ar", "").strip(),
+            "description_ar": request.POST.get("description_ar", "").strip(),
+            "content_ar": request.POST.get("content_ar", "").strip(),
+        },
+        change_summary=request.POST.get("modification_reason", "").strip(),
+    )
+
+    ContractModificationRequest.objects.create(
+        contract=contract,
+        proposed_version=proposed_version,
+        requested_by=request.user,
+        reason=request.POST.get("modification_reason", "").strip(),
+    )
+
+    messages.success(request, "تم إرسال النسخة المعدلة بانتظار موافقة الطرف الآخر.")
+
+    invitation = contract.signing_invitations.first()
+
+    return redirect(
+        "invitations:invitation_contract_detail",
+        invitation_id=invitation.id
+    )
+
+@login_required
+@require_POST
+def reject_contract_modification(request, modification_id):
+    modification = get_object_or_404(
+        ContractModificationRequest,
+        id=modification_id,
+        contract__creator=request.user,
+        status=ContractModificationRequest.Status.PENDING
+    )
+
+    modification.status = ContractModificationRequest.Status.REJECTED
+    modification.reviewed_at = timezone.now()
+    modification.save(update_fields=["status", "reviewed_at"])
+
+    messages.success(request, "تم رفض تعديل العقد.")
+
+    invitation = modification.contract.signing_invitations.first()
+
+    return redirect(
+        "invitations:invitation_contract_detail",
+        invitation_id=invitation.id
+    )

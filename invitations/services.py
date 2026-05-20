@@ -24,6 +24,9 @@ class SigningInvitationService:
         base_url = getattr(settings, "SITE_URL", "http://127.0.0.1:8000")
 
         return f"{base_url}{path}"
+    @staticmethod
+    def build_email_subject(invitation):
+        return f"طلب توقيع عقد جديد: {invitation.contract.title_ar}"
     
     @staticmethod
     def build_email_html(invitation, secret):
@@ -170,5 +173,6 @@ class SigningInvitationService:
             return invitation
 
         except Exception as error:
+            print("EMAIL SEND ERROR:",error)
             invitation.mark_as_failed(str(error))
             return invitation

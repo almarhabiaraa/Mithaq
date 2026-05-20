@@ -14,6 +14,8 @@ from pathlib import Path
 from decouple import config
 import os
 
+from decouple import config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,6 +36,9 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
 SITE_URL = config("SITE_URL", default="http://127.0.0.1:8000")
+
+
+SECRET_KEY = config('SECRET_KEY')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -197,3 +202,9 @@ MOYASAR_BASE_URL      = 'https://api.moyasar.com/v1'
 MOYASAR_CALLBACK_URL  = config('MOYASAR_CALLBACK_URL', default='http://localhost:8000/api/payments/callback/')
 # Set this in your Moyasar dashboard under Settings → Webhooks → Secret Token
 MOYASAR_WEBHOOK_SECRET = config('MOYASAR_WEBHOOK_SECRET', default='')
+
+
+
+LOGIN_URL = '/accounts/signin/'
+LOGIN_REDIRECT_URL = '/dashboard/dashboard/'
+LOGOUT_REDIRECT_URL = '/accounts/signin/'

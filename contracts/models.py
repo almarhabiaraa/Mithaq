@@ -157,3 +157,25 @@ class ContractParty(models.Model):
 
    def __str__(self):
        return f"{self.user} — {self.contract.title_ar} ({self.role})"
+   
+
+class ContractModificationRequest(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "بانتظار الموافقة"
+        APPROVED = "APPROVED", "تمت الموافقة"
+        REJECTED = "REJECTED", "مرفوض"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    contract = models.ForeignKey(Contract,on_delete=models.CASCADE,related_name="modification_requests")
+    proposed_version = models.ForeignKey(ContractVersion,on_delete=models.CASCADE,related_name="modification_requests")
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.RESTRICT,related_name="requested_contract_modifications")
+    status = models.CharField(max_length=20,choices=Status.choices,default=Status.PENDING,db_index=True)
+    reason = models.TextField(blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "contract_modification_requests"
+        ordering = ["-created_at"]

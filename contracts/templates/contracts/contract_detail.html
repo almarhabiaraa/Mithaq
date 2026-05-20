@@ -207,11 +207,11 @@
                 {% elif contract.status == 'SIGNED' %}status-signed
                 {% elif contract.status == 'COMPLETED' %}status-completed
                 {% elif contract.status == 'CANCELLED' %}status-cancelled{% endif %}">
-                {% if contract.status == 'DRAFT' %}📝 مسودة
-                {% elif contract.status == 'PENDING_SIGNATURES' %}✍ بانتظار التوقيعات
-                {% elif contract.status == 'SIGNED' %}✅ موقّع
-                {% elif contract.status == 'COMPLETED' %}🏁 مكتمل
-                {% elif contract.status == 'CANCELLED' %}❌ ملغي{% endif %}
+                {% if contract.status == 'DRAFT' %} مسودة
+                {% elif contract.status == 'PENDING_SIGNATURES' %} بانتظار التوقيعات
+                {% elif contract.status == 'SIGNED' %} موقّع
+                {% elif contract.status == 'COMPLETED' %} مكتمل
+                {% elif contract.status == 'CANCELLED' %} ملغي{% endif %}
             </span>
         </div>
     </div>
@@ -306,7 +306,7 @@
                              style="background:var(--color-success-background);border:1px solid #b7e4c7;
                                     border-radius:var(--radius-sm);padding:0.625rem;text-align:center;
                                     font-size:0.875rem;color:var(--color-success);font-weight:600;">
-                            ✓ وافقت على العقد
+                             وافقت على العقد
                         </div>
 
                     {% else %}
@@ -314,23 +314,23 @@
                         {% if user_party.approval_status == 'PENDING' %}
                         <button class="btn btn-primary action-btn"
                                 onclick="approveContract()">
-                            ✓ موافقة على العقد
+                             موافقة على العقد
                         </button>
                         <button class="btn btn-outline action-btn"
                                 onclick="openEditClauseFromParty()"
                                 style="color:var(--color-text-secondary);">
-                            ✏ اقتراح تعديل على بند
+                             اقتراح تعديل على بند
                         </button>
                         <button class="btn btn-danger action-btn"
                                 onclick="rejectContract()">
-                            ✗ رفض العقد
+                             رفض العقد
                         </button>
                         {% else %}
                         <div class="action-btn"
                              style="background:var(--color-success-background);border:1px solid #b7e4c7;
                                     border-radius:var(--radius-sm);padding:0.625rem;text-align:center;
                                     font-size:0.875rem;color:var(--color-success);font-weight:600;">
-                            ✓ وافقت على العقد
+                             وافقت على العقد
                         </div>
                         {% endif %}
                     {% endif %}
@@ -341,14 +341,14 @@
                     {% if not user_signed %}
                     <button class="btn btn-primary action-btn"
                             onclick="openSignModal()">
-                        ✍ توقيع العقد
+                     توقيع العقد
                     </button>
                     {% else %}
                     <div class="action-btn"
                          style="background:var(--color-success-background);border:1px solid #b7e4c7;
                                 border-radius:var(--radius-sm);padding:0.625rem;text-align:center;
                                 font-size:0.875rem;color:var(--color-success);font-weight:600;">
-                        ✓ وقّعت على العقد
+                         وقّعت على العقد
                     </div>
                     {% endif %}
                 {% endif %}
@@ -358,7 +358,7 @@
                 <button class="btn btn-danger action-btn"
                         style="margin-top:0.5rem;"
                         onclick="cancelContract()">
-                    🗑 حذف العقد
+                     حذف العقد
                 </button>
                 {% endif %}
 
@@ -379,9 +379,9 @@
                     </div>
                     <div>
                         {% if party.approval_status == 'APPROVED' %}
-                        <span style="font-size:0.72rem;color:var(--color-success);font-weight:700;">✓ وافق</span>
+                        <span style="font-size:0.72rem;color:var(--color-success);font-weight:700;"> وافق</span>
                         {% else %}
-                        <span style="font-size:0.72rem;color:var(--color-text-muted);">⏳ بانتظار</span>
+                        <span style="font-size:0.72rem;color:var(--color-text-muted);"> بانتظار</span>
                         {% endif %}
                     </div>
                 </div>
@@ -481,7 +481,7 @@
             <button class="btn btn-outline" style="flex:1;justify-content:center;"
                     onclick="closeModal('sign-modal')">إلغاء</button>
             <button class="btn btn-primary" style="flex:1;justify-content:center;"
-                    onclick="signContract()">✍ توقيع الآن</button>
+                    onclick="signContract()"> توقيع الآن</button>
         </div>
     </div>
 </div>
