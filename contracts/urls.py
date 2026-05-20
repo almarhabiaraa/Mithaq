@@ -5,6 +5,7 @@ from contracts.views import (
     VersionListView, VersionDetailView,
     contract_create_view, contract_detail_view,
     version_history_view, audit_timeline_view,
+    contract_pdf_view,
 )
 from audit.views import AuditTimelineView
 
@@ -16,6 +17,7 @@ urlpatterns = [
     path('<uuid:pk>/detail/', contract_detail_view, name="contract_detail"),
     path('<uuid:pk>/versions/history/', version_history_view, name="contract_version_history"),
     path('<uuid:pk>/audit/timeline/', audit_timeline_view, name="contract_audit_timeline"),
+    path('<uuid:pk>/pdf/', contract_pdf_view, name='contract_pdf'),  # added by Remas
 
     # ── API URLs ───────────────────────────────
     path('',ContractListCreateView.as_view(),name='contract-list_create'),
