@@ -1,0 +1,543 @@
+/* ========================================
+   Home Page — Mithaq (Enhanced Luxury & Shadows)
+   ======================================== */
+
+/* ── Hero ── */
+.hero-section {
+    /* تدرج أنعم يدمج بين خلفية الموقع واللون الأبيض النقي */
+    background: linear-gradient(to bottom, var(--color-background) 60%, #FFFFFF 100%);
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 100px 24px 88px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    background-image: 
+        linear-gradient(to bottom, rgba(245, 242, 235, 0.85) 0%, rgba(238, 233, 222, 0.60) 50%, rgba(230, 224, 212, 0.80) 100%),
+        url('../images/background_image.jpeg');
+        
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    
+    z-index: 1;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(244, 240, 232, 0.3);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.hero-section > div,
+.hero-tag,
+.hero-title,
+.hero-subtitle {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-section > div {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-surface);
+    color: var(--color-secondary);
+    border: 1px solid rgba(185, 150, 85, 0.3); /* حافة ناعمة شبه شفافة للفخامة */
+    border-radius: 100px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    padding: 8px 20px;
+    margin-bottom: 32px;
+    letter-spacing: 0.8px;
+    /* ظلال مخصصة ناعمة تعطي تأثير طفو بسيط الخفة */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.hero-title {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--color-primary);
+    line-height: 1.25;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+}
+
+.hero-title span {
+    color: var(--color-secondary);
+    /* لمعان ذهبي خفيف جداً على الكلمة المميزة */
+    text-shadow: 0 2px 10px rgba(185, 150, 85, 0.15);
+}
+
+.hero-subtitle {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-secondary);
+    line-height: 1.9;
+    max-width: 540px;
+    margin: 0 auto 44px;
+}
+
+.hero-btns {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 60px;
+}
+
+/* الأزرار الأساسية (الذهبي الفخم) */
+.btn-primary-gold {
+    background: var(--color-secondary);
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: var(--font-size-base);
+    padding: 14px 36px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    letter-spacing: 0.2px;
+    /* ظل ذهبي عميق وناعم لمنح الزر وزناً بصرياً فخماً */
+    box-shadow: 0 4px 14px rgba(185, 150, 85, 0.3);
+    transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.btn-primary-gold:hover {
+    background: #a07d3f; /* درجة ذهبي أعمق */
+    transform: translateY(-2px);
+    /* تمدد الظل عند التحويم لمنح إيحاء الارتفاع */
+    box-shadow: 0 8px 22px rgba(185, 150, 85, 0.45);
+}
+.btn-primary-gold:active { transform: scale(0.98); }
+
+.btn-outline-dark {
+    background: transparent;
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: var(--font-size-base);
+    padding: 14px 36px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--color-primary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.btn-outline-dark:hover {
+    background: var(--color-primary);
+    color: var(--color-surface);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(6, 29, 59, 0.15);
+}
+
+/* ── Trust Badges (Constant Gold Glow) ── */
+.trust-badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 22px 40px;
+}
+
+.trust-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: default;
+}
+
+.trust-badge-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--color-surface);
+    border: 1.5px solid rgba(185, 150, 85, 0.4);
+    
+    box-shadow: 0 0 20px rgba(185, 150, 85, 0.35), 
+                0 6px 14px rgba(185, 150, 85, 0.2);
+                
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.trust-badge:hover .trust-badge-icon {
+    background: var(--color-secondary);
+    border-color: var(--color-secondary);
+    transform: translateY(-5px);
+    
+    box-shadow: 0 0 28px rgba(185, 150, 85, 0.6), 
+                0 12px 24px rgba(185, 150, 85, 0.35);
+}
+
+.trust-badge-icon svg {
+    stroke: var(--color-secondary);
+    transition: stroke 0.25s ease;
+}
+
+.trust-badge:hover .trust-badge-icon svg {
+    stroke: var(--color-surface);
+}
+
+.trust-badge span {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    transition: color 0.25s ease;
+}
+
+.trust-badge:hover span {
+    color: var(--color-text-primary);
+}
+
+.trust-sep {
+    width: 1px;
+    height: 44px;
+    background: var(--color-border);
+    opacity: 0.6;
+}
+
+/* ── Sections ── */
+.home-section {
+    padding: 96px 24px;
+}
+
+/* تحسين تدرجات الخلفية لتتحرك بسلاسة دون تباين حاد يزعج العين */
+.home-section-white {
+    background: linear-gradient(to bottom, #FFFFFF 0%, #F8FAFC 100%);
+}
+
+.home-section-steps {
+    background: linear-gradient(to bottom, #F8FAFC 0%, #F1F5F9 100%);
+}
+
+.home-section-features {
+    background: linear-gradient(to bottom, #F1F5F9 0%, #E2E8F0 100%);
+}
+
+.section-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--color-secondary);
+    background: var(--color-secondary-light);
+    border: 1px solid rgba(185, 150, 85, 0.2);
+    border-radius: 100px;
+    padding: 6px 18px;
+    letter-spacing: 1px;
+    text-align: center;
+    width: fit-content;
+    margin: 0 auto 16px;
+}
+
+.section-title {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-align: center;
+    margin-bottom: 12px;
+    line-height: 1.35;
+    letter-spacing: -0.3px;
+}
+
+.section-sub {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto 48px;
+    line-height: 1.8;
+}
+
+.section-container {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+/* ── Problem Cards ── */
+.problems-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px; /* توسيع الفراغ قليلاً ليعطي شعوراً بالمساحة والراحة البصرية */
+}
+
+.problem-card {
+    background: var(--color-surface);
+    border: 1px solid rgba(0, 0, 0, 0.04); /* حافة ناعمة جداً للحفاظ على النقاء */
+    border-radius: var(--radius-md);
+    padding: 28px;
+    /* ظل ناعم للغاية وطبيعي مأخوذ من أساليب التصميم الحديثة */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02), 0 2px 6px rgba(0, 0, 0, 0.02);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+    cursor: default;
+}
+
+.problem-card:hover {
+    border-color: rgba(180, 35, 24, 0.3); /* حافة الخطر أصبحت أنعم عند التحويم */
+    transform: translateY(-5px);
+    /* تعميق الظل عند التحويم لمنح الكرت بعداً حركياً مميزاً */
+    box-shadow: 0 12px 28px rgba(180, 35, 24, 0.06), 0 4px 10px rgba(0, 0, 0, 0.03);
+}
+
+.problem-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--color-danger-background);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(180, 35, 24, 0.1);
+}
+
+.problem-card:hover .problem-icon {
+    background: #FFF0F0;
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(180, 35, 24, 0.18);
+}
+
+.problem-icon svg { stroke: var(--color-danger); }
+
+.problem-card h3 {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 10px;
+}
+
+.problem-card p {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+}
+
+/* ── Steps ── */
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 40px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.step-num {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px; /* زوايا دائرية أنعم وأقرب للمظهر العصري المستقبلي */
+    background: var(--color-primary);
+    border: 1.5px solid var(--color-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-secondary);
+    margin-bottom: 20px;
+    /* ظل داكن فخم يعطي عمقاً فائقاً للرقم البارز */
+    box-shadow: 0 6px 18px rgba(6, 29, 59, 0.18);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+}
+
+.step:hover .step-num {
+    transform: translateY(-5px) scale(1.04);
+    box-shadow: 0 10px 24px rgba(6, 29, 59, 0.28), 0 4px 12px rgba(185, 150, 85, 0.2);
+}
+
+.step h3 {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 10px;
+}
+
+.step p {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+}
+
+/* ── Features ── */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+}
+
+.feature-card {
+    background: var(--color-surface);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.015), 0 2px 6px rgba(0, 0, 0, 0.015);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.feature-card:hover {
+    border-color: rgba(185, 150, 85, 0.4); /* تظهر حافة ذهبية رقيقة جداً عند التحويم */
+    box-shadow: 0 12px 30px rgba(6, 29, 59, 0.04), 0 4px 12px rgba(185, 150, 85, 0.04);
+    transform: translateY(-4px);
+}
+
+.feature-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--color-primary);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(6, 29, 59, 0.15);
+    transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.feature-card:hover .feature-icon {
+    background: var(--color-secondary);
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(185, 150, 85, 0.3);
+}
+
+.feature-icon svg {
+    stroke: var(--color-secondary);
+    transition: stroke 0.2s ease;
+}
+
+.feature-card:hover .feature-icon svg {
+    stroke: var(--color-primary);
+}
+
+.feature-card h3 {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 6px;
+}
+
+.feature-card p {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+}
+
+/* ── CTA ── */
+.cta-section {
+    /* تدرج عميق ومميز ينقل المستخدم بسلاسة إلى خلفية كحلي داكن فاخر وفخم */
+    background: linear-gradient(to bottom, #E2E8F0 0%, var(--color-primary) 100%);
+    padding: 100px 24px;
+    text-align: center;
+}
+
+.cta-section h2 {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-surface);
+    margin-bottom: 14px;
+    letter-spacing: -0.3px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.cta-section p {
+    font-size: var(--font-size-base);
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0 auto 36px;
+    max-width: 460px;
+    line-height: 1.8;
+}
+
+.cta-note {
+    font-size: var(--font-size-xs);
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 24px;
+}
+
+.btn-cta-dark {
+    background: var(--color-secondary);
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: var(--font-size-base);
+    padding: 16px 44px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    width: fit-content;
+    margin: 0 auto;
+    letter-spacing: 0.2px;
+    box-shadow: 0 4px 16px rgba(185, 150, 85, 0.35);
+    transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.btn-cta-dark:hover {
+    background: #a07d3f;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(185, 150, 85, 0.5);
+}
+.btn-cta-dark:active { transform: scale(0.98); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 80px 20px 64px;
+        min-height: auto;
+    }
+    .hero-title { font-size: var(--font-size-2xl); }
+    .hero-btns { flex-direction: column; align-items: center; width: 100%; }
+    .hero-btns .btn-primary-gold, 
+    .hero-btns .btn-outline-dark { width: 100%; justify-content: center; } /* تحسين الأزرار على شاشات الجوال */
+    
+    .trust-badges { padding: 16px 20px; gap: 20px; }
+    .trust-sep { display: none; }
+    .home-section { padding: 64px 20px; }
+    .section-title { font-size: var(--font-size-lg); }
+    .steps-grid { gap: 28px; }
+    .problems-grid, .features-grid { gap: 16px; }
+}
