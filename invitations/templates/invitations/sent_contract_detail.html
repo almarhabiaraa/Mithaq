@@ -199,8 +199,8 @@
             <article class="detail-card actions-card">
                 <div class="actions-group">
                     <h2>إجراءات عامة</h2>
-                    <a href="#" class="action-btn navy">تصدير PDF</a>
-                    <a href="#" class="action-btn navy">طباعة العقد</a>
+                    <a href="/api/contracts/{{ contract.id }}/pdf/" class="action-btn navy">تصدير PDF</a>
+                    <a href="#" class="action-btn navy" onclick="window.print(); return false;">طباعة العقد</a>
                 </div>
             </article>
 
