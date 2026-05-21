@@ -10,6 +10,19 @@ from subscriptions.services.subscription_service import assign_free_plan, get_us
 from .models import User
 from invitations.models import SigningInvitation
 from contracts.models import ContractParty
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import (
+    urlsafe_base64_encode,
+    urlsafe_base64_decode,
+)
+
 
 
 def sign_up(request: HttpRequest):
@@ -258,3 +271,133 @@ def confirm_verification(request):
             'success': False,
             'message': 'تم التحقق من هويتك مسبقاً',
         })
+    
+
+
+
+
+User = get_user_model()
+
+
+def forgot_password(request):
+    if request.method == "POST":
+        email = request.POST.get("email", "").strip()
+
+        if not email:
+            messages.error(
+                request,
+                "يرجى إدخال البريد الإلكتروني."
+            )
+            return redirect("accounts:forgot_password")
+
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            uid = urlsafe_base64_encode(
+                force_bytes(user.pk)
+            )
+
+            token = default_token_generator.make_token(user)
+
+            reset_link = request.build_absolute_uri(
+                reverse(
+                    "accounts:reset_password",
+                    kwargs={
+                        "uidb64": uid,
+                        "token": token
+                    }
+                )
+            )
+
+            subject = "إعادة تعيين كلمة المرور - ميثاق"
+
+            message = f"""
+مرحبًا {user.full_name or user.email},
+
+تم استلام طلب لإعادة تعيين كلمة المرور الخاصة بحسابك في منصة ميثاق.
+
+اضغط على الرابط التالي لتعيين كلمة مرور جديدة:
+
+{reset_link}
+
+إذا لم تطلب ذلك يمكنك تجاهل هذه الرسالة.
+"""
+
+            send_mail(
+                subject,
+                message,
+                None,
+                [user.email],
+                fail_silently=False,
+            )
+
+        messages.success(
+            request,
+            "إذا كان البريد الإلكتروني مسجلًا لدينا فسيتم إرسال رابط إعادة تعيين كلمة المرور."
+        )
+
+        return redirect("accounts:forgot_password")
+
+    return render(
+        request,
+        "accounts/forgot_password.html"
+    )
+
+
+def reset_password(request, uidb64, token):
+    try:
+        uid = force_str(
+            urlsafe_base64_decode(uidb64)
+        )
+
+        user = User.objects.get(pk=uid)
+
+    except Exception:
+        user = None
+
+    if not user or not default_token_generator.check_token(user, token):
+        messages.error(
+            request,
+            "رابط إعادة تعيين كلمة المرور غير صالح أو منتهي."
+        )
+
+        return redirect("accounts:forgot_password")
+
+    if request.method == "POST":
+        password = request.POST.get("password", "").strip()
+        confirm_password = request.POST.get(
+            "confirm_password",
+            ""
+        ).strip()
+
+        if len(password) < 8:
+            messages.error(
+                request,
+                "كلمة المرور يجب أن تكون 8 أحرف على الأقل."
+            )
+
+            return redirect(request.path)
+
+        if password != confirm_password:
+            messages.error(
+                request,
+                "كلمتا المرور غير متطابقتين."
+            )
+
+            return redirect(request.path)
+
+        user.password = make_password(password)
+
+        user.save(update_fields=["password"])
+
+        messages.success(
+            request,
+            "تم تعيين كلمة المرور الجديدة بنجاح."
+        )
+
+        return redirect("accounts:sign_in")
+
+    return render(
+        request,
+        "accounts/reset_password.html"
+    )

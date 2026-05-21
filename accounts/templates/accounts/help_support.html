@@ -1,146 +1,140 @@
-{% extends "core/dashboard_base.html" %}
+{% extends 'core/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}ميثاق — المساعدة والدعم{% endblock %}
+{% block title %}
+  ميثاق — المساعدة والدعم
+{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/accountscss.css' %}">
+  <link rel="stylesheet" href="{% static 'css/accountscss.css' %}" />
 {% endblock %}
 
 {% block content %}
-<section class="mithaq-dashboard" dir="rtl">
-
+  <section class="mithaq-dashboard" dir="rtl">
     <!-- Page Header -->
     <div class="profile-header">
-        <h1 class="profile-header-title">المساعدة والدعم</h1>
-        <p class="profile-header-subtitle">الأسئلة الشائعة وطرق التواصل مع الدعم</p>
+      <h1 class="profile-header-title">المساعدة والدعم</h1>
+      <p class="profile-header-subtitle">الأسئلة الشائعة وطرق التواصل مع الدعم</p>
     </div>
 
     <!-- FAQ Card -->
     <div class="profile-card" style="margin-bottom: 16px;">
-        <div class="profile-card-header">
-            <h3 class="profile-card-title">
-                <i class="bi bi-question-circle" style="color: var(--color-secondary);"></i>
-                الأسئلة الشائعة
-            </h3>
+      <div class="profile-card-header">
+        <h3 class="profile-card-title">
+          <i class="bi bi-question-circle" style="color: var(--color-secondary);"></i>
+          الأسئلة الشائعة
+        </h3>
+      </div>
+
+      <div class="faq-list">
+        <!-- Q1 -->
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>من هم المستفيدون من الموقع؟</span>
+            <i class="bi bi-chevron-down faq-icon"></i>
+          </div>
+          <div class="faq-answer">
+            <p>ميثاق مخصص للمستقلين والشركات الصغيرة والأفراد الذين يحتاجون إلى توثيق عقودهم رقمياً بشكل آمن وموثوق في السوق السعودي. سواء كنت مصمماً، مطوراً، مستشاراً، أو صاحب مشروع — ميثاق يساعدك في توثيق اتفاقياتك مع عملائك.</p>
+          </div>
         </div>
 
-        <div class="faq-list">
-
-            <!-- Q1 -->
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question">
-                    <span>من هم المستفيدون من الموقع؟</span>
-                    <i class="bi bi-chevron-down faq-icon"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>ميثاق مخصص للمستقلين والشركات الصغيرة والأفراد الذين يحتاجون إلى توثيق عقودهم رقمياً بشكل آمن
-                        وموثوق في السوق السعودي. سواء كنت مصمماً، مطوراً، مستشاراً، أو صاحب مشروع — ميثاق يساعدك في
-                        توثيق اتفاقياتك مع عملائك.</p>
-                </div>
-            </div>
-
-            <!-- Q2 -->
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question">
-                    <span>كيف يمكن استخدام الموقع؟</span>
-                    <i class="bi bi-chevron-down faq-icon"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>
-                        1. أنشئ حسابك على المنصة.<br>
-                        2. أنشئ عقداً جديداً وأضف بنوده.<br>
-                        3. أرسل العقد للطرف الآخر عبر رابط الدعوة.<br>
-                        4. يراجع الطرف الآخر العقد ويوافق عليه.<br>
-                        5. يوقع الطرفان رقمياً ويُحفظ العقد على البلوكشين.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Q3 -->
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question">
-                    <span>كيف أشترك بالباقات؟</span>
-                    <i class="bi bi-chevron-down faq-icon"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>بعد تسجيل الدخول، اذهب إلى صفحة الاشتراكات من القائمة الجانبية واختر الباقة المناسبة لك وأكمل
-                        عملية الدفع عبر بوابة مويسر الآمنة.</p>
-                </div>
-            </div>
-
-            <!-- Q4 -->
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question">
-                    <span>كم عقد في كل باقة؟</span>
-                    <i class="bi bi-chevron-down faq-icon"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>
-                        <strong>الباقة المجانية:</strong> عقد واحد تجريبي مع التوقيع الرقمي الموثوق.<br><br>
-                        <strong>الباقة الأساسية — 29 ر.س/شهرياً:</strong><br>
-                        عقد واحد، تقارير أساسية، دعم فني عبر البريد الإلكتروني، توقيع رقمي موثوق.<br><br>
-                        <strong>الباقة الاحترافية — 99 ر.س/شهرياً:</strong><br>
-                        10 عقود، تقارير وتحليلات متقدمة، دعم فني مميز، تخزين سحابي 50 جيجابايت، تكامل مع الأنظمة
-                        الخارجية.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Q5 -->
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question">
-                    <span>ماذا سأستفيد من الموقع؟</span>
-                    <i class="bi bi-chevron-down faq-icon"></i>
-                </div>
-                <div class="faq-answer">
-                    <p>
-                        توثيق العقود رقمياً بشكل قانوني وآمن.<br>
-                        حفظ العقود على البلوكشين لضمان عدم التلاعب.<br>
-                        توقيع رقمي موثوق من الطرفين.<br>
-                        إشعارات فورية عند كل تحديث على العقد.<br>
-                        حماية حقوقك في حال النزاع.
-                    </p>
-                </div>
-            </div>
-
+        <!-- Q2 -->
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>كيف يمكن استخدام الموقع؟</span>
+            <i class="bi bi-chevron-down faq-icon"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              1. أنشئ حسابك على المنصة.<br />
+              2. أنشئ عقداً جديداً وأضف بنوده.<br />
+              3. أرسل العقد للطرف الآخر عبر رابط الدعوة.<br />
+              4. يراجع الطرف الآخر العقد ويوافق عليه.<br />
+              5. يوقع الطرفان رقمياً ويُحفظ العقد على البلوكشين.
+            </p>
+          </div>
         </div>
+
+        <!-- Q3 -->
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>كيف أشترك بالباقات؟</span>
+            <i class="bi bi-chevron-down faq-icon"></i>
+          </div>
+          <div class="faq-answer">
+            <p>بعد تسجيل الدخول، اذهب إلى صفحة الاشتراكات من القائمة الجانبية واختر الباقة المناسبة لك وأكمل عملية الدفع عبر بوابة مويسر الآمنة.</p>
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>كم عقد في كل باقة؟</span>
+            <i class="bi bi-chevron-down faq-icon"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              <strong>الباقة المجانية:</strong> عقد واحد تجريبي مع التوقيع الرقمي الموثوق.<br /><br />
+              <strong>الباقة الأساسية — 29 ر.س/شهرياً:</strong><br />
+              عقد واحد، تقارير أساسية، دعم فني عبر البريد الإلكتروني، توقيع رقمي موثوق.<br /><br />
+              <strong>الباقة الاحترافية — 99 ر.س/شهرياً:</strong><br />
+              10 عقود، تقارير وتحليلات متقدمة، دعم فني مميز، تخزين سحابي 50 جيجابايت، تكامل مع الأنظمة الخارجية.
+            </p>
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>ماذا سأستفيد من الموقع؟</span>
+            <i class="bi bi-chevron-down faq-icon"></i>
+          </div>
+          <div class="faq-answer">
+            <p>
+              توثيق العقود رقمياً بشكل قانوني وآمن.<br />
+              حفظ العقود على البلوكشين لضمان عدم التلاعب.<br />
+              توقيع رقمي موثوق من الطرفين.<br />
+              إشعارات فورية عند كل تحديث على العقد.<br />
+              حماية حقوقك في حال النزاع.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Contact Card -->
     <div class="profile-card" style="margin-bottom: 16px;">
-        <div class="profile-card-header">
-            <h3 class="profile-card-title">
-                <i class="bi bi-headset" style="color: var(--color-secondary);"></i>
-                تواصل مع الدعم
-            </h3>
-        </div>
+      <div class="profile-card-header">
+        <h3 class="profile-card-title">
+          <i class="bi bi-headset" style="color: var(--color-secondary);"></i>
+          تواصل مع الدعم
+        </h3>
+      </div>
 
-        <div class="help-contact-list">
-            <a href="mailto:support@mithaq.sa" class="help-contact-item">
-                <div class="help-contact-icon">
-                    <i class="bi bi-envelope"></i>
-                </div>
-                <div>
-                    <h4>البريد الإلكتروني</h4>
-                    <p>support@mithaq.sa</p>
-                </div>
-                <i class="bi bi-chevron-left" style="margin-right: auto; color: var(--color-text-muted);"></i>
-            </a>
-        </div>
+      <div class="help-contact-list">
+        <a href="mailto:support@mithaq.sa" class="help-contact-item">
+          <div class="help-contact-icon">
+            <i class="bi bi-envelope"></i>
+          </div>
+          <div>
+            <h4>البريد الإلكتروني</h4>
+            <p>support@mithaq.sa</p>
+          </div>
+          <i class="bi bi-chevron-left" style="margin-right: auto; color: var(--color-text-muted);"></i>
+        </a>
+      </div>
     </div>
 
     <!-- Back -->
     <div style="margin-top: 8px;">
-        <a href="{% url 'accounts:settings' %}" class="profile-edit-btn">
-            <i class="bi bi-arrow-right"></i>
-            العودة للإعدادات
-        </a>
+      <a href="{% url 'accounts:settings' %}" class="profile-edit-btn">
+        <i class="bi bi-arrow-right"></i>
+        العودة للإعدادات
+      </a>
     </div>
-
-</section>
+  </section>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/help_support.js' %}"></script>
+  <script src="{% static 'js/help_support.js' %}"></script>
 {% endblock %}

@@ -1,21 +1,28 @@
 :root {
-    --mithaq-brown-dark: #2b160b;
-    --mithaq-brown: #7a431d;
-    --mithaq-brown-light: #b87945;
-    --mithaq-cream: #f8f3ec;
-    --mithaq-soft: #fffaf5;
-    --mithaq-border: #eadccc;
-    --mithaq-text: #24150d;
-    --mithaq-muted: #7b6b60;
-    --mithaq-success: #2f8f5b;
-    --mithaq-warning: #c77b19;
-    --mithaq-danger: #d64545;
+    --navy: #061D3B;
+    --navy-2: #0A2A55;
+    --navy-23: #B99655;
+    --navy-2-soft: #F7F0E3;
+    --bg: #F8F7F4;
+    --card: #FFFFFF;
+    --border: #E7E3DA;
+    --border-strong: #D8D2C7;
+    --text: #0A1633;
+    --muted: #6F7482;
+    --muted-2: #9AA1AE;
+    --success: #2F8F55;
+    --success-bg: #EAF7EF;
+    --danger: #B42318;
+    --danger-bg: #FEECEC;
+    --blue-soft: #EEF4FF;
+    --shadow: 0 10px 30px rgba(6, 29, 59, 0.05);
+    --radius: 18px;
 }
 
 .mithaq-dashboard {
     padding: 28px;
     min-height: 100vh;
-    color: var(--mithaq-text);
+    color: var(--text);
 }
 
 .mithaq-dashboard-header {
@@ -27,20 +34,20 @@
 }
 
 .mithaq-page-label {
-    color: var(--mithaq-brown);
+    color: var(--navy-2);
     font-size: 14px;
     font-weight: 800;
 }
 
 .mithaq-dashboard-header h1 {
     margin: 8px 0;
-    color: var(--mithaq-brown-dark);
+    color: var(--navy);
     font-size: 30px;
 }
 
 .mithaq-dashboard-header p {
     margin: 0;
-    color: var(--mithaq-muted);
+    color: var(--muted);
 }
 
 .mithaq-dashboard-actions {
@@ -58,14 +65,14 @@
 }
 
 .mithaq-btn-primary {
-    background: linear-gradient(135deg, var(--mithaq-brown), var(--mithaq-brown-light));
+    background: linear-gradient(135deg, var(--navy-2), var(--navylight));
     color: #fff;
 }
 
 .mithaq-btn-secondary {
-    border: 1px solid var(--mithaq-brown-light);
+    border: 1px solid var(--navylight);
     background: rgba(255, 255, 255, 0.8);
-    color: var(--mithaq-brown);
+    color: var(--navy-2);
 }
 
 .mithaq-stats-grid {
@@ -78,10 +85,10 @@
 .mithaq-stat-card,
 .mithaq-dashboard-card,
 .mithaq-contracts-section {
-    background: rgba(255, 255, 255, 0.88);
-    border: 1px solid var(--mithaq-border);
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 12px;
-    box-shadow: 0 12px 32px rgba(43, 22, 11, 0.08);
+    box-shadow: var(--shadow);
 }
 
 .mithaq-stat-card {
@@ -97,11 +104,11 @@
     bottom: 0;
     width: 100%;
     height: 4px;
-    background: var(--mithaq-brown);
+    background: var(--navy-2);
 }
 
 .mithaq-stat-success::after {
-    background: var(--mithaq-success);
+    background: var(--success);
 }
 
 .mithaq-stat-warning::after {
@@ -109,23 +116,23 @@
 }
 
 .mithaq-stat-danger::after {
-    background: var(--mithaq-danger);
+    background: var(--danger);
 }
 
 .mithaq-stat-card span {
-    color: var(--mithaq-muted);
+    color: var(--muted);
     font-size: 14px;
 }
 
 .mithaq-stat-card h2 {
     margin: 10px 0;
-    color: var(--mithaq-brown-dark);
+    color: var(--navy);
     font-size: 34px;
 }
 
 .mithaq-stat-card p {
     margin: 0;
-    color: var(--mithaq-muted);
+    color: var(--muted);
     font-size: 13px;
 }
 
@@ -149,7 +156,7 @@
 
 .mithaq-card-title h3 {
     margin: 0 0 18px;
-    color: var(--mithaq-brown-dark);
+    color: var(--navy);
     font-size: 18px;
 }
 
@@ -163,19 +170,19 @@
 .mithaq-subscription-info span {
     display: block;
     margin-bottom: 6px;
-    color: var(--mithaq-muted);
+    color: var(--muted);
     font-size: 13px;
 }
 
 .mithaq-subscription-info strong {
-    color: var(--mithaq-brown-dark);
+    color: var(--navy);
 }
 
 .mithaq-progress-head {
     display: flex;
     justify-content: space-between;
     margin-bottom: 8px;
-    color: var(--mithaq-muted);
+    color: var(--muted);
     font-size: 13px;
 }
 
@@ -191,7 +198,7 @@
     width: 0;
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(135deg, var(--mithaq-brown), var(--mithaq-brown-light));
+    background: linear-gradient(135deg, var(--navy-2), var(--navylight));
     transition: width 0.6s ease;
 }
 
@@ -206,8 +213,8 @@
     justify-content: space-between;
     padding: 12px;
     border-radius: 8px;
-    background: var(--mithaq-cream);
-    color: var(--mithaq-brown-dark);}
+    background: var(--navy-2-soft);
+    color: var(--navy);}
 
 .mithaq-quick-actions {
     display: grid;
@@ -217,10 +224,10 @@
 
 .mithaq-quick-actions a {
     padding: 14px;
-    border: 1px solid var(--mithaq-border);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: var(--mithaq-cream);
-    color: var(--mithaq-brown);
+    background: var(--navy-2-soft);
+    color: var(--navy-2);
     text-align: center;
     text-decoration: none;
     font-weight: 800;
@@ -235,19 +242,19 @@
 .mithaq-mini-stats div {
     padding: 16px;
     border-radius: 10px;
-    background: var(--mithaq-cream);
+    background: var(--navy-2-soft);
     text-align: center;
 }
 
 .mithaq-mini-stats span {
     display: block;
     margin-bottom: 8px;
-    color: var(--mithaq-muted);
+    color: var(--muted);
     font-size: 13px;
 }
 
 .mithaq-mini-stats strong {
-    color: var(--mithaq-brown-dark);
+    color: var(--navy);
     font-size: 22px;
 }
 
@@ -264,7 +271,7 @@
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: conic-gradient(var(--mithaq-brown) 0deg, #eadccc 0deg);
+    background: conic-gradient(var(--navy-2) 0deg, #eadccc 0deg);
 }
 
 .mithaq-circle-progress span {
@@ -274,7 +281,7 @@
     place-items: center;
     border-radius: 50%;
     background: #fff;
-    color: var(--mithaq-brown-dark);
+    color: var(--navy);
     font-size: 24px;
     font-weight: 900;
 }
@@ -290,7 +297,7 @@
     display: flex;
     justify-content: space-between;
     gap: 10px;
-    color: var(--mithaq-muted);
+    color: var(--muted);
 }
 
 .mithaq-dot {
@@ -302,7 +309,7 @@
 }
 
 .mithaq-dot-success {
-    background: var(--mithaq-success);
+    background: var(--success);
 }
 
 .mithaq-dot-warning {
@@ -327,7 +334,7 @@
 
 .mithaq-section-top h3 {
     margin: 0;
-    color: var(--mithaq-brown-dark);
+    color: var(--navy);
 }
 
 .mithaq-filters-form {
@@ -339,10 +346,10 @@
 .mithaq-filters-form input,
 .mithaq-filters-form select {
     padding: 10px 12px;
-    border: 1px solid var(--mithaq-border);
+    border: 1px solid var(--border);
     border-radius: 8px;
     background: #fff;
-    color: var(--mithaq-text);
+    color: var(--text);
 }
 
 .mithaq-filters-form button,
@@ -350,7 +357,7 @@
     padding: 10px 16px;
     border: none;
     border-radius: 8px;
-    background: var(--mithaq-brown);
+    background: var(--navy-2);
     color: #fff;
     text-decoration: none;
     cursor: pointer;
@@ -359,7 +366,7 @@
 
 .mithaq-reset-btn {
     background: #eee0d3;
-    color: var(--mithaq-brown);
+    color: var(--navy-2);
 }
 
 .mithaq-table-wrapper {
@@ -375,36 +382,36 @@
 .mithaq-contracts-table th,
 .mithaq-contracts-table td {
     padding: 15px 12px;
-    border-bottom: 1px solid var(--mithaq-border);
+    border-bottom: 1px solid var(--border);
     text-align: left;
     vertical-align: middle;
 }
 
 .mithaq-contracts-table th {
-    color: var(--mithaq-muted);
+    color: var(--muted);
     font-size: 13px;
 }
 
 .mithaq-contracts-table td strong {
     display: block;
-    color: var(--mithaq-brown-dark);
+    color: var(--navy);
 }
 
 .mithaq-contracts-table td small {
-    color: var(--mithaq-muted);
+    color: var(--muted);
 }
 
 .mithaq-status-badge,
 .mithaq-type-badge {
     padding: 6px 10px;
     border-radius: 999px;
-    background: var(--mithaq-cream);
+    background: var(--navy-2-soft);
     font-size: 12px;
     font-weight: 800;
 }
 
 .mithaq-status-completed {
-    color: var(--mithaq-success);
+    color: var(--success);
     background: #e8f7ef;
 }
 
@@ -415,12 +422,12 @@
 }
 
 .mithaq-status-pending_signature {
-    color: var(--mithaq-brown);
+    color: var(--navy-2);
     background: #f5e6d8;
 }
 
 .mithaq-status-rejected {
-    color: var(--mithaq-danger);
+    color: var(--danger);
     background: #fde8e8;
 }
 
@@ -440,10 +447,10 @@
 
 .mithaq-table-btn {
     padding: 8px 12px;
-    border: 1px solid var(--mithaq-border);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: var(--mithaq-cream);
-    color: var(--mithaq-brown);
+    background: var(--navy-2-soft);
+    color: var(--navy-2);
     text-decoration: none;
     font-weight: 800;
 }
@@ -451,7 +458,7 @@
 .mithaq-empty-table,
 .mithaq-empty-text {
     padding: 24px;
-    color: var(--mithaq-muted);
+    color: var(--muted);
     text-align: center;
 }
 

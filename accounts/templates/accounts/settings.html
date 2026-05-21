@@ -1,110 +1,101 @@
-{% extends "core/dashboard_base.html" %}
+<!--  
+Settings page for the Mithaq platform.
+
+Allows users to manage account preferences, profile information,
+security settings, notification options...
+ -->
+
+{% extends 'core/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}ميثاق — الإعدادات{% endblock %}
+{% block title %}
+  ميثاق — الإعدادات
+{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/accountscss.css' %}">
+  <link rel="stylesheet" href="{% static 'css/accountscss.css' %}" />
 {% endblock %}
 
 {% block content %}
-<section class="mithaq-dashboard" dir="rtl">
-    
-
-    <!-- Page Header -->
+  <section class="mithaq-dashboard" dir="rtl">
     <div class="profile-header">
-        <h1 class="profile-header-title">الإعدادات</h1>
-        <p class="profile-header-subtitle">إدارة تفضيلاتك وحسابك الشخصي وإعدادات النظام</p>
+      <h1 class="profile-header-title">الإعدادات</h1>
+      <p class="profile-header-subtitle">إدارة تفضيلاتك وحسابك الشخصي وإعدادات النظام</p>
     </div>
 
-    <!-- Settings List -->
     <div class="settings-list">
+      <a href="{% url 'accounts:profile' %}" class="settings-item">
+        <div class="settings-item-icon">
+          <i class="bi bi-person"></i>
+        </div>
+        <div class="settings-item-content">
+          <h3 class="settings-item-title">الملف الشخصي</h3>
+          <p class="settings-item-desc">إدارة معلوماتك الشخصية وتحديث بياناتك</p>
+        </div>
+        <i class="bi bi-chevron-left settings-item-arrow"></i>
+      </a>
+      <a href="{% url 'accounts:change_password' %}" class="settings-item">
+        <div class="settings-item-icon">
+          <i class="bi bi-shield-check"></i>
+        </div>
+        <div class="settings-item-content">
+          <h3 class="settings-item-title">الأمان وكلمة المرور</h3>
+          <p class="settings-item-desc">تغيير كلمة المرور وإعدادات الأمان والتحقق بخطوتين</p>
+        </div>
+        <i class="bi bi-chevron-left settings-item-arrow"></i>
+      </a>
+      <a href="{% url 'notifications:list' %}" class="settings-item">
+        <div class="settings-item-icon">
+          <i class="bi bi-bell"></i>
+        </div>
+        <div class="settings-item-content">
+          <h3 class="settings-item-title">الإشعارات</h3>
+          <p class="settings-item-desc">إدارة تفضيلات الإشعارات عبر البريد والتطبيق</p>
+        </div>
+        <i class="bi bi-chevron-left settings-item-arrow"></i>
+      </a>
+      <a href="#" class="settings-item">
+        <div class="settings-item-icon">
+          <i class="bi bi-palette"></i>
+        </div>
+        <div class="settings-item-content">
+          <h3 class="settings-item-title">المظهر</h3>
+          <p class="settings-item-desc">تخصيص مظهر التطبيق (الوضع الفاتح / الداكن)</p>
+        </div>
+        <i class="bi bi-chevron-left settings-item-arrow"></i>
+      </a>
 
-        <!-- Profile -->
-        <a href="{% url 'accounts:profile' %}" class="settings-item">
-            <div class="settings-item-icon">
-                <i class="bi bi-person"></i>
-            </div>
-            <div class="settings-item-content">
-                <h3 class="settings-item-title">الملف الشخصي</h3>
-                <p class="settings-item-desc">إدارة معلوماتك الشخصية وتحديث بياناتك</p>
-            </div>
-            <i class="bi bi-chevron-left settings-item-arrow"></i>
-        </a>
+      <a href="{% url 'accounts:privacy' %}" class="settings-item">
+        <div class="settings-item-icon">
+          <i class="bi bi-lock"></i>
+        </div>
+        <div class="settings-item-content">
+          <h3 class="settings-item-title">الخصوصية</h3>
+          <p class="settings-item-desc">إدارة إعدادات الخصوصية وبياناتك</p>
+        </div>
+        <i class="bi bi-chevron-left settings-item-arrow"></i>
+      </a>
+      <a href="{% url 'accounts:help_support' %}" class="settings-item">
+        <div class="settings-item-icon">
+          <i class="bi bi-question-circle"></i>
+        </div>
+        <div class="settings-item-content">
+          <h3 class="settings-item-title">مساعدة والدعم</h3>
+          <p class="settings-item-desc">الأسئلة الشائعة وطرق التواصل مع الدعم</p>
+        </div>
+        <i class="bi bi-chevron-left settings-item-arrow"></i>
+      </a>
 
-        <!-- Security & Password -->
-        <a href="{% url 'accounts:change_password' %}" class="settings-item">
-            <div class="settings-item-icon">
-                <i class="bi bi-shield-check"></i>
-            </div>
-            <div class="settings-item-content">
-                <h3 class="settings-item-title">الأمان وكلمة المرور</h3>
-                <p class="settings-item-desc">تغيير كلمة المرور وإعدادات الأمان والتحقق بخطوتين</p>
-            </div>
-            <i class="bi bi-chevron-left settings-item-arrow"></i>
-        </a>
-
-        <!-- Notifications -->
-        <a href="{% url 'notifications:list' %}" class="settings-item">
-            <div class="settings-item-icon">
-                <i class="bi bi-bell"></i>
-            </div>
-            <div class="settings-item-content">
-                <h3 class="settings-item-title">الإشعارات</h3>
-                <p class="settings-item-desc">إدارة تفضيلات الإشعارات عبر البريد والتطبيق</p>
-            </div>
-            <i class="bi bi-chevron-left settings-item-arrow"></i>
-        </a>
-
-        <!-- Appearance -->
-        <a href="#" class="settings-item">
-            <div class="settings-item-icon">
-                <i class="bi bi-palette"></i>
-            </div>
-            <div class="settings-item-content">
-                <h3 class="settings-item-title">المظهر</h3>
-                <p class="settings-item-desc">تخصيص مظهر التطبيق (الوضع الفاتح / الداكن)</p>
-            </div>
-            <i class="bi bi-chevron-left settings-item-arrow"></i>
-        </a>
-
-        <!-- Privacy -->
-        <a href="{% url 'accounts:privacy' %}" class="settings-item">
-            <div class="settings-item-icon">
-                <i class="bi bi-lock"></i>
-            </div>
-            <div class="settings-item-content">
-                <h3 class="settings-item-title">الخصوصية</h3>
-                <p class="settings-item-desc">إدارة إعدادات الخصوصية وبياناتك</p>
-            </div>
-            <i class="bi bi-chevron-left settings-item-arrow"></i>
-        </a>
-
-        <!-- Help & Support -->
-        <a href="{% url 'accounts:help_support' %}" class="settings-item">
-            <div class="settings-item-icon">
-                <i class="bi bi-question-circle"></i>
-            </div>
-            <div class="settings-item-content">
-                <h3 class="settings-item-title">مساعدة والدعم</h3>
-                <p class="settings-item-desc">الأسئلة الشائعة وطرق التواصل مع الدعم</p>
-            </div>
-            <i class="bi bi-chevron-left settings-item-arrow"></i>
-        </a>
-
-        <!-- Logout -->
-        <a href="{% url 'accounts:log_out' %}" class="settings-item settings-item-danger">
-            <div class="settings-item-icon settings-item-icon-danger">
-                <i class="bi bi-box-arrow-right"></i>
-            </div>
-            <div class="settings-item-content">
-                <h3 class="settings-item-title settings-item-title-danger">تسجيل الخروج</h3>
-                <p class="settings-item-desc">تسجيل خروج من حسابك الحالي</p>
-            </div>
-            <i class="bi bi-chevron-left settings-item-arrow"></i>
-        </a>
-
+      <a href="{% url 'accounts:log_out' %}" class="settings-item settings-item-danger">
+        <div class="settings-item-icon settings-item-icon-danger">
+          <i class="bi bi-box-arrow-right"></i>
+        </div>
+        <div class="settings-item-content">
+          <h3 class="settings-item-title settings-item-title-danger">تسجيل الخروج</h3>
+          <p class="settings-item-desc">تسجيل خروج من حسابك الحالي</p>
+        </div>
+        <i class="bi bi-chevron-left settings-item-arrow"></i>
+      </a>
     </div>
-
-</section>
+  </section>
 {% endblock %}

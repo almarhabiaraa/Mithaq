@@ -441,12 +441,21 @@ def contract_pdf_view(request, pk):
         <meta charset="UTF-8">
         <style>
             @page {{
-                margin: 50px;
+                margin: 80px 50px 60px 50px;
+                @top-left {{
+                    content: url({logo_url});
+                    vertical-align: middle;
+                }}
+                @bottom-left {{
+                    content: url({logo_url});
+                    vertical-align: middle;
+                }}
                 @bottom-center {{
                     content: "صفحة " counter(page) " من " counter(pages);
                     font-family: Arial, 'Times New Roman', sans-serif;
                     font-size: 9px;
                     color: #555;
+                    vertical-align: middle;
                 }}
             }}
 

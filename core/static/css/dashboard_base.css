@@ -149,7 +149,6 @@ input {
     color: var(--mithaq-text-on-dark-muted);
 }
 
-/* ========== Sidebar Menu ========== */
 .mithaq-menu {
     flex: 1;
     padding: 18px 12px;
@@ -190,7 +189,6 @@ input {
     box-shadow: 0 10px 24px rgba(201, 168, 76, 0.10);
 }
 
-/* ========== Logout ========== */
 .mithaq-sidebar-footer {
     padding: 14px 12px 18px;
     border-top: 1px solid var(--mithaq-border-dark);
@@ -217,7 +215,7 @@ input {
     color: var(--mithaq-white);
 }
 
-/* ========== Page ========== */
+
 .mithaq-page {
     width: 100%;
     min-height: 100vh;
@@ -225,7 +223,6 @@ input {
     background: var(--mithaq-white);
 }
 
-/* ========== Navbar ========== */
 .mithaq-navbar {
     height: var(--mithaq-navbar-height);
     padding: 0 28px;
@@ -281,7 +278,6 @@ input {
     color: var(--mithaq-text-secondary);
 }
 
-/* ========== Navbar Actions ========== */
 .mithaq-navbar-actions {
     display: flex;
     align-items: center;
@@ -324,17 +320,16 @@ input {
     border: 0;
 }
 
-/* ========== Content ========== */
 .mithaq-content {
     padding: 28px;
 }
 
-/* ========== Overlay ========== */
+
 .mithaq-overlay {
     display: none;
 }
 
-/* ========== Responsive 991 ========== */
+/* ========== Responsive  ========== */
 @media (max-width: 991px) {
     .mithaq-sidebar {
         transform: translateX(100%);
@@ -367,7 +362,7 @@ input {
     }
 }
 
-/* ========== Responsive 767 ========== */@media (max-width: 767px) {
+@media (max-width: 767px) {
     :root {
         --mithaq-sidebar-width: 230px;
         --mithaq-navbar-height: 62px;
@@ -386,7 +381,7 @@ input {
     }
 }
 
-/* ========== Responsive 480 ========== */
+
 @media (max-width: 480px) {
     .mithaq-sidebar {
         width: 82%;

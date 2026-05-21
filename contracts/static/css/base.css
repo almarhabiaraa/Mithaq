@@ -1,0 +1,234 @@
+:root {
+    --color-primary: #061D3B;
+    --color-primary-light: #0A2A55;
+    --color-secondary: #B99655;
+    --color-secondary-light: #F7F0E3;
+
+    --color-background: #F8F7F4;
+    --color-surface: #FFFFFF;
+    --color-surface-soft: #FAFAF8;
+
+    --color-border: #E7E3DA;
+    --color-border-strong: #D8D2C7;
+
+    --color-text-primary: #0A1633;
+    --color-text-secondary: #6F7482;
+    --color-text-muted: #9AA1AE;
+
+    --color-success: #2F8F55;
+    --color-success-background: #EAF7EF;
+
+    --color-danger: #B42318;
+    --color-danger-background: #FEECEC;
+
+    --shadow-sm: 0 4px 12px rgba(6,29,59,0.04);
+    --shadow-md: 0 10px 30px rgba(6,29,59,0.08);
+    --shadow-lg: 0 20px 40px rgba(6,29,59,0.12);
+
+    --radius-sm: 10px;
+    --radius-md: 18px;
+    --radius-lg: 28px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+}
+
+/* Nav */
+
+.nav {
+    background: var(--color-primary);
+    padding: 0 2rem;
+    height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    box-shadow: var(--shadow-md);
+
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-logo {
+    color: var(--color-secondary);
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.nav-link {
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: #fff;
+}
+
+.nav-user {
+    color: rgba(255,255,255,0.9);
+    font-size: 0.875rem;
+}
+
+/* Buttons */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 0.5rem 1.25rem;
+
+    border-radius: var(--radius-sm);
+
+    font-size: 0.875rem;
+    font-weight: 600;
+
+    cursor: pointer;
+    border: none;
+
+    text-decoration: none;
+
+    transition: 0.2s;
+}
+
+.btn-primary {
+    background: var(--color-secondary);
+    color: var(--color-primary);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--color-border-strong);
+    color: var(--color-text-secondary);
+}
+
+.logout-btn {
+    color: rgba(255,255,255,0.7);
+    border-color: rgba(255,255,255,0.2);
+}
+
+/* Cards */
+
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+}
+
+/* Badges */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 4px 12px;
+
+    border-radius: 20px;
+
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-draft {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.badge-pending {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.badge-signed {
+    background: var(--color-success-background);
+    color: var(--color-success);
+}
+
+.badge-completed {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.badge-cancelled {
+    background: var(--color-danger-background);
+    color: var(--color-danger);
+}
+
+/* Inputs */
+
+.input {
+    width: 100%;
+
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+
+    padding: 0.625rem 1rem;
+
+    background: var(--color-surface);
+
+    outline: none;
+}
+
+.input:focus {
+    border-color: var(--color-secondary);
+}
+
+.label {
+    display: block;
+
+    font-size: 0.875rem;
+    font-weight: 600;
+
+    margin-bottom: 6px;
+}
+
+/* Layout */
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+.messages-container {
+    padding-bottom: 0;
+}
+
+/* Alerts */
+
+.alert {
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background: var(--color-success-background);
+    color: var(--color-success);
+}
+
+.alert-error {
+    background: var(--color-danger-background);
+    color: var(--color-danger);
+}

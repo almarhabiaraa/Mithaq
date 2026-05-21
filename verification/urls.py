@@ -2,6 +2,8 @@ from django.urls import path
 
 from . import views
 
+app_name = "verification"
+
 urlpatterns = [
     # HTML page — for humans visiting /verify/
     path('', views.VerifyPageView.as_view(), name='verify-page'),

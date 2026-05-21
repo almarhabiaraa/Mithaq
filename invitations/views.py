@@ -124,6 +124,20 @@ def invitation_contract_detail(request, invitation_id):
     selected_version_id = request.GET.get("version")
     contract_versions = contract.versions.all().order_by("version_number")
 
+    is_owner = contract.creator == request.user
+    is_invited_user = invitation.invitee_user == request.user
+
+    if not is_owner and not is_invited_user:
+        messages.error(request, "ليس لديك صلاحية للوصول إلى هذا العقد")
+        return redirect("invitations:my_contracts")
+
+    contract_invitations = SigningInvitation.objects.filter(
+        contract=contract
+    ).select_related(
+        "invited_by",
+        "invitee_user",
+    ).order_by("signing_order", "created_at")
+
     selected_version = None
     version_data = {}
     display_description = contract.description_ar
@@ -225,19 +239,6 @@ def invitation_contract_detail(request, invitation_id):
             status=ContractModificationRequest.Status.SUPERSEDED
         ).select_related("proposed_version").first()
 
-        is_owner = contract.creator == request.user
-        is_invited_user = invitation.invitee_user == request.user
-
-        if not is_owner and not is_invited_user:
-            messages.error(request, "ليس لديك صلاحية للوصول إلى هذا العقد")
-            return redirect("invitations:my_contracts")
-
-        contract_invitations = SigningInvitation.objects.filter(
-            contract=contract
-    ).select_related(
-        "invited_by",
-        "invitee_user",
-    ).order_by("signing_order", "created_at")
 
     total_parties = contract_invitations.count()
 
@@ -647,6 +648,18 @@ def add_contract_invitation(request, contract_id):
             invitation_id=redirect_invitation.id
         )
 
+    mobile_exists = SigningInvitation.objects.filter(
+        contract=contract,
+        signer_mobile=clean_mobile
+    ).exists()
+
+    if mobile_exists:
+        messages.error(request, "رقم الجوال مستخدم بالفعل لطرف آخر في هذا العقد.")
+        return redirect(
+            "invitations:invitation_contract_detail",
+            invitation_id=redirect_invitation.id
+        )
+
     new_invitation, secret = SigningInvitation.create_invitation(
         contract=contract,
         invited_by=request.user,
@@ -668,9 +681,12 @@ def add_contract_invitation(request, contract_id):
         invitation_message=request.POST.get("invitation_message", "").strip(),
     )
 
-    SigningInvitationService.send_existing_invitation(new_invitation, secret)
+    new_invitation = SigningInvitationService.send_existing_invitation(new_invitation, secret)
 
-    messages.success(request, "تمت إضافة الطرف وإرسال الدعوة إلى بريده الإلكتروني.")
+    if new_invitation.status == SigningInvitation.Status.FAILED:
+        messages.warning(request, "تمت إضافة الطرف ولكن فشل إرسال البريد الإلكتروني — تحقق من إعدادات SMTP في وحدة التحكم.")
+    else:
+        messages.success(request, "تمت إضافة الطرف وإرسال الدعوة إلى بريده الإلكتروني.")
 
     return redirect(
         "invitations:invitation_contract_detail",

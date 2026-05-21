@@ -1,6 +1,3 @@
-/* ==========================================================
-   Variables — Mithaq Brand System
-   ========================================================== */
 :root {
     --color-primary: #061D3B;
     --color-primary-light: #0A2A55;
@@ -26,9 +23,6 @@
     --radius-lg: 28px;
 }
 
-/* ==========================================================
-   Shared — accounts pages only
-   ========================================================== */
 .signin-page *,
 .signin-card *,
 .signup-page *,
@@ -49,6 +43,12 @@ a {
     border-radius: var(--radius-sm);
     margin-bottom: 20px;
     font-size: 0.9rem;
+    text-align: right;
+}
+.validation-text {
+    color: #b42318;
+    font-size: 0.85rem;
+    margin-top: 8px;
     text-align: right;
 }
 

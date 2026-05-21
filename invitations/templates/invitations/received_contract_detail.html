@@ -146,10 +146,10 @@ review actions, signing workflow, and contract status updates.
           <div class="contract-alert cancelled">تم رفض طلب التعديل الذي أرسلته. يمكنك مراجعة العقد الأصلي ثم قبول العقد أو إرسال طلب تعديل جديد عند الحاجة.</div>
         {% endif %}
         <article class="detail-card actions-card">
-          <div class="actions-group">
-            <h2>إجراءات عامة</h2>
-            <a href="#" class="action-btn navy">تصدير PDF</a>
-          </div>
+                <div class="actions-group">
+                    <h2>إجراءات عامة</h2>
+                    <a href="{% url 'contracts:contract_pdf' contract.id %}" class="action-btn navy">تصدير PDF</a>
+                </div>
         </article>
 
         <article class="detail-card actions-card">
@@ -270,7 +270,6 @@ review actions, signing workflow, and contract status updates.
       <div class="modal-content contract-modal">
         <div class="modal-header">
           <h5 class="modal-title">رفض العقد</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
         <div class="modal-body">
@@ -296,7 +295,6 @@ review actions, signing workflow, and contract status updates.
       <div class="modal-content contract-modal">
         <div class="modal-header">
           <h5 class="modal-title">توقيع العقد إلكترونيًا</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
         <form method="post" action="{% url 'invitations:sign_invitation_contract' invitation.id %}" onsubmit="return validateSignerName()">
@@ -344,7 +342,6 @@ review actions, signing workflow, and contract status updates.
               <p>سيتم إرسال طلب التعديل لمنشئ العقد لمراجعته واعتماد النسخة الجديدة.</p>
             </div>
 
-            <button type="button" class="edit-modal-close" data-bs-dismiss="modal">×</button>
           </div>
 
           <div class="edit-modal-body">
@@ -447,7 +444,6 @@ review actions, signing workflow, and contract status updates.
       <div class="modal-content contract-modal">
         <div class="modal-header">
           <h5 class="modal-title">قبول تعديل العقد</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
         <div class="modal-body">
