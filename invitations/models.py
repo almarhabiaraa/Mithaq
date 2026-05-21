@@ -19,6 +19,9 @@ class SigningInvitation(models.Model):
         CANCELLED = "CANCELLED", "ملغي"
         FAILED = "FAILED", "فشل الإرسال"
         REJECTED = "REJECTED", "مرفوض"
+        ACCEPTED = "ACCEPTED", "تم القبول"
+        SUPERSEDED = "SUPERSEDED", "تم استبدالها"
+
 
     class PartyType(models.TextChoices):
         INDIVIDUAL = "INDIVIDUAL", "فرد"
@@ -120,6 +123,7 @@ class SigningInvitation(models.Model):
     viewed_at = models.DateTimeField(null=True, blank=True)
     signed_at = models.DateTimeField(null=True, blank=True)
     rejected_at = models.DateTimeField(null=True, blank=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -183,6 +187,11 @@ class SigningInvitation(models.Model):
         self.status = self.Status.VIEWED
         self.viewed_at = timezone.now()
         self.save(update_fields=["status", "viewed_at", "updated_at"])
+    
+    def mark_as_accepted(self):
+        self.status = self.Status.ACCEPTED
+        self.accepted_at = timezone.now()
+        self.save(update_fields=["status", "accepted_at", "updated_at"])
 
     def mark_as_signed(self):
         self.status = self.Status.SIGNED

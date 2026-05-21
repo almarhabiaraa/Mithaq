@@ -19,7 +19,6 @@ def dashboard_view(request):
     status_filter    = request.GET.get('status', '')
     type_filter      = request.GET.get('type', '')
     date_filter      = request.GET.get('date', 'newest')
-
     contracts              = Contract.objects.none()
     total_contracts        = 0
     completed_contracts    = 0
