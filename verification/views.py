@@ -32,7 +32,8 @@ from django.views.generic import TemplateView
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
-
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from .serializers import VerificationResultSerializer
 from .services import verify_contract_hash
 
@@ -57,7 +58,13 @@ class PublicVerifyAPIView(APIView):
         return Response(serializer.data)
 
 
+
+@method_decorator(
+    login_required(login_url='accounts:sign_in'), 
+    name='dispatch'
+)
 class VerifyPageView(TemplateView):
+    template_name = "verification/verify.html"
     """
     GET /verify/
 

@@ -16,31 +16,14 @@
 #       Called inside handle_callback() after Moyasar confirms a payment.
 #       Upgrades the user's plan and resets contracts_used to 0.
 #
-#   contracts/services/contract_workflow.py → check_contract_limit(user)
-#       *** THIS INTEGRATION IS PENDING — see FUTURE WORK below ***
-#       Must be called as the first line of ContractWorkflowService.create_contract()
-#       before any DB write. If the user is over their limit → PermissionDenied (403).
+#   contracts/services/contract_workflow.py → check_contract_limit(user)  ✓ DONE
+#       Called as the first line of ContractWorkflowService.create_contract()
+#       before any DB write. Raises PermissionDenied if the user has no active
+#       subscription or has reached their plan's contract limit.
+#       ContractListCreateView catches PermissionDenied and returns HTTP 403.
 #
 # FUTURE WORK (Ghadi):
-#
-#   [1] Hook check_contract_limit into the contracts workflow.
-#       File:   contracts/services/contract_workflow.py
-#       Class:  ContractWorkflowService
-#       Method: create_contract(creator, data)
-#       → Add these 2 lines right before "# ── 1. Validation ──" (line ~29):
-#
-#           from subscriptions.services.subscription_service import check_contract_limit
-#           check_contract_limit(creator)
-#
-#       Full snippet + explanation: ghadi_works/for_contracts_app/
-#
-#   [2] Ask audit team to add 2 EventTypes to audit/models.py:
-#       SUBSCRIPTION_EXPIRED   = 'SUBSCRIPTION_EXPIRED',   'اشتراك انتهى'
-#       CONTRACT_LIMIT_CHECKED = 'CONTRACT_LIMIT_CHECKED',  'فُحص حد العقود'
-#       Full snippet: ghadi_works/for_audit_app/event_types.py
-#       Until they add these, both functions silently skip the audit write (try/except).
-#
-#   [3] Schedule expire_subscriptions to run nightly:
+#   - Schedule expire_subscriptions to run nightly:
 #       python manage.py expire_subscriptions
 #       Add to server cron or Celery beat later in the project.
 # =============================================================================
@@ -166,25 +149,10 @@ def activate_subscription(user, plan: SubscriptionPlan) -> UserSubscription:
                     else None
                 ),
             )
-    try:
-        from audit.models import AuditEvent
-        AuditEvent.objects.create(
-            actor=user,
-            event_type=AuditEvent.EventType.SUBSCRIPTION_ACTIVATED,
-            payload={
-                'plan': plan.name,
-                'plan_ar': plan.name_ar,
-                'plan_type': plan.plan_type,
-            },
-        )
-    except Exception as exc:
-        logger.warning('AuditEvent write failed for subscription activation: %s', exc)
-
     return sub
 
 
-# ── PENDING INTEGRATION: needs to be wired into contracts/services/contract_workflow.py
-# ── See FUTURE WORK [1] at the top of this file for the exact lines to add ─────
+# ── Called from: contracts/services/contract_workflow.py → create_contract() ───
 def check_contract_limit(user) -> UserSubscription:
     """
     Enforce contract creation limits before allowing a new contract.
@@ -225,19 +193,6 @@ def check_contract_limit(user) -> UserSubscription:
         sub.contracts_used += 1
         sub.save(update_fields=['contracts_used', 'updated_at'])
 
-    try:
-        from audit.models import AuditEvent
-        AuditEvent.objects.create(
-            actor=user,
-            event_type=AuditEvent.EventType.CONTRACT_LIMIT_CHECKED,
-            payload={
-                'contracts_used': sub.contracts_used,
-                'contract_limit': sub.plan.contract_limit,
-            },
-        )
-    except Exception as exc:
-        logger.warning('AuditEvent write failed for contract limit check: %s', exc)
-
     return sub
 
 
@@ -265,19 +220,6 @@ def check_and_expire_subscriptions() -> int:
         sub.status = UserSubscription.Status.EXPIRED
         sub.save(update_fields=['status', 'updated_at'])
         count += 1
-
-        try:
-            from audit.models import AuditEvent
-            AuditEvent.objects.create(
-                actor=sub.user,
-                event_type=AuditEvent.EventType.SUBSCRIPTION_EXPIRED,
-                payload={
-                    'plan': sub.plan.name,
-                    'expired_at': now.isoformat(),
-                },
-            )
-        except Exception as exc:
-            logger.warning('AuditEvent write failed for subscription expiry: %s', exc)
 
     return count
 

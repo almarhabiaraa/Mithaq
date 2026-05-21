@@ -71,38 +71,45 @@ a {
    Auth Navbar (signin/signup pages only — not dashboard)
    ========================================================== */
 .auth-navbar {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 80px;
-    background-color: transparent;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
     display: flex;
     align-items: center;
-    z-index: 10;
+    z-index: 50;
 }
 
 .nav-container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1152px;
     margin: 0 auto;
-    padding: 0 40px;
+    padding: 0 24px;
     display: flex;
-    flex-direction: row-reverse; /* يعكس الترتيب */
+    flex-direction: row-reverse;
     justify-content: space-between;
     align-items: center;
+    gap: 24px;
 }
 
 .signin-back-link {
     display: flex;
     align-items: center;
     gap: 10px;
-    color: var(--color-primary);
-    font-weight: 600;
-    font-size: 0.95rem;
-    padding: 8px 14px;
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    color: var(--color-surface) !important;
+    background: var(--color-primary);
+    padding: 8px 20px;
     border-radius: var(--radius-sm);
-    transition: background-color 0.2s ease, color 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
 }
 
 .signin-back-link i {
@@ -111,12 +118,16 @@ a {
 }
 
 .signin-back-link:hover {
-    background-color: rgba(6, 29, 59, 0.06);
-    color: var(--color-primary);
+    background: var(--color-primary-light);
+    color: var(--color-surface) !important;
 }
 
 .signin-back-link:hover i {
     transform: translateX(4px);
+}
+
+.signin-back-link:active {
+    transform: scale(0.97);
 }
 
 .nav-logo {
@@ -125,7 +136,7 @@ a {
 }
 
 .logo-img {
-    max-height: 52px;
+    height: 52px;
     width: auto;
     display: block;
     transition: transform 0.2s ease;

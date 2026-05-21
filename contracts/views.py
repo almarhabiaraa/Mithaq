@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from django.shortcuts import get_object_or_404, render
+from django.core.exceptions import PermissionDenied  # (added by ghadi: to catch subscription limit errors from check_contract_limit)
 from notifications.services import NotificationService
 from notifications.models import Notification
 from contracts.models import Contract, ContractParty, ContractVersion
@@ -156,11 +157,16 @@ class ContractListCreateView(APIView):
         serializer = ContractCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        with transaction.atomic():
-            contract = ContractWorkflowService.create_contract(
-                creator=user,
-                data=serializer.validated_data,
-            )
+        # (added by ghadi: check_contract_limit() inside create_contract raises
+        #  PermissionDenied if the user has no subscription or hit their plan limit)
+        try:
+            with transaction.atomic():
+                contract = ContractWorkflowService.create_contract(
+                    creator=user,
+                    data=serializer.validated_data,
+                )
+        except PermissionDenied as exc:
+            return Response({'error': str(exc)}, status=status.HTTP_403_FORBIDDEN)
 
         for index, party in enumerate(invite_parties, start=1):
             invited_party = ContractInvitedParty.objects.create(
@@ -417,9 +423,9 @@ def contract_pdf_view(request, pk):
     contract = get_object_or_404(Contract, pk=pk)
 
     # PDF only available after signing
-    if contract.status not in [Contract.Status.SIGNED, Contract.Status.COMPLETED]:
-        from django.http import HttpResponseForbidden
-        return HttpResponseForbidden("العقد لم يكتمل بعد")
+    #if contract.status not in [Contract.Status.SIGNED, Contract.Status.COMPLETED]:
+        #from django.http import HttpResponseForbidden
+       # return HttpResponseForbidden("العقد لم يكتمل بعد")
 
     # Get HTML from canonical_json
     contract_html = contract.current_version.canonical_json.get('contract_html', '')
@@ -434,80 +440,173 @@ def contract_pdf_view(request, pk):
     <head>
         <meta charset="UTF-8">
         <style>
-            body {{
-                font-family: Arial, sans-serif;
-                direction: rtl;
-                color: #0A1633;
-                font-size: 13px;
-                line-height: 1.8;
-                padding: 40px;
+            @page {{
+                margin: 50px;
+                @bottom-center {{
+                    content: "صفحة " counter(page) " من " counter(pages);
+                    font-family: Arial, 'Times New Roman', sans-serif;
+                    font-size: 9px;
+                    color: #555;
+                }}
             }}
+
+            /* Global compact reset — kills large inline margins from contract_html */
+            * {{
+                margin-top: 0 !important;
+                margin-bottom: 6px !important;
+                line-height: 1.7;
+            }}
+
+            body {{
+                font-family: Arial, 'Times New Roman', sans-serif;
+                direction: rtl;
+                color: #000;
+                font-size: 13px;
+                line-height: 1.7;
+                margin: 0;
+                padding: 0;
+                background: #fff;
+            }}
+
+            p {{ margin: 4px 0 !important; }}
+            h1, h2, h3, h4, h5 {{ margin: 12px 0 4px !important; }}
+            li {{ margin-bottom: 4px !important; }}
+
+            /* ── Header ── */
             .pdf-header {{
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                border-bottom: 2px solid #B99655;
-                padding-bottom: 16px;
-                margin-bottom: 32px;
+                border-bottom: 1px solid #B99655;
+                padding-bottom: 14px;
+                margin-bottom: 20px !important;
             }}
-            .pdf-logo {{ height: 48px; }}
+            .pdf-logo {{ height: 44px; }}
             .pdf-meta {{
                 text-align: left;
                 font-size: 11px;
-                color: #6F7482;
+                color: #333;
+                line-height: 1.7;
+            }}
+            .pdf-meta p {{ margin: 2px 0 !important; }}
+
+            /* ── Contract document wrapper ── */
+            .contract-doc {{
+                font-size: 13px;
+                line-height: 1.7;
+            }}
+
+            /* ── Title block ── */
+            .contract-title-block {{
+                display: flex;
+                flex-direction: column;
+                text-align: center;
+                margin-bottom: 14px !important;
+                padding-bottom: 10px;
             }}
             .contract-bismillah {{
-                text-align: center;
-                font-size: 16px;
+                order: 1;
+                font-size: 15px;
                 font-weight: bold;
-                margin: 16px 0;
+                color: #000;
+                margin: 0 0 4px 0 !important;
             }}
+            .contract-title-block h2 {{
+                order: 2;
+                font-size: 17px;
+                font-weight: bold;
+                color: #000;
+                margin: 0 0 4px 0 !important;
+            }}
+            .contract-title-en {{
+                order: 3;
+                font-size: 12px;
+                color: #333;
+                direction: ltr;
+                text-align: center;
+                margin: 2px 0 0 0 !important;
+            }}
+
+            /* ── Preamble ── */
+            .contract-preamble {{
+                padding: 8px 0;
+                margin-bottom: 12px !important;
+                font-size: 13px;
+                line-height: 1.7;
+            }}
+
+            /* ── Articles ── */
             .contract-article {{
-                margin-bottom: 20px;
+                margin-bottom: 12px !important;
+                page-break-inside: avoid;
             }}
             .contract-article h4 {{
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: bold;
-                color: #061D3B;
-                margin-bottom: 8px;
-                border-bottom: 1px solid #E7E3DA;
-                padding-bottom: 4px;
+                color: #000;
+                margin: 12px 0 4px !important;
             }}
+            .contract-article p {{
+                margin: 4px 0 !important;
+            }}
+            .contract-clauses-list {{
+                padding-right: 24px;
+                margin: 4px 0 !important;
+            }}
+            .contract-clauses-list li {{
+                margin-bottom: 4px !important;
+                line-height: 1.7;
+            }}
+
+            /* ── Signatures ── */
             .contract-signatures {{
                 display: flex;
-                gap: 40px;
-                margin-top: 40px;
-                border-top: 1px solid #E7E3DA;
-                padding-top: 24px;
+                gap: 24px;
+                margin-top: 24px !important;
+                padding-top: 16px;
+                page-break-inside: avoid;
             }}
-            .sig-block {{ flex: 1; text-align: center; }}
+            .sig-block {{
+                flex: 1;
+                text-align: center;
+            }}
             .sig-line {{
-                border-bottom: 1px solid #0A1633;
-                margin: 16px 0 8px;
+                border-bottom: 1px solid #000;
+                margin: 30px 16px 8px !important;
             }}
-            .sig-label {{ font-size: 11px; color: #6F7482; }}
-            .sig-name {{ font-size: 12px; font-weight: bold; }}
-            .contract-clauses-list {{ padding-right: 20px; }}
-            .contract-clauses-list li {{ margin-bottom: 6px; }}
+            .sig-label {{
+                font-size: 11px;
+                color: #333;
+                margin-bottom: 4px !important;
+            }}
+            .sig-name {{
+                font-size: 12px;
+                font-weight: bold;
+                color: #000;
+            }}
+
+            /* ── Hash ── */
+            .hash-box {{
+                padding-top: 8px;
+                font-size: 9px;
+                color: #555;
+                word-break: break-all;
+                font-family: 'Courier New', Courier, monospace;
+                direction: ltr;
+                text-align: left;
+                margin-top: 12px !important;
+            }}
+
+            /* ── Footer ── */
             .pdf-footer {{
-                margin-top: 40px;
-                border-top: 1px solid #E7E3DA;
-                padding-top: 12px;
+                margin-top: 16px !important;
+                border-top: 1px solid #ccc;
+                padding-top: 8px;
                 text-align: center;
                 font-size: 10px;
-                color: #9AA1AE;
+                color: #555;
             }}
-            .hash-box {{
-                background: #F8F7F4;
-                border: 1px solid #E7E3DA;
-                border-radius: 6px;
-                padding: 10px;
-                font-size: 9px;
-                color: #6F7482;
-                word-break: break-all;
-                font-family: monospace;
-                margin-top: 16px;
-            }}
+            .pdf-footer p {{ margin: 2px 0 !important; }}
         </style>
     </head>
     <body>

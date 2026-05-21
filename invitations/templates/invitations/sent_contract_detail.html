@@ -182,15 +182,57 @@ tracking invitations, and monitoring signing progress.
         </div>
       </article>
 
-      <aside class="detail-side">
-        <article class="detail-card actions-card">
-          <div class="actions-group">
-            <h2>إجراءات عامة</h2>
-            <a href="#" class="action-btn navy">تصدير PDF</a>
-          </div>
-        </article>
-        <article class="detail-card summary-card">
-          <h2>ملخص العقد</h2>
+        <aside class="detail-side">
+
+            <article class="detail-card actions-card">
+                <div class="actions-group">
+                    <h2>إجراءات عامة</h2>
+                    <a href="#" class="action-btn navy">تصدير PDF</a>
+                </div>
+            </article>
+
+            <article class="detail-card actions-card">
+                <h2>إدارة العقد</h2>
+                <p>
+                    يمكنك متابعة حالة الأطراف، إرسال دعوة جديدة، أو إدارة التعديلات المقترحة على العقد.
+                </p>
+
+                <div class="actions-group {% if invitation.status == 'CANCELLED' %}disabled-actions{% endif %}">
+                    {% if invitation.status != "CANCELLED" %}
+                        <button
+                            type="button"
+                            class="action-btn gold"
+                            data-bs-toggle="modal"
+                            data-bs-target="#newInvitationModal"
+                        >
+                            إرسال دعوة جديدة
+                        </button>
+                    {% else %}
+                        <span class="action-btn disabled">
+                            إرسال دعوة جديدة
+                        </span>
+                    {% endif %}
+
+                    {% if invitation.status != "CANCELLED" %}
+                        <button
+                            type="button"
+                            class="action-btn danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#cancelContractModal"
+                        >
+                            إلغاء العقد
+                        </button>
+                    {% else %}
+                        <span class="action-btn disabled">
+                            تم إلغاء العقد
+                        </span>
+                    {% endif %}
+
+                </div>
+            </article>
+
+            <article class="detail-card summary-card">
+                <h2>ملخص العقد</h2>
 
           <div class="summary-list">
             <div>

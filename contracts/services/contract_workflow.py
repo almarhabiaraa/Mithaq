@@ -29,6 +29,15 @@ class ContractWorkflowService:
         }
         """
 
+        # ── 0. Subscription gate ──────────────────────────────
+        # (added by ghadi: enforce subscription contract limit before any DB write.
+        #  check_contract_limit() raises PermissionDenied if the user has no active
+        #  subscription, if it has expired, or if they have reached their plan limit.
+        #  It also atomically increments contracts_used on the UserSubscription.
+        #  If it raises, @transaction.atomic rolls everything back — nothing is created.)
+        from subscriptions.services.subscription_service import check_contract_limit
+        check_contract_limit(creator)
+
         # ── 1. Validation ─────────────────────────────────────
         if not data.get('title_ar'):
             raise ValidationError('عنوان العقد مطلوب')

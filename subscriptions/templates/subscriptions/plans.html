@@ -3,93 +3,11 @@
 
 {% block title %}الباقات — ميثاق{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/subscriptions_plans.css' %}">
+{% endblock %}
+
 {% block content %}
-<style>
-  :root {
-    --navy:#1B2A4A; --gold:#C9A84C; --gold-light:#E8C97A;
-    --border:#E5E7EB; --text-dark:#1C1C1C; --text-grey:#6B7280;
-    --success:#16A34A; --success-bg:#DCFCE7;
-    --error:#C0392B; --error-bg:#FEE2E2;
-  }
-
-  /* ── Grid: always 3 columns, equal height ──────────────────────────── */
-  .plans-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    align-items: stretch;     /* all cards stretch to the tallest one */
-  }
-  @media (max-width: 900px) {
-    .plans-grid { grid-template-columns: 1fr; }
-  }
-
-  /* ── Card base ──────────────────────────────────────────────────────── */
-  .plan-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.08);
-    border: 2px solid var(--border);
-    padding: 28px;
-    display: flex;
-    flex-direction: column;
-    transition: box-shadow .2s, border-color .2s;
-  }
-  .plan-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.12); }
-  .plan-card.featured {
-    border-color: var(--gold);
-    box-shadow: 0 4px 16px rgba(201,168,76,.22);
-  }
-
-  /* ── Buttons ──────────────────────────────────────────────────────────*/
-  .btn-navy {
-    background: var(--navy); color: #fff;
-    border-radius: 8px; padding: 12px; width: 100%;
-    font-weight: 700; border: none; cursor: pointer;
-    transition: opacity .15s; font-family: inherit; font-size: 14px;
-    margin-top: auto;   /* push to bottom of card */
-  }
-  .btn-navy:hover:not(:disabled) { opacity: .87; }
-  .btn-navy:disabled { opacity: .5; cursor: not-allowed; }
-  .btn-gold {
-    background: var(--gold); color: var(--navy);
-    border-radius: 8px; padding: 12px; width: 100%;
-    font-weight: 700; border: none; cursor: pointer;
-    transition: opacity .15s; font-family: inherit; font-size: 14px;
-    margin-top: auto;
-  }
-  .btn-gold:hover:not(:disabled) { opacity: .87; }
-  .btn-gold:disabled { opacity: .5; cursor: not-allowed; }
-
-  /* ── Misc ─────────────────────────────────────────────────────────────*/
-  .badge { display:inline-block; font-size:11px; font-weight:700; border-radius:20px; padding:3px 12px; }
-  .badge-gold { background:var(--gold); color:var(--navy); }
-  .badge-grey { background:#E5E7EB; color:var(--text-grey); }
-  .badge-featured { background:var(--navy); color:#fff; margin-bottom:12px; display:inline-block; }
-  .icon-circle { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
-  .icon-grey { background:#F3F4F6; }
-  .icon-gold { background:#FEF3C7; }
-  .feature-item { display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:14px; color:var(--text-dark); }
-  .check-icon { flex-shrink:0; width:18px; height:18px; background:var(--success-bg); border-radius:50%; display:flex; align-items:center; justify-content:center; }
-  .price-num { font-size:36px; font-weight:800; line-height:1; display:inline-block; transition:opacity .2s; }
-  .price-num.fading { opacity:0; }
-  .toggle-wrap { display:flex; align-items:center; gap:14px; justify-content:center; margin:24px 0 32px; }
-  .toggle-label { font-size:15px; font-weight:600; }
-  .toggle-btn {
-    position:relative; width:52px; height:28px; background:var(--navy);
-    border-radius:14px; cursor:pointer; border:none; flex-shrink:0;
-  }
-  .toggle-btn::after {
-    content:''; position:absolute; top:3px; right:3px;
-    width:22px; height:22px; background:#fff; border-radius:50%;
-    transition:transform .2s;
-  }
-  .toggle-btn.yearly::after { transform:translateX(-24px); }
-  .warning-banner {
-    background:#FFFBEB; border:1.5px solid var(--gold-light);
-    border-radius:10px; padding:14px 20px;
-    display:flex; align-items:center; gap:12px; margin-bottom:28px;
-  }
-</style>
 
 <!-- Breadcrumb -->
 <nav style="font-size:13px; color:var(--text-grey); margin-bottom:24px;">
@@ -252,50 +170,15 @@
   </p>
 </div>
 
+{% block extra_js %}
 <script>
-  let isYearly = false;
-
-  // Actual prices from the database — passed from plans_page() view
-  const monthlyPrices = {
+  {# Data bridge: Django template vars cannot live in static .js files #}
+  window.PLAN_PRICES = {
     basic:        parseFloat('{{ plans.basic.price|default:"0" }}'),
     professional: parseFloat('{{ plans.professional.price|default:"0" }}'),
   };
-
-  // Yearly = monthly × 10 (2 months free = ~20% off)
-  function yearlyPrice(monthly) {
-    return (monthly * 10).toFixed(0);
-  }
-
-  function switchBilling() {
-    isYearly = !isYearly;
-    document.getElementById('billing-toggle').classList.toggle('yearly', isYearly);
-    document.getElementById('lbl-monthly').style.color = isYearly ? 'var(--text-grey)' : 'var(--navy)';
-    document.getElementById('lbl-yearly').style.color  = isYearly ? 'var(--navy)'      : 'var(--text-grey)';
-    updatePrices();
-  }
-
-  function updatePrices() {
-    ['basic', 'professional'].forEach(key => {
-      const el     = document.getElementById('price-' + key);
-      const period = document.getElementById('period-' + key);
-      if (!el) return;
-
-      // Fade out → update value → fade in
-      el.classList.add('fading');
-      setTimeout(() => {
-        el.textContent  = isYearly ? yearlyPrice(monthlyPrices[key]) : monthlyPrices[key].toFixed(0);
-        period.textContent = isYearly ? 'سنوياً' : 'شهرياً';
-        el.classList.remove('fading');
-      }, 200);
-    });
-  }
-
-  // Navigate to the checkout page for the selected plan
-  function goToCheckout(planId) {
-    if (planId) {
-      window.location.href = '/api/subscriptions/checkout-page/' + planId + '/';
-    }
-  }
 </script>
+<script src="{% static 'js/subscriptions_plans.js' %}"></script>
+{% endblock %}
 
 {% endblock %}

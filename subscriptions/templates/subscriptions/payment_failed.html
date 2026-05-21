@@ -1,28 +1,11 @@
 {% extends "core/dashboard_base.html" %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/subscriptions_payment.css' %}">
+{% endblock %}
+
 {% block content %}
-<style>
-  :root {
-    --navy:#1B2A4A; --gold:#C9A84C; --gold-light:#E8C97A;
-    --off-white:#F8F7F4; --border:#E5E7EB;
-    --text-dark:#1C1C1C; --text-grey:#6B7280;
-    --error:#C0392B; --error-bg:#FEE2E2;
-  }
-  @keyframes shake {
-    0%, 100% { transform:translateX(0); }
-    20%      { transform:translateX(-8px) rotate(-2deg); }
-    40%      { transform:translateX(8px) rotate(2deg); }
-    60%      { transform:translateX(-5px); }
-    80%      { transform:translateX(5px); }
-  }
-  .error-icon { animation:shake .55s ease-in-out forwards; transform-origin:center; }
-  .btn-gold    { background:var(--gold); color:var(--navy); border-radius:8px; padding:12px 24px; font-weight:800; font-size:15px; border:none; cursor:pointer; transition:opacity .15s; font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
-  .btn-gold:hover { opacity:.88; }
-  .btn-outlined{ background:#fff; border:2px solid var(--navy); color:var(--navy); border-radius:8px; padding:12px 24px; font-weight:800; font-size:15px; cursor:pointer; transition:background .15s; font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
-  .btn-outlined:hover { background:var(--navy); color:#fff; }
-  .reason-item { display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; font-size:14px; color:#7F1D1D; }
-</style>
 
 <div style="display:flex; justify-content:center; padding:20px 0;">
   <div style="width:100%; max-width:560px;">
