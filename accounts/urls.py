@@ -14,5 +14,6 @@ urlpatterns = [
     path("help/", views.help_support, name="help_support"),
     path('verify-identity/', views.verify_identity_page, name='verify_identity'), # (added by ghadi: page that runs face verification in the browser using face-api.js)
     path('verify-identity/confirm/', views.confirm_verification, name='confirm_verification'), # (added by ghadi: API endpoint that the browser calls after successful face verification to mark the user as verified)
-
+    path("forgot-password/",views.forgot_password,name="forgot_password"),
+    path("reset-password/<uidb64>/<token>/", views.reset_password, name="reset_password"),
 ]

@@ -1,3 +1,11 @@
+<!--
+Dashboard page for the Mithaq platform.
+
+Displays an overview of the user's contract activity, including
+contract statistics, pending actions, recent contracts, workflow
+progress, and quick access to the main contract management features.
+-->
+
 {% extends "core/dashboard_base.html" %}
 {% load static %}
 
@@ -8,7 +16,6 @@
 {% block content %}
 <section class="mithaq-dashboard" dir="rtl">
 
-    <!-- Header -->
     <div class="mithaq-dashboard-header">
         <div>
             <span class="mithaq-page-label">التحكم</span>
@@ -16,12 +23,10 @@
             <p>إليك نظرة سريعة على العقود والإجراءات الحالية.</p>
         </div>
         <div class="mithaq-dashboard-actions">
-            <a href="/api/contracts/create/" class="mithaq-btn-primary">+ إنشاء عقد جديد</a>
-            <a href="#" class="mithaq-btn-secondary">دعوة طرف للتوقيع</a>
+            <a href="{% url 'contracts:contract_create' %}" class="mithaq-btn-secondary">+ إنشاء عقد جديد</a>
         </div>
     </div>
 
-    <!-- Stats -->
     <div class="mithaq-stats-grid">
         <div class="mithaq-stat-card">
             <span>إجمالي العقود</span>
@@ -45,10 +50,10 @@
         </div>
     </div>
 
-    <!-- Dashboard Grid -->
+
     <div class="mithaq-dashboard-grid">
 
-        <!-- Subscription Card -->
+   
         <div class="mithaq-dashboard-card mithaq-subscription-card">
             <div class="mithaq-card-title">
                 <h3>الاشتراك الحالي</h3>
@@ -92,7 +97,7 @@
             {% endif %}
         </div>
 
-        <!-- Required Actions -->
+    
         <div class="mithaq-dashboard-card">
             <div class="mithaq-card-title">
                 <h3>الإجراءات المطلوبة</h3>
@@ -117,7 +122,7 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
+  
         <div class="mithaq-dashboard-card">
             <div class="mithaq-card-title">
                 <h3>إجراءات سريعة</h3>
@@ -132,7 +137,7 @@
 
     </div>
 
-    <!-- Secondary Grid -->
+
     <div class="mithaq-secondary-grid">
         <div class="mithaq-dashboard-card">
             <div class="mithaq-card-title">
@@ -184,7 +189,7 @@
         </div>
     </div>
 
-    <!-- Contracts Table -->
+
     <div class="mithaq-contracts-section">
         <div class="mithaq-section-top">
             <h3>جميع العقود</h3>

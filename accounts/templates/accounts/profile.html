@@ -1,190 +1,184 @@
-{% extends "core/dashboard_base.html" %}
+<!-- 
+Profile page for the Mithaq platform.
+
+Displays user profile information, account details,
+activity overview, and personal contract-related data
+within the digital contract management system.
+ -->
+{% extends 'core/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}ميثاق — الملف الشخصي{% endblock %}
+{% block title %}
+  ميثاق — الملف الشخصي
+{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/accountscss.css' %}">
+  <link rel="stylesheet" href="{% static 'css/accountscss.css' %}" />
 {% endblock %}
 
 {% block content %}
-<section class="mithaq-dashboard" dir="rtl">
-
+  <section class="mithaq-dashboard" dir="rtl">
     <!-- Page Header -->
     <div class="profile-header">
-        <h1 class="profile-header-title">الملف الشخصي</h1>
-        <p class="profile-header-subtitle">إدارة معلوماتك الشخصية وتحديث بياناتك</p>
+      <h1 class="profile-header-title">الملف الشخصي</h1>
+      <p class="profile-header-subtitle">إدارة معلوماتك الشخصية وتحديث بياناتك</p>
     </div>
 
     <!-- Profile Card -->
     <div class="profile-card">
+      <form method="POST" enctype="multipart/form-data" action="{% url 'accounts:profile' %}" id="profile-form">
+        {% csrf_token %}
 
-        <form method="POST" enctype="multipart/form-data" action="{% url 'accounts:profile' %}" id="profile-form">
-            {% csrf_token %}
-
-            {% if messages %}
-            {% for message in messages %}
+        {% if messages %}
+          {% for message in messages %}
             <div class="alert {{ message.extra_tags }}">{{ message }}</div>
-            {% endfor %}
+          {% endfor %}
+        {% endif %}
+
+        <!-- Card Header -->
+        <div class="profile-card-header">
+          <h3 class="profile-card-title">معلومات المستخدم</h3>
+          <button type="button" class="profile-edit-btn" id="edit-btn" onclick="enableEdit()">
+            <i class="bi bi-pencil"></i>
+            تعديل
+          </button>
+        </div>
+
+        <!-- Card Body -->
+        <div class="profile-card-body">
+          <!-- Avatar -->
+          <div class="profile-avatar-col">
+            {% if user.avatar %}
+              <img src="{{ user.avatar.url }}" class="profile-avatar-img" id="avatar-preview" />
+            {% else %}
+              <div class="profile-avatar-initials" id="avatar-preview">{{ user.first_name|first }}{{ user.last_name|first }}</div>
+            {% endif %}
+            <label for="avatar-input" class="avatar-camera-btn" id="avatar-label"><i class="bi bi-camera-fill"></i></label>
+            <input type="file" name="avatar" id="avatar-input" accept="image/*" style="display:none;" />
+          </div>
+
+          <!-- Info Rows -->
+          <div class="profile-info-col">
+            <div class="profile-info-row">
+              <div class="profile-info-label">
+                <i class="bi bi-person"></i>
+                <span>الاسم الكامل</span>
+              </div>
+              <!-- عرض فقط -->
+              <input type="text" value="{{ user.full_name }}" class="profile-input" id="full-name-display" readonly />
+              <!-- تعديل -->
+              <div class="profile-info-inputs" id="full-name-edit" style="display:none; gap:4px; flex:1;">
+                <input type="text" name="first_name" value="{{ user.first_name }}" class="profile-input" />
+                <input type="text" name="last_name" value="{{ user.last_name }}" class="profile-input" />
+              </div>
+            </div>
+
+            <div class="profile-info-row">
+              <div class="profile-info-label">
+                <i class="bi bi-envelope"></i>
+                <span>البريد الإلكتروني</span>
+              </div>
+              <input type="text" value="{{ user.email }}" class="profile-input" readonly />
+            </div>
+
+            <div class="profile-info-row">
+              <div class="profile-info-label">
+                <i class="bi bi-phone"></i>
+                <span>رقم الجوال</span>
+              </div>
+              <input type="text" name="mobile" value="{{ user.mobile }}" class="profile-input" disabled />
+            </div>
+
+            <div class="profile-info-row">
+              <div class="profile-info-label">
+                <i class="bi bi-card-text"></i>
+                <span>رقم الهوية</span>
+              </div>
+              <input type="text" value="{{ user.national_id }}" class="profile-input" readonly />
+            </div>
+
+            <div class="profile-info-row">
+              <div class="profile-info-label">
+                <i class="bi bi-calendar"></i>
+                <span>تاريخ الميلاد</span>
+              </div>
+              <input type="date" name="date_of_birth" value="{{ user.date_of_birth|date:'Y-m-d'|default:'' }}" class="profile-input" disabled />
+            </div>
+
+            <div class="profile-info-row">
+              <div class="profile-info-label">
+                <i class="bi bi-calendar-check"></i>
+                <span>تاريخ الانضمام</span>
+              </div>
+              <input type="text" value="{{ user.created_at|date:'Y/m/d' }}" class="profile-input" readonly />
+            </div>
+
+            {% if subscription %}
+              <div class="profile-info-row">
+                <div class="profile-info-label">
+                  <i class="bi bi-gem"></i>
+                  <span>الخطة الحالية</span>
+                </div>
+                <div class="profile-input">
+                  {{ subscription.plan.name_ar }}
+                  <span style="font-size:12px; color:var(--mithaq-muted);">{{ subscription.plan.name }}</span>
+                </div>
+              </div>
+
+              <div class="profile-info-row">
+                <div class="profile-info-label">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>العقود المستخدمة</span>
+                </div>
+                <div class="profile-input">
+                  {{ subscription.contracts_used }} من{% if subscription.plan.contract_limit == -1 %}
+                    غير محدود
+                  {% else %}
+                    {{ subscription.plan.contract_limit }}
+                  {% endif %}عقد
+                </div>
+              </div>
+
+              <div class="profile-info-row">
+                <div class="profile-info-label">
+                  <i class="bi bi-calendar-x"></i>
+                  <span>تاريخ الانتهاء</span>
+                </div>
+                <div class="profile-input">
+                  {% if subscription.expires_at %}
+                    {{ subscription.expires_at|date:'Y/m/d' }}
+                  {% else %}
+                    لا تنتهي
+                  {% endif %}
+                </div>
+              </div>
+            {% else %}
+              <div class="profile-info-row">
+                <div class="profile-info-label">
+                  <i class="bi bi-gem"></i>
+                  <span>الاشتراك</span>
+                </div>
+                <a href="/api/subscriptions/plans-page/" class="profile-edit-btn">
+                  <i class="bi bi-arrow-up-circle"></i>
+                  اختر خطة
+                </a>
+              </div>
             {% endif %}
 
-            <!-- Card Header -->
-            <div class="profile-card-header">
-                <h3 class="profile-card-title">معلومات المستخدم</h3>
-                <button type="button" class="profile-edit-btn" id="edit-btn" onclick="enableEdit()">
-                    <i class="bi bi-pencil"></i>
-                    تعديل
-                </button>
+            <!-- Save Button -->
+            <div class="profile-save-row" id="save-row" style="display:none;">
+              <button type="submit" class="profile-save-btn">
+                <i class="bi bi-check-lg"></i>
+                حفظ التغييرات
+              </button>
             </div>
-
-            <!-- Card Body -->
-            <div class="profile-card-body">
-
-                <!-- Avatar -->
-                <div class="profile-avatar-col">
-                    {% if user.avatar %}
-                    <img src="{{ user.avatar.url }}" class="profile-avatar-img" id="avatar-preview">
-                    {% else %}
-                    <div class="profile-avatar-initials" id="avatar-preview">
-                        {{ user.first_name|first }}{{ user.last_name|first }}
-                    </div>
-                    {% endif %}
-                    <label for="avatar-input" class="avatar-camera-btn" id="avatar-label">
-                        <i class="bi bi-camera-fill"></i>
-                    </label>
-                    <input type="file" name="avatar" id="avatar-input" accept="image/*" style="display:none;">
-                </div>
-
-                <!-- Info Rows -->
-                <div class="profile-info-col">
-
-                    <div class="profile-info-row">
-                        <div class="profile-info-label">
-                            <i class="bi bi-person"></i>
-                            <span>الاسم الكامل</span>
-                        </div>
-                        <!-- عرض فقط -->
-                        <input type="text" value="{{ user.full_name }}" class="profile-input" id="full-name-display"
-                            readonly>
-                        <!-- تعديل -->
-                        <div class="profile-info-inputs" id="full-name-edit" style="display:none; gap:4px; flex:1;">
-                            <input type="text" name="first_name" value="{{ user.first_name }}" class="profile-input">
-                            <input type="text" name="last_name" value="{{ user.last_name }}" class="profile-input">
-                        </div>
-                    </div>
-
-                    <div class="profile-info-row">
-                        <div class="profile-info-label">
-                            <i class="bi bi-envelope"></i>
-                            <span>البريد الإلكتروني</span>
-                        </div>
-                        <input type="text" value="{{ user.email }}" class="profile-input" readonly>
-                    </div>
-
-                    <div class="profile-info-row">
-                        <div class="profile-info-label">
-                            <i class="bi bi-phone"></i>
-                            <span>رقم الجوال</span>
-                        </div>
-                        <input type="text" name="mobile" value="{{ user.mobile }}" class="profile-input" disabled>
-                    </div>
-
-                    <div class="profile-info-row">
-                        <div class="profile-info-label">
-                            <i class="bi bi-card-text"></i>
-                            <span>رقم الهوية</span>
-                        </div>
-                        <input type="text" value="{{ user.national_id }}" class="profile-input" readonly>
-                    </div>
-
-                    <div class="profile-info-row">
-                        <div class="profile-info-label">
-                            <i class="bi bi-calendar"></i>
-                            <span>تاريخ الميلاد</span>
-                        </div>
-                        <input type="date" name="date_of_birth" value="{{ user.date_of_birth|date:'Y-m-d'|default:'' }}"
-                            class="profile-input" disabled>
-                    </div>
-
-                    <div class="profile-info-row">
-                        <div class="profile-info-label">
-                            <i class="bi bi-calendar-check"></i>
-                            <span>تاريخ الانضمام</span>
-                        </div>
-                        <input type="text" value="{{ user.created_at|date:'Y/m/d' }}" class="profile-input" readonly>
-                    </div>
-
-                    {% if subscription %}
-                    <div class="profile-info-row">
-                        <div class="profile-info-label">
-                            <i class="bi bi-gem"></i>
-                            <span>الخطة الحالية</span>
-                        </div>
-                        <div class="profile-input">
-                            {{ subscription.plan.name_ar }}
-                            <span style="font-size:12px; color:var(--mithaq-muted);">{{ subscription.plan.name }}</span>
-                        </div>
-                    </div>
-
-                    <div class="profile-info-row">
-                        <div class="profile-info-label">
-                            <i class="bi bi-file-earmark-text"></i>
-                            <span>العقود المستخدمة</span>
-                        </div>
-                        <div class="profile-input">
-                            {{ subscription.contracts_used }} من
-                            {% if subscription.plan.contract_limit == -1 %}
-                            غير محدود
-                            {% else %}
-                            {{ subscription.plan.contract_limit }}
-                            {% endif %}
-                            عقد
-                        </div>
-                    </div>
-
-                    <div class="profile-info-row">
-                        <div class="profile-info-label">
-                            <i class="bi bi-calendar-x"></i>
-                            <span>تاريخ الانتهاء</span>
-                        </div>
-                        <div class="profile-input">
-                            {% if subscription.expires_at %}
-                            {{ subscription.expires_at|date:"Y/m/d" }}
-                            {% else %}
-                            لا تنتهي
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {% else %}
-                    <div class="profile-info-row">
-                        <div class="profile-info-label">
-                            <i class="bi bi-gem"></i>
-                            <span>الاشتراك</span>
-                        </div>
-                        <a href="/api/subscriptions/plans-page/" class="profile-edit-btn">
-                            <i class="bi bi-arrow-up-circle"></i>
-                            اختر خطة
-                        </a>
-                    </div>
-                    {% endif %}
-
-                    <!-- Save Button -->
-                    <div class="profile-save-row" id="save-row" style="display:none;">
-                        <button type="submit" class="profile-save-btn">
-                            <i class="bi bi-check-lg"></i>
-                            حفظ التغييرات
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-        </form>
+          </div>
+        </div>
+      </form>
     </div>
-
-</section>
+  </section>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/profile.js' %}"></script>
+  <script src="{% static 'js/profile.js' %}"></script>
 {% endblock %}

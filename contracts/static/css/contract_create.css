@@ -482,3 +482,61 @@ body { background: var(--bg); color: var(--text); font-family: 'Cairo', sans-ser
 
 .clause-section { display: none; }
 .clause-section.active { display: block; }
+
+/* إصلاح شكل صفحة البنود */
+.clause-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  background: #fff;
+}
+
+.clause-tab {
+  height: 58px;
+  border: 0;
+  border-inline-start: 1px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  font-family: 'Cairo', sans-serif;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.clause-tab.active {
+  background: var(--gold-soft);
+  color: var(--text);
+  border-bottom: 3px solid var(--gold);
+}
+
+.clause-item {
+  padding: 18px;
+  border-radius: 16px;
+}
+
+.clause-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.clause-header > div {
+  flex: 1;
+}
+
+.clause-type-sel,
+.clause-item select,
+.clause-item textarea {
+  width: 100% !important;
+  min-height: 44px;
+  font-size: 14px !important;
+}
+
+.clause-item textarea {
+  min-height: 120px !important;
+  line-height: 1.8;
+}
+
+.clause-del {
+  min-width: 60px;
+}

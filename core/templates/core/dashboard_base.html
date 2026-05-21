@@ -47,17 +47,6 @@
                     <span>إنشاء عقد</span>
                 </a>
 
-
-                <a href="#" class="mithaq-menu-link">
-                    <i class="bi bi-pen"></i>
-                    <span>التوقيعات</span>
-                </a>
-
-                <a href="#" class="mithaq-menu-link">
-                    <i class="bi bi-paperclip"></i>
-                    <span>الاطراف</span>
-                </a>
-
                 {# (added by ghadi: الاشتراك → subscription dashboard, shows plan + invoice history) #}
                 <a href="{% url 'subscriptions:dashboard' %}"
                     class="mithaq-menu-link {% if 'subscriptions' in request.path or 'payment' in request.path %}active{% endif %}">

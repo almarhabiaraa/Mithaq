@@ -187,7 +187,7 @@ tracking invitations, and monitoring signing progress.
             <article class="detail-card actions-card">
                 <div class="actions-group">
                     <h2>إجراءات عامة</h2>
-                    <a href="#" class="action-btn navy">تصدير PDF</a>
+                    <a href="{% url 'contracts:contract_pdf' contract.id %}" class="action-btn navy">تصدير PDF</a>
                 </div>
             </article>
 
@@ -195,23 +195,9 @@ tracking invitations, and monitoring signing progress.
                 <h2>إدارة العقد</h2>
                 <p>
                     يمكنك متابعة حالة الأطراف، إرسال دعوة جديدة، أو إدارة التعديلات المقترحة على العقد.
-                </p>
+                </p>               
+                 <div class="actions-group {% if invitation.status == 'CANCELLED' %}disabled-actions{% endif %}">
 
-                <div class="actions-group {% if invitation.status == 'CANCELLED' %}disabled-actions{% endif %}">
-                    {% if invitation.status != "CANCELLED" %}
-                        <button
-                            type="button"
-                            class="action-btn gold"
-                            data-bs-toggle="modal"
-                            data-bs-target="#newInvitationModal"
-                        >
-                            إرسال دعوة جديدة
-                        </button>
-                    {% else %}
-                        <span class="action-btn disabled">
-                            إرسال دعوة جديدة
-                        </span>
-                    {% endif %}
 
                     {% if invitation.status != "CANCELLED" %}
                         <button
@@ -299,8 +285,7 @@ tracking invitations, and monitoring signing progress.
           <div class="actions-section">
             <h4 class="actions-subtitle">إجراءات أساسية</h4>
 
-            <button type="button" class="action-btn gold" data-bs-toggle="modal" data-bs-target="#newInvitationModal">إرسال دعوة جديدة</button>
-
+        
             <button type="button" class="action-btn danger" data-bs-toggle="modal" data-bs-target="#cancelContractModal">إلغاء العقد</button>
           </div>
 
@@ -656,7 +641,6 @@ tracking invitations, and monitoring signing progress.
         <div class="modal-header">
           <h5 class="modal-title">رفض تعديل العقد</h5>
 
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
         <div class="modal-body">
@@ -686,7 +670,6 @@ tracking invitations, and monitoring signing progress.
       <div class="modal-content contract-modal">
         <div class="modal-header">
           <h5 class="modal-title">قبول تعديل العقد</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
         <div class="modal-body">

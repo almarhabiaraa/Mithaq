@@ -111,8 +111,28 @@ class SigningInvitationService:
         )
 
         email.attach_alternative(html_content, "text/html")
-        email.send()
 
+        try:
+            num_sent = email.send()
+        except Exception as smtp_err:
+            print("SMTP ERROR in send_email:", smtp_err)
+            return {
+                "success": False,
+                "provider": "gmail",
+                "message_id": "",
+                "error": str(smtp_err),
+            }
+
+        if num_sent == 0:
+            print("SMTP WARNING: email.send() returned 0 for", invitation.signer_email)
+            return {
+                "success": False,
+                "provider": "gmail",
+                "message_id": "",
+                "error": "لم يتم إرسال البريد الإلكتروني",
+            }
+
+        print("EMAIL SENT OK to:", invitation.signer_email)
         return {
             "success": True,
             "provider": "gmail",

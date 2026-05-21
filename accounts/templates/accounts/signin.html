@@ -1,95 +1,89 @@
+<!--  
+User login page for the Mithaq platform.
+
+Handles user authentication, secure account access,
+and login validation for accessing the digital
+ -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ميثاق — تسجيل الدخول</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{% static 'css/accountscss.css' %}">
-</head>
-<body>
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="{% static 'css/accountscss.css' %}" />
+  </head>
+  <body>
     <!-- Navbar -->
     <nav class="auth-navbar">
-        <div class="nav-container">
-            <a href="{% url 'home' %}" class="signin-back-link">
-                <span>الرئيسية</span>
-            </a>
-            <div class="nav-logo">
-                <a href="{% url 'home' %}">
-                    <img src="{% static 'images/mithaq-logo.png' %}" alt="شعار ميثاق" class="logo-img">
-                </a>
-            </div>
+      <div class="nav-container">
+        <a href="{% url 'home' %}" class="signin-back-link"><span>الرئيسية</span></a>
+        <div class="nav-logo">
+          <a href="{% url 'home' %}"><img src="{% static 'images/mithaq-logo.png' %}" alt="شعار ميثاق" class="logo-img" /></a>
         </div>
+      </div>
     </nav>
 
     <!-- Page -->
     <div class="signin-page">
-        <div class="signin-card">
+      <div class="signin-card">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert {{ message.extra_tags }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
 
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert {{ message.extra_tags }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+        <h1 class="signin-title">تسجيل الدخول</h1>
+        <p class="signin-subtitle">مرحباً بك مجدداً الرجاء إدخال بياناتك للوصول إلى حسابك</p>
 
-            <h1 class="signin-title">تسجيل الدخول</h1>
-            <p class="signin-subtitle">مرحباً بك مجدداً الرجاء إدخال بياناتك للوصول إلى حسابك</p>
+        <form method="POST" action="{% url 'accounts:sign_in' %}">
+          {% csrf_token %}
 
-            <form method="POST" action="{% url 'accounts:sign_in' %}">
-                {% csrf_token %}
+          <div class="signin-field">
+            <label>البريد الإلكتروني</label>
+            <div class="signin-input-wrapper">
+              <input type="email" name="email" placeholder="name@company.com" required />
+              <i class="bi bi-envelope field-icon"></i>
+            </div>
+          </div>
 
-                <div class="signin-field">
-                    <label>البريد الإلكتروني</label>
-                    <div class="signin-input-wrapper">
-                        <input type="email" name="email" placeholder="name@company.com" required>
-                        <i class="bi bi-envelope field-icon"></i>
-                    </div>
-                </div>
+          <div class="signin-field">
+            <label>كلمة المرور</label>
+            <div class="signin-input-wrapper">
+              <input type="password" name="password" id="password" placeholder="••••••••••" required />
+              <i class="bi bi-lock field-icon"></i>
+              <i class="bi bi-eye-slash signin-toggle-password" id="togglePassword"></i>
+            </div>
+          </div>
 
-                <div class="signin-field">
-                    <label>كلمة المرور</label>
-                    <div class="signin-input-wrapper">
-                        <input type="password" name="password" id="password" placeholder="••••••••••" required>
-                        <i class="bi bi-lock field-icon"></i>
-                        <i class="bi bi-eye-slash signin-toggle-password" id="togglePassword"></i>
-                    </div>
-                </div>
+          <div class="signin-options">
+            <label class="signin-remember">
+              <input type="checkbox" name="remember" />
+              <span>تذكرني</span>
+            </label>
+            <a href="{% url 'accounts:forgot_password' %}" class="signin-forgot">نسيت كلمة المرور؟</a>
+          </div>
 
-                <div class="signin-options">
-                    <label class="signin-remember">
-                        <input type="checkbox" name="remember">
-                        <span>تذكرني</span>
-                    </label>
-                    <a href="#" class="signin-forgot">نسيت كلمة المرور؟</a>
-                </div>
+          <button type="submit" class="signin-btn">تسجيل الدخول</button>
 
-                <button type="submit" class="signin-btn">تسجيل الدخول</button>
+          <div class="signin-divider">
+            <span>أو</span>
+          </div>
+        </form>
 
-                <div class="signin-divider"><span>أو</span></div>
+        <p class="signin-bottom-link">
+          ليس لديك حساب؟
+          <a href="{% url 'accounts:sign_up' %}">إنشاء حساب</a>
+        </p>
 
-                <button type="button" class="signin-google-btn">
-                    <img src="https://www.google.com/favicon.ico" alt="Google" width="18">
-                    Sign in with Google
-                </button>
-
-            </form>
-
-            <p class="signin-bottom-link">
-                ليس لديك حساب؟
-                <a href="{% url 'accounts:sign_up' %}">إنشاء حساب</a>
-            </p>
-
-            <p class="signin-trust">
-                <i class="bi bi-shield-check"></i>
-                بياناتك محمية وآمنة لدينا
-            </p>
-
-        </div>
+        <p class="signin-trust">
+          <i class="bi bi-shield-check"></i>
+          بياناتك محمية وآمنة لدينا
+        </p>
+      </div>
     </div>
 
-<script src="{% static 'js/signin.js' %}"></script>
-
-</body>
+    <script src="{% static 'js/signin.js' %}"></script>
+  </body>
 </html>
