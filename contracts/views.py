@@ -199,6 +199,8 @@ class ContractListCreateView(APIView):
                 invitation_message=party.get("invitation_message", "").strip(),
             )
 
+            print("PARTY DATA:", party)
+            print("RAW CAN EDIT:", party.get("can_edit"))
             invitation, secret = SigningInvitation.create_invitation(
                 contract=contract,
                 invited_by=user,

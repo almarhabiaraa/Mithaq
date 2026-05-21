@@ -229,9 +229,18 @@ class ContractInvitedParty(models.Model):
 class ContractModificationRequest(models.Model):
 
     class Status(models.TextChoices):
-        PENDING = "PENDING", "بانتظار الموافقة"
-        APPROVED = "APPROVED", "تمت الموافقة"
+        PENDING = "PENDING", "بانتظار المراجعة"
+        SENT = "SENT", "تم الإرسال"
+        VIEWED = "VIEWED", "تمت المشاهدة"
+        SIGNED = "SIGNED", "تم التوقيع"
+        EXPIRED = "EXPIRED", "منتهي"
+        CANCELLED = "CANCELLED", "ملغي"
+        FAILED = "FAILED", "فشل الإرسال"
         REJECTED = "REJECTED", "مرفوض"
+        APPROVED = "APPROVED", "مقبول"
+        SUPERSEDED = "SUPERSEDED", "تم استبدالها"
+
+
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

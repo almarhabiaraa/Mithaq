@@ -531,6 +531,8 @@
 {% endblock %}
 
 {% block extra_js %}
+
+<!-- prettier-ignore -->
 <script>
 
 // ════════════════════════════════════════════════════════
@@ -603,10 +605,14 @@ function getInitials(name) {
 }
 
 function esc(v) {
-  return String(v)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    return String(v)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
+
 
 function getPermLabels(p) {
   const out = [];
@@ -1365,13 +1371,12 @@ async function submitContract() {
         clauses:            getClauses(),
         invite_parties:     parties,
         final_notes:        document.getElementById('final-notes').value.trim(),
-        contract_html:      document.getElementById('review-doc').innerHTML, // Step 2: added by Remas — sends the full contract HTML to the backend for PDF generation
       }),
     });
 
     const data = await res.json();
     if (res.ok) {
-      window.location.href = `/invitations/my-contracts/${data.invitation_id}/`;
+      window.location.href = /invitations/my-contracts/${data.invitation_id}/;
     } else {
       alert('خطأ: ' + JSON.stringify(data));
       btn.disabled    = false;

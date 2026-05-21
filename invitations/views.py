@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render, redirect
 from django.views.decorators.http import require_POST
-from contracts.models import Contract, ContractVersion, ContractModificationRequest
+from contracts.models import Contract, ContractVersion, ContractModificationRequest, ContractClause
 from .models import SigningInvitation
 from .services import SigningInvitationService
 import hashlib
@@ -122,11 +122,26 @@ def invitation_contract_detail(request, invitation_id):
 
     contract = invitation.contract
     selected_version_id = request.GET.get("version")
-
     contract_versions = contract.versions.all().order_by("version_number")
 
     selected_version = None
-    version_data = None
+    version_data = {}
+    display_description = contract.description_ar
+    display_content = ""
+    base_clauses = []
+    pending_modification = None
+    approved_modification = None
+    rejected_modification = None
+    selected_version_pending_modification = None
+    selected_version_rejected_modification = None
+    selected_version_superseded_modification = None
+    superseded_modification = None
+    pending_requested_by_me = False
+    pending_waiting_for_me = False
+    selected_version_pending_requested_by_me = False
+    selected_version_pending_waiting_for_me = False
+
+
 
     if selected_version_id:
         selected_version = get_object_or_404(
@@ -134,31 +149,80 @@ def invitation_contract_detail(request, invitation_id):
             id=selected_version_id,
             contract=contract
         )
-        version_data = selected_version.canonical_json
 
-    base_clauses = []
-    if contract.current_version:
-        base_clauses = contract.current_version.clauses.all().order_by("order_index")
-        selected_version_id = request.GET.get("version")
 
-        contract_versions = contract.versions.all().order_by("version_number")
+    elif contract.current_version:
+        selected_version = contract.current_version
 
-        if selected_version_id:
-            selected_version = get_object_or_404(
-                ContractVersion,
-                id=selected_version_id,
-                contract=contract
+    else:
+        selected_version = contract_versions.last()
+
+    if selected_version:
+        version_data = selected_version.canonical_json or {}
+
+        selected_version_pending_modification = ContractModificationRequest.objects.filter(
+            contract=contract,
+            proposed_version=selected_version,
+            status=ContractModificationRequest.Status.PENDING
+        ).first()
+
+        if selected_version_pending_modification:
+            selected_version_pending_requested_by_me = (
+                selected_version_pending_modification.requested_by_id == request.user.id
             )
-        elif contract.current_version:
-            selected_version = contract.current_version
-        else:
-            selected_version = contract_versions.last()
 
-        version_data = selected_version.canonical_json if selected_version else {}
+            selected_version_pending_waiting_for_me = (
+                selected_version_pending_modification.requested_by_id != request.user.id
+            )
+
+        selected_version_rejected_modification = ContractModificationRequest.objects.filter(
+            contract=contract,
+            proposed_version=selected_version,
+            status=ContractModificationRequest.Status.REJECTED
+        ).first()
+
+        selected_version_superseded_modification = ContractModificationRequest.objects.filter(
+        contract=contract,
+        proposed_version=selected_version,
+        status=ContractModificationRequest.Status.SUPERSEDED
+        ).first()
+
+        display_description = (
+            version_data.get("description_ar")
+            or contract.description_ar
+            or ""
+        )
+
+        display_content = (
+            version_data.get("content_ar")
+            or ""
+        )
+
+        base_clauses = ContractClause.objects.filter(
+            version=selected_version
+        ).order_by("order_index")
 
         pending_modification = ContractModificationRequest.objects.filter(
             contract=contract,
             status=ContractModificationRequest.Status.PENDING
+        ).select_related("proposed_version").first()
+        if pending_modification:
+            pending_requested_by_me = pending_modification.requested_by_id == request.user.id
+            pending_waiting_for_me = pending_modification.requested_by_id != request.user.id
+
+        approved_modification = ContractModificationRequest.objects.filter(
+            contract=contract,
+            status=ContractModificationRequest.Status.APPROVED
+        ).select_related("proposed_version").first()
+
+        rejected_modification = ContractModificationRequest.objects.filter(
+            contract=contract,
+            status=ContractModificationRequest.Status.REJECTED
+        ).select_related("proposed_version").first()
+
+        superseded_modification = ContractModificationRequest.objects.filter(
+            contract=contract,
+            status=ContractModificationRequest.Status.SUPERSEDED
         ).select_related("proposed_version").first()
 
         is_owner = contract.creator == request.user
@@ -219,6 +283,7 @@ def invitation_contract_detail(request, invitation_id):
         "can_sign": False if is_owner else invitation.can_sign,
         "can_manage": is_owner,
     }
+    print("CAN EDIT:", invitation.can_edit)
 
     role_label = "منشئ العقد" if is_owner else invitation.get_contract_role_display()
     direction_label = "صادر" if is_owner else "وارد"
@@ -251,10 +316,22 @@ def invitation_contract_detail(request, invitation_id):
         "version_data": version_data,
         "pending_modification": pending_modification,
         "has_pending_modification": pending_modification is not None,
+        "pending_requested_by_me": pending_requested_by_me,
+        "pending_waiting_for_me": pending_waiting_for_me,
+        "selected_version_pending_requested_by_me": selected_version_pending_requested_by_me,
+        "selected_version_pending_waiting_for_me": selected_version_pending_waiting_for_me,
         "contract_versions": contract_versions,
         "selected_version": selected_version,
         "version_data": version_data,
+        "display_description": display_description,
+        "display_content": display_content,
+        "approved_modification": approved_modification,
+        "rejected_modification": rejected_modification,
         "base_clauses": base_clauses,
+        "selected_version_pending_modification": selected_version_pending_modification,
+        "selected_version_rejected_modification": selected_version_rejected_modification,
+        "superseded_modification": superseded_modification,
+        "selected_version_superseded_modification": selected_version_superseded_modification,
             })
 
 @login_required
@@ -323,14 +400,18 @@ def sign_invitation_contract(request, invitation_id):
     confirm_acceptance = request.POST.get("confirm_acceptance")
 
     expected_name = invitation.signer_full_name.strip()
+    print("TYPED:", typed_name)
+    print("EXPECTED:", expected_name)
 
     if not typed_name:
         messages.error(request, "يرجى كتابة الاسم الكامل لإتمام التوقيع")
         return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
 
-    if typed_name.lower() != expected_name.lower():
+    if typed_name != expected_name:
+        print("NAME MISMATCH")
         messages.error(request, "الاسم المدخل لا يطابق اسم الطرف المسجل في الدعوة")
         return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
+
 
     if confirm_acceptance != "on":
         messages.error(request, "يجب تأكيد الموافقة على محتوى العقد قبل التوقيع")
@@ -404,36 +485,47 @@ def cancel_contract(request, invitation_id):
         "invitations:invitation_contract_detail",
         invitation_id=invitation.id
     )
-
 @login_required
 @require_POST
 def submit_contract_modification(request, contract_id):
-    contract = get_object_or_404(
-        Contract,
-        id=contract_id,
-        creator=request.user
+    contract = get_object_or_404(Contract, id=contract_id)
+
+    is_owner = contract.creator == request.user
+
+    invitation = SigningInvitation.objects.filter(
+        contract=contract,
+        invitee_user=request.user
+    ).first()
+
+    if not is_owner:
+        if not invitation:
+            messages.error(request, "ليس لديك صلاحية على هذا العقد")
+            return redirect("invitations:my_contracts")
+
+        if not invitation.can_edit:
+            messages.error(request, "لا تملك صلاحية طلب تعديل على هذا العقد")
+            return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
+
+        redirect_invitation = invitation
+    else:
+        redirect_invitation = contract.signing_invitations.first()
+    ContractModificationRequest.objects.filter(
+        contract=contract,
+        status=ContractModificationRequest.Status.PENDING
+    ).update(
+        status=ContractModificationRequest.Status.SUPERSEDED,
+        reviewed_at=timezone.now()
     )
 
     title_ar = request.POST.get("title_ar", "").strip()
     description_ar = request.POST.get("description_ar", "").strip()
     content_ar = request.POST.get("content_ar", "").strip()
-    modification_reason = request.POST.get("modification_reason", "").strip()
     modification_type = request.POST.get("modification_type", "").strip()
+    modification_note = request.POST.get("modification_note", "").strip()
 
-    if not title_ar or not content_ar or not modification_reason or not modification_type:
-        messages.error(request, "جميع الحقول المطلوبة يجب تعبئتها.")
-        invitation = contract.signing_invitations.first()
-        return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
-
-    pending_request = ContractModificationRequest.objects.filter(
-        contract=contract,
-        status=ContractModificationRequest.Status.PENDING
-    ).first()
-
-    if pending_request:
-        messages.error(request, "يوجد طلب تعديل سابق بانتظار الموافقة.")
-        invitation = contract.signing_invitations.first()
-        return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
+    if not title_ar or not content_ar or not modification_type:
+        messages.error(request, "يرجى تعبئة بيانات التعديل المطلوبة.")
+        return redirect("invitations:invitation_contract_detail", invitation_id=redirect_invitation.id)
 
     last_version_number = contract.versions.count() + 1
 
@@ -447,22 +539,19 @@ def submit_contract_modification(request, contract_id):
             "content_ar": content_ar,
             "modification_type": modification_type,
         },
-        change_summary=modification_reason,
+        change_summary=modification_note,
     )
 
     ContractModificationRequest.objects.create(
         contract=contract,
         proposed_version=proposed_version,
         requested_by=request.user,
-        reason=modification_reason,
+        reason=modification_note,
     )
 
-    messages.success(request, "تم إرسال النسخة المعدلة بانتظار موافقة الطرف الآخر.")
+    messages.success(request, "تم إرسال طلب التعديل للطرف الآخر بنجاح.")
 
-    invitation = contract.signing_invitations.first()
-
-    return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
-
+    return redirect("invitations:invitation_contract_detail", invitation_id=redirect_invitation.id)
 
 @login_required
 @require_POST
@@ -590,65 +679,27 @@ def add_contract_invitation(request, contract_id):
 
 @login_required
 @require_POST
-def submit_contract_modification(request, contract_id):
-    contract = get_object_or_404(
-        Contract,
-        id=contract_id,
-        creator=request.user
-    )
-
-    pending_request = ContractModificationRequest.objects.filter(
-        contract=contract,
-        status=ContractModificationRequest.Status.PENDING
-    ).first()
-
-    if pending_request:
-        messages.error(request, "يوجد تعديل مرسل مسبقًا بانتظار موافقة الطرف الآخر.")
-        invitation = contract.signing_invitations.first()
-        return redirect(
-            "invitations:invitation_contract_detail",
-            invitation_id=invitation.id
-        )
-
-    last_version_number = contract.versions.count() + 1
-
-    proposed_version = ContractVersion.objects.create(
-        contract=contract,
-        version_number=last_version_number,
-        created_by=request.user,
-        canonical_json={
-            "title_ar": request.POST.get("title_ar", "").strip(),
-            "description_ar": request.POST.get("description_ar", "").strip(),
-            "content_ar": request.POST.get("content_ar", "").strip(),
-        },
-        change_summary=request.POST.get("modification_reason", "").strip(),
-    )
-
-    ContractModificationRequest.objects.create(
-        contract=contract,
-        proposed_version=proposed_version,
-        requested_by=request.user,
-        reason=request.POST.get("modification_reason", "").strip(),
-    )
-
-    messages.success(request, "تم إرسال النسخة المعدلة بانتظار موافقة الطرف الآخر.")
-
-    invitation = contract.signing_invitations.first()
-
-    return redirect(
-        "invitations:invitation_contract_detail",
-        invitation_id=invitation.id
-    )
-
-@login_required
-@require_POST
 def reject_contract_modification(request, modification_id):
     modification = get_object_or_404(
         ContractModificationRequest,
         id=modification_id,
-        contract__creator=request.user,
         status=ContractModificationRequest.Status.PENDING
     )
+
+    contract = modification.contract
+
+    is_creator = contract.creator_id == request.user.id
+    user_invitation = contract.signing_invitations.filter(
+        invitee_user=request.user
+    ).first()
+
+    if not is_creator and not user_invitation:
+        messages.error(request, "لا تملك صلاحية رفض هذا التعديل.")
+        return redirect("invitations:my_contracts")
+
+    if modification.requested_by_id == request.user.id:
+        messages.error(request, "لا يمكنك رفض تعديل أرسلته أنت.")
+        return redirect("invitations:invitation_contract_detail", invitation_id=user_invitation.id if user_invitation else contract.signing_invitations.first().id)
 
     modification.status = ContractModificationRequest.Status.REJECTED
     modification.reviewed_at = timezone.now()
@@ -656,9 +707,80 @@ def reject_contract_modification(request, modification_id):
 
     messages.success(request, "تم رفض تعديل العقد.")
 
-    invitation = modification.contract.signing_invitations.first()
+    redirect_invitation = user_invitation or contract.signing_invitations.first()
 
     return redirect(
         "invitations:invitation_contract_detail",
-        invitation_id=invitation.id
+        invitation_id=redirect_invitation.id
+    )
+
+@login_required
+@require_POST
+def accept_invitation_contract(request, invitation_id):
+    invitation = get_object_or_404(
+        SigningInvitation,
+        id=invitation_id,
+        invitee_user=request.user
+    )
+
+    if not invitation.can_view_contract:
+        messages.error(request, "لا تملك صلاحية عرض أو قبول هذا العقد")
+        return redirect("invitations:my_contracts")
+
+    if invitation.status in [
+        SigningInvitation.Status.SIGNED,
+        SigningInvitation.Status.REJECTED,
+        SigningInvitation.Status.CANCELLED,
+        SigningInvitation.Status.EXPIRED,
+    ]:
+        messages.warning(request, "لا يمكن قبول هذا العقد في حالته الحالية")
+        return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
+
+    invitation.mark_as_accepted()
+
+    messages.success(request, "تم قبول العقد بنجاح")
+    return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
+
+
+@login_required
+@require_POST
+def approve_contract_modification(request, modification_id):
+    modification = get_object_or_404(
+        ContractModificationRequest,
+        id=modification_id,
+        status=ContractModificationRequest.Status.PENDING
+    )
+
+    contract = modification.contract
+
+    is_creator = contract.creator_id == request.user.id
+    user_invitation = contract.signing_invitations.filter(
+        invitee_user=request.user
+    ).first()
+
+    if not is_creator and not user_invitation:
+        messages.error(request, "لا تملك صلاحية قبول هذا التعديل.")
+        return redirect("invitations:my_contracts")
+
+    if modification.requested_by_id == request.user.id:
+        messages.error(request, "لا يمكنك قبول تعديل أرسلته أنت.")
+        redirect_invitation = user_invitation or contract.signing_invitations.first()
+        return redirect("invitations:invitation_contract_detail", invitation_id=redirect_invitation.id)
+
+    contract.current_version = modification.proposed_version
+    contract.title_ar = modification.proposed_version.canonical_json.get("title_ar", contract.title_ar)
+    contract.description_ar = modification.proposed_version.canonical_json.get("description_ar", contract.description_ar)
+    contract.save(update_fields=["current_version", "title_ar", "description_ar", "updated_at"])
+
+    modification.status = ContractModificationRequest.Status.APPROVED
+    modification.reviewed_at = timezone.now()
+    modification.save(update_fields=["status", "reviewed_at"])
+
+    messages.success(request, "تمت الموافقة على النسخة المعدلة. الآن يمكن للطرف المطلوب توقيعه إتمام التوقيع.")
+
+    redirect_invitation = user_invitation or contract.signing_invitations.first()
+
+    return redirect(
+        "invitations:invitation_contract_detail",
+        invitation_id=redirect_invitation.id
     )

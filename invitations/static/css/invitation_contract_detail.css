@@ -955,6 +955,59 @@
     font-weight: 800;
     text-align: center;
 }
+.actions-section,
+.review-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.actions-subtitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0 0 4px;
+}
+
+.review-box {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-color);
+}
+
+.review-note {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 0;
+}
+.version-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.version-badge {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.version-badge.approved {
+    color: #166534;
+}
+
+.version-badge.pending {
+    color: #92400e;
+}
+
+.version-badge.rejected {
+    color: #991b1b;
+}
 
 @media (max-width: 991px) {
     .detail-grid,
