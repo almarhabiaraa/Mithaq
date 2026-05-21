@@ -95,7 +95,7 @@
           إدارة الاشتراك
         </a>
 
-        {% if subscription.plan.plan_type != 'FREE' %}
+        {% if subscription.plan.plan_type != 'FREE' and subscription.status == 'ACTIVE' %}
         <button class="btn-cancel" onclick="openCancelModal()">
           إلغاء الاشتراك
         </button>
@@ -232,7 +232,7 @@
 </div>
 
 {# Cancel modal — using CSS variables + inline styles (Tailwind not loaded in dashboard_base) #}
-{% if subscription and subscription.plan.plan_type != 'FREE' %}
+{% if subscription and subscription.plan.plan_type != 'FREE' and subscription.status == 'ACTIVE' %}
 <div id="cancel-modal"
      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100; align-items:center; justify-content:center;"
      onclick="closeCancelModal()">

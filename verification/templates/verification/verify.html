@@ -4,33 +4,11 @@
 {% block title %}التحقق من العقد — ميثاق{% endblock %}
 
 {% block extra_css %}
-{# BUG FIX: meta/title/link/script tags were incorrectly placed inside block content (body).
-   Moved CSS to static file and all head tags removed — dashboard_base handles the <head>. #}
 <link rel="stylesheet" href="{% static 'css/verification.css' %}">
 {% endblock %}
 
 {% block content %}
 
-
-  <!-- Simple Navbar -->
-  <nav style="background:#fff; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10;">
-    <div style="max-width:800px; margin:0 auto; padding:0 20px; height:64px; display:flex; align-items:center; justify-content:space-between;">
-      <a href="/" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
-        <div style="width:34px; height:34px; background:var(--navy); border-radius:8px; display:flex; align-items:center; justify-content:center;">
-          <svg width="18" height="18" fill="none" stroke="var(--gold)" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-          </svg>
-        </div>
-        <span style="font-size:20px; font-weight:800; color:var(--gold);">ميثاق</span>
-      </a>
-      <a href="/accounts/signin/"
-         style="background:#fff; border:1.5px solid var(--navy); color:var(--navy); border-radius:8px; padding:8px 20px; font-size:14px; font-weight:700; text-decoration:none; transition:background .15s, color .15s;"
-         onmouseover="this.style.background='var(--navy)'; this.style.color='#fff'"
-         onmouseout="this.style.background='#fff'; this.style.color='var(--navy)'">
-        تسجيل الدخول
-      </a>
-    </div>
-  </nav>
 
   <!-- Main content -->
   <main style="max-width:680px; margin:0 auto; padding:48px 20px 80px;">
@@ -192,12 +170,6 @@
     </div>
 
   </main>
-
-  <!-- Footer -->
-  <footer style="background:var(--navy); padding:24px 20px; text-align:center;">
-    <p style="color:#fff; font-weight:700; font-size:14px; margin:0 0 4px;">ميثاق — توثيق رقمي موثوق</p>
-    <p style="color:#93C5FD; font-size:12px; margin:0;">هذه الصفحة متاحة للعامة دون الحاجة لتسجيل الدخول</p>
-  </footer>
 
 {% block extra_js %}
 <script src="{% static 'js/verify.js' %}"></script>
