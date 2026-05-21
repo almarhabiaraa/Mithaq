@@ -54,7 +54,7 @@ security settings, notification options...
         </div>
         <i class="bi bi-chevron-left settings-item-arrow"></i>
       </a>
-      <a href="#" class="settings-item">
+      <div class="settings-item settings-item--clickable" onclick="toggleDarkMode()">
         <div class="settings-item-icon">
           <i class="bi bi-palette"></i>
         </div>
@@ -62,8 +62,18 @@ security settings, notification options...
           <h3 class="settings-item-title">المظهر</h3>
           <p class="settings-item-desc">تخصيص مظهر التطبيق (الوضع الفاتح / الداكن)</p>
         </div>
-        <i class="bi bi-chevron-left settings-item-arrow"></i>
-      </a>
+        <div class="dark-mode-toggle-wrap">
+          <span class="dark-mode-label"></span>
+          <button
+            type="button"
+            class="dark-mode-toggle-track"
+            onclick="event.stopPropagation();toggleDarkMode()"
+            aria-label="تبديل الوضع الداكن"
+          >
+            <span class="dark-mode-thumb"></span>
+          </button>
+        </div>
+      </div>
 
       <a href="{% url 'accounts:privacy' %}" class="settings-item">
         <div class="settings-item-icon">
@@ -98,4 +108,21 @@ security settings, notification options...
       </a>
     </div>
   </section>
+
+  <script>
+    (function () {
+      function syncToggle() {
+        var dark = localStorage.getItem('mithaq_dark_mode') === 'true';
+        document.querySelectorAll('.dark-mode-label').forEach(function (el) {
+          el.textContent = dark ? 'داكن' : 'فاتح';
+        });
+        document.querySelectorAll('.dark-mode-toggle-track').forEach(function (el) {
+          el.classList.toggle('active', dark);
+        });
+      }
+      syncToggle();
+      var _orig = window.toggleDarkMode;
+      window.toggleDarkMode = function () { if (_orig) _orig(); syncToggle(); };
+    })();
+  </script>
 {% endblock %}
