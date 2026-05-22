@@ -199,16 +199,17 @@ def check_contract_limit(user) -> UserSubscription:
 # ── Run via: python manage.py expire_subscriptions (nightly cron later) ────────
 def check_and_expire_subscriptions() -> int:
     """
-    Expire all active subscriptions whose expires_at timestamp has passed.
-
-    Queries for ACTIVE subscriptions with a non-null expires_at <= now(),
-    sets each to EXPIRED, and writes an AuditEvent per subscription.
-    Intended to be called from the expire_subscriptions management command
-    or a scheduled task (Celery beat, cron).
+    Expire all active subscriptions whose expires_at timestamp has passed,
+    and send a 3-day warning notification to subscriptions expiring soon.
 
     Returns the count of subscriptions that were expired.
     """
+    from notifications.services import NotificationService
+    from notifications.models import Notification
+
     now = timezone.now()
+
+    # ── Expire overdue subscriptions ──────────────────────────────────────────
     due = UserSubscription.objects.filter(
         status=UserSubscription.Status.ACTIVE,
         expires_at__isnull=False,
@@ -219,7 +220,35 @@ def check_and_expire_subscriptions() -> int:
     for sub in due:
         sub.status = UserSubscription.Status.EXPIRED
         sub.save(update_fields=['status', 'updated_at'])
+        NotificationService.notify(
+            user=sub.user,
+            notification_type=Notification.SUBSCRIPTION_EXPIRED,
+        )
         count += 1
+
+    # ── Warn users whose subscription expires within 3 days ───────────────────
+    three_days_from_now = now + timedelta(days=3)
+    expiring_soon = UserSubscription.objects.filter(
+        status=UserSubscription.Status.ACTIVE,
+        expires_at__isnull=False,
+        expires_at__gt=now,
+        expires_at__lte=three_days_from_now,
+    ).select_related('user')
+
+    # Avoid re-sending the warning if one was already sent in the last 24 hours
+    already_warned_ids = set(
+        Notification.objects.filter(
+            notification_type=Notification.SUBSCRIPTION_EXPIRING,
+            created_at__gte=now - timedelta(days=1),
+        ).values_list('user_id', flat=True)
+    )
+
+    for sub in expiring_soon:
+        if sub.user_id not in already_warned_ids:
+            NotificationService.notify(
+                user=sub.user,
+                notification_type=Notification.SUBSCRIPTION_EXPIRING,
+            )
 
     return count
 

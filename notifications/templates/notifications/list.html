@@ -5,7 +5,7 @@
 {% block title %}ميثاق — الإشعارات{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'notifications/css/notifications.css' %}">
+<link rel="stylesheet" href="{% static 'css/notifications.css' %}">
 <link rel="stylesheet" href="{% static 'css/accountscss.css' %}">
 {% endblock %}
 
@@ -26,10 +26,17 @@
 
     {% if notifications %}
     {% for n in notifications %}
+
+    {% if n.invitation_id %}
+    <a href="{% url 'invitations:invitation_contract_detail' invitation_id=n.invitation_id %}" class="notification-link-wrap">
+    {% endif %}
+
     <div class="notification-item {% if not n.is_read %}unread{% endif %}" id="notification-{{ n.id }}">
 
-        <div class="notification-icon {{ n.notification_type|cut:'contract_' }}">
-            {% if n.notification_type == 'contract_received' %}
+        <div class="notification-icon {{ n.notification_type|cut:'contract_'|cut:'invitation_'|cut:'subscription_' }}">
+            {% if n.notification_type == 'contract_created' %}
+            <i class="bi bi-file-earmark-plus"></i>
+            {% elif n.notification_type == 'contract_received' %}
             <i class="bi bi-envelope"></i>
             {% elif n.notification_type == 'contract_accepted' %}
             <i class="bi bi-check-circle"></i>
@@ -39,6 +46,20 @@
             <i class="bi bi-pen"></i>
             {% elif n.notification_type == 'contract_completed' %}
             <i class="bi bi-shield-check"></i>
+            {% elif n.notification_type == 'invitation_received' %}
+            <i class="bi bi-envelope-open"></i>
+            {% elif n.notification_type == 'invitation_expired' %}
+            <i class="bi bi-clock-history"></i>
+            {% elif n.notification_type == 'contract_modified' %}
+            <i class="bi bi-pencil-square"></i>
+            {% elif n.notification_type == 'subscription_expiring' %}
+            <i class="bi bi-exclamation-triangle"></i>
+            {% elif n.notification_type == 'subscription_expired' %}
+            <i class="bi bi-x-octagon"></i>
+            {% elif n.notification_type == 'contract_limit_reached' %}
+            <i class="bi bi-slash-circle"></i>
+            {% else %}
+            <i class="bi bi-bell"></i>
             {% endif %}
         </div>
 
@@ -54,6 +75,11 @@
         </div>
 
     </div>
+
+    {% if n.invitation_id %}
+    </a>
+    {% endif %}
+
     {% endfor %}
 
     {% else %}
@@ -63,13 +89,13 @@
     </div>
     {% endif %}
 
+</div>
+{% endblock %}
 
 {% block extra_js %}
 <script>
     const markAllReadUrl = "{% url 'notifications:mark_all_read' %}";
     const csrfToken = "{{ csrf_token }}";
 </script>
-<script src="{% static 'notifications/js/notifications.js' %}"></script>
-{% endblock %}
-
+<script src="{% static 'js/notifications.js' %}"></script>
 {% endblock %}

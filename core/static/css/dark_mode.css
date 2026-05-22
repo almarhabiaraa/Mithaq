@@ -1,0 +1,1019 @@
+/* ========================================
+   Dark Mode — Mithaq
+   ======================================== */
+
+/* ─────────────────────────────────────
+   Dark mode toggle switch (settings page)
+   All visual styles live here — no inline
+   styles or <style> blocks in HTML.
+───────────────────────────────────── */
+.dark-mode-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mithaq-text-secondary, #6b7280);
+    min-width: 32px;
+    text-align: center;
+}
+
+.settings-item--clickable {
+    cursor: pointer;
+}
+
+.dark-mode-toggle-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.dark-mode-toggle-track {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    border-radius: 13px;
+    border: none;
+    cursor: pointer;
+    background: #d1d5db;
+    transition: background 0.25s;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.dark-mode-toggle-track.active {
+    background: #B99655;
+}
+
+.dark-mode-thumb {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.25s;
+    display: block;
+    pointer-events: none;
+}
+
+.dark-mode-toggle-track.active .dark-mode-thumb {
+    transform: translateX(-22px);
+}
+
+/* ── Core CSS variable overrides ── */
+body.dark-mode,
+html.dark-mode body {
+    --color-primary: #B99655;
+    --color-primary-light: #c9a96e;
+    --color-secondary: #B99655;
+    --color-secondary-light: #1a2a3a;
+    --color-background: #0f1419;
+    --color-surface: #1e2530;
+    --color-surface-soft: #252d3a;
+    --color-border: #2d3748;
+    --color-border-strong: #3d4a5c;
+    --color-text-primary: #e6edf3;
+    --color-text-secondary: #8b949e;
+    --color-text-muted: #6e7681;
+    --color-success-background: #0d2818;
+    --color-danger-background: #2d0f0f;
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Dashboard CSS variable overrides ── */
+body.dark-mode {
+    /* dashboard_base.css vars */
+    --mithaq-bg: #0f1419;
+    --mithaq-card-bg: #1e2530;
+    --mithaq-soft-bg: #252d3a;
+    --mithaq-text-primary: #e6edf3;
+    --mithaq-text-secondary: #8b949e;
+    --mithaq-border: #2d3748;
+    --mithaq-navbar-bg: #1e2530;
+    --mithaq-shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.3);
+    --mithaq-shadow-md: 0 14px 35px rgba(0, 0, 0, 0.4);
+    --mithaq-shadow-lg: 0 22px 60px rgba(0, 0, 0, 0.5);
+
+    /* dashboard.css vars — override cream/beige palette */
+    --mithaq-cream: #1e2530;
+    --mithaq-soft: #252d3a;
+    --mithaq-border-dashboard: #2d3748;
+    --mithaq-text: #e6edf3;
+    --mithaq-muted: #8b949e;
+}
+
+/* ── Body background ── */
+body.dark-mode {
+    background-color: #0f1419 !important;
+    color: #e6edf3 !important;
+}
+
+/* ─────────────────────────────────────
+   Public navbar & footer
+───────────────────────────────────── */
+body.dark-mode .mithaq-nav {
+    background: rgba(30, 37, 48, 0.97) !important;
+    border-bottom-color: #2d3748 !important;
+}
+
+body.dark-mode .nav-mobile {
+    background: #1e2530 !important;
+    border-top-color: #2d3748 !important;
+}
+
+body.dark-mode .mithaq-footer {
+    background: #0f1419 !important;
+    border-top: 1px solid #2d3748;
+}
+
+/* ── Hero section ── */
+body.dark-mode .hero-section {
+    background: linear-gradient(to bottom, #0f1419 60%, #0f1419 100%) !important;
+}
+
+body.dark-mode .hero-section::before {
+    opacity: 0.05 !important;
+}
+
+/* ── Nav primary button ── */
+body.dark-mode .nav-btn-primary {
+    background: #B99655 !important;
+    color: #0f1419 !important;
+}
+
+body.dark-mode .nav-btn-primary:hover {
+    background: #c9a96e !important;
+}
+
+/* ─────────────────────────────────────
+   Dashboard shell
+───────────────────────────────────── */
+body.dark-mode .mithaq-page {
+    background-color: #0f1419 !important;
+}
+
+body.dark-mode .mithaq-navbar {
+    background: #1e2530 !important;
+    border-bottom: 1px solid #2d3748 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .mithaq-navbar-search {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .mithaq-navbar-search input {
+    background: transparent !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .mithaq-navbar-search input::placeholder {
+    color: #6e7681 !important;
+}
+
+body.dark-mode .mithaq-icon-btn {
+    color: #8b949e !important;
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .mithaq-icon-btn i {
+    color: #8b949e !important;
+}
+
+body.dark-mode .mithaq-icon-btn:hover {
+    background: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .mithaq-icon-btn:hover i {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .mithaq-profile-btn {
+    background: #B99655 !important;
+    color: #0f1419 !important;
+}
+
+body.dark-mode .mithaq-content {
+    background-color: #0f1419 !important;
+}
+
+/* ─────────────────────────────────────
+   Dashboard stat & content cards
+   (dashboard.css uses rgba(255,255,255,0.88))
+───────────────────────────────────── */
+body.dark-mode .mithaq-stat-card,
+body.dark-mode .mithaq-dashboard-card,
+body.dark-mode .mithaq-contracts-section {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* text inside stat cards */
+body.dark-mode .mithaq-stat-card span,
+body.dark-mode .mithaq-stat-card p,
+body.dark-mode .mithaq-stat-card h2 {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .mithaq-card-title h3,
+body.dark-mode .mithaq-section-top h3 {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .mithaq-subscription-info span,
+body.dark-mode .mithaq-progress-head {
+    color: #8b949e !important;
+}
+
+body.dark-mode .mithaq-subscription-info strong {
+    color: #e6edf3 !important;
+}
+
+/* ── General card wildcard (base.css) ── */
+body.dark-mode .card,
+body.dark-mode [class*="-card"],
+body.dark-mode .mithaq-card {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ─────────────────────────────────────
+   Cream / beige surfaces (dashboard.css)
+   --mithaq-cream: #f8f3ec → #1e2530
+───────────────────────────────────── */
+body.dark-mode .mithaq-action-list div {
+    background: #252d3a !important;
+    color: #e6edf3 !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .mithaq-quick-actions a {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #B99655 !important;
+}
+
+body.dark-mode .mithaq-quick-actions a:hover {
+    background: #2d3748 !important;
+}
+
+body.dark-mode .mithaq-mini-stats div {
+    background: #252d3a !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .mithaq-mini-stats span {
+    color: #8b949e !important;
+}
+
+body.dark-mode .mithaq-mini-stats strong {
+    color: #e6edf3 !important;
+}
+
+/* ─────────────────────────────────────
+   Progress bars (hardcoded #eadccc)
+───────────────────────────────────── */
+body.dark-mode .mithaq-progress-line {
+    background: #2d3748 !important;
+}
+
+body.dark-mode .mithaq-progress-fill {
+    background: linear-gradient(135deg, #B99655, #c9a96e) !important;
+}
+
+body.dark-mode .mithaq-circle-progress {
+    background: conic-gradient(#B99655 0deg, #2d3748 0deg) !important;
+}
+
+/* inner white circle */
+body.dark-mode .mithaq-circle-progress span {
+    background: #1e2530 !important;
+    color: #e6edf3 !important;
+}
+
+/* ─────────────────────────────────────
+   Secondary button (rgba white)
+───────────────────────────────────── */
+body.dark-mode .mithaq-btn-secondary {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #B99655 !important;
+}
+
+body.dark-mode .mithaq-btn-secondary:hover {
+    background: #2d3748 !important;
+}
+
+/* ─────────────────────────────────────
+   Dashboard header text
+───────────────────────────────────── */
+body.dark-mode .mithaq-dashboard-header h1 {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .mithaq-dashboard-header p {
+    color: #8b949e !important;
+}
+
+body.dark-mode .mithaq-page-label {
+    color: #B99655 !important;
+}
+
+/* ─────────────────────────────────────
+   Tables
+───────────────────────────────────── */
+body.dark-mode .table-row:hover {
+    background: #252d3a !important;
+}
+
+body.dark-mode table thead tr {
+    background: #252d3a !important;
+}
+
+body.dark-mode table {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode th,
+body.dark-mode td {
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .mithaq-contracts-table th {
+    color: #8b949e !important;
+}
+
+body.dark-mode .mithaq-contracts-table td strong {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .mithaq-contracts-table td small {
+    color: #8b949e !important;
+}
+
+/* ─────────────────────────────────────
+   Status badges (hardcoded cream/light backgrounds)
+───────────────────────────────────── */
+body.dark-mode .mithaq-status-badge,
+body.dark-mode .mithaq-type-badge {
+    background: #252d3a !important;
+    color: #8b949e !important;
+}
+
+body.dark-mode .mithaq-status-completed {
+    background: #0d2818 !important;
+    color: #4ade80 !important;
+}
+
+body.dark-mode .mithaq-status-active,
+body.dark-mode .mithaq-status-in_progress {
+    background: #1a1500 !important;
+    color: #f0b429 !important;
+}
+
+body.dark-mode .mithaq-status-pending_signature {
+    background: #1e1810 !important;
+    color: #c9a96e !important;
+}
+
+body.dark-mode .mithaq-status-rejected {
+    background: #2d0f0f !important;
+    color: #f87171 !important;
+}
+
+body.dark-mode .mithaq-status-draft {
+    background: #252d3a !important;
+    color: #8b949e !important;
+}
+
+/* ─────────────────────────────────────
+   Filters & form inputs (hardcoded #fff)
+───────────────────────────────────── */
+body.dark-mode .mithaq-filters-form input,
+body.dark-mode .mithaq-filters-form select {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .mithaq-reset-btn {
+    background: #252d3a !important;
+    color: #B99655 !important;
+    border-color: #2d3748 !important;
+}
+
+/* ── General inputs ── */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #6e7681 !important;
+}
+
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus {
+    border-color: #B99655 !important;
+    outline-color: #B99655 !important;
+}
+
+/* ─────────────────────────────────────
+   Subscription plan cards
+───────────────────────────────────── */
+body.dark-mode .plan-card {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .plan-card.featured {
+    border-color: #B99655 !important;
+}
+
+body.dark-mode .btn-outlined {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .btn-outlined:hover {
+    background: #B99655 !important;
+    color: #0f1419 !important;
+}
+
+/* ─────────────────────────────────────
+   Warning / info banners
+───────────────────────────────────── */
+body.dark-mode .warning-banner {
+    background: #1a1500 !important;
+    border-color: #B99655 !important;
+    color: #e6edf3 !important;
+}
+
+/* ─────────────────────────────────────
+   Settings page
+───────────────────────────────────── */
+body.dark-mode .settings-item {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .settings-item:hover {
+    background: #252d3a !important;
+}
+
+body.dark-mode .settings-item-title {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .settings-item-desc {
+    color: #8b949e !important;
+}
+
+body.dark-mode .settings-item-icon {
+    background: #252d3a !important;
+    color: #B99655 !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .settings-item-arrow {
+    color: #6e7681 !important;
+}
+
+body.dark-mode .profile-header-title {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .profile-header-subtitle {
+    color: #8b949e !important;
+}
+
+/* ─────────────────────────────────────
+   Profile / account pages
+───────────────────────────────────── */
+body.dark-mode .profile-card,
+body.dark-mode .form-card,
+body.dark-mode .section-card {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode label {
+    color: #8b949e !important;
+}
+
+/* ─────────────────────────────────────
+   Misc
+───────────────────────────────────── */
+body.dark-mode .mithaq-overlay {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+body.dark-mode .mithaq-badge {
+    background: #B99655 !important;
+    color: #0f1419 !important;
+}
+
+body.dark-mode .progress-bar-fill {
+    background: #B99655 !important;
+}
+
+body.dark-mode .progress-bar {
+    background: #2d3748 !important;
+}
+
+body.dark-mode .notification-item {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .notification-item:hover {
+    background: #252d3a !important;
+}
+
+/* ── Inline-style white background overrides ── */
+body.dark-mode [style*="background:#fff"],
+body.dark-mode [style*="background: #fff"],
+body.dark-mode [style*="background-color:#fff"],
+body.dark-mode [style*="background-color: #fff"],
+body.dark-mode [style*="background:#ffffff"],
+body.dark-mode [style*="background: #ffffff"] {
+    background: #1e2530 !important;
+}
+
+/* ─────────────────────────────────────
+   Subscription dashboard
+   subscriptions_dashboard.css uses :root variables (--navy, --text-dark,
+   --text-grey, --success-bg, --error-bg) and hardcoded #fff backgrounds.
+   Re-declare those variables under body.dark-mode so every rule that reads
+   them automatically picks up dark values.
+───────────────────────────────────── */
+body.dark-mode {
+    /* subscriptions_dashboard.css vars */
+    --navy: #c9a84c;
+    --gold: #e8c97a;
+    --gold-light: #f0d898;
+    --text-dark: #e6edf3;
+    --text-grey: #8b949e;
+    --success-bg: #0d2818;
+    --error-bg: #2d0f0f;
+    --border: #2d3748;
+    --off-white: #1e2530;
+
+    /* my_contracts.css vars */
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --border-strong: #3d4a5c;
+    --gold-soft: rgba(201, 168, 76, 0.14);
+}
+
+/* .card has hardcoded background:#fff — override it */
+body.dark-mode .card {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+    color: #e6edf3 !important;
+}
+
+/* buttons in subscriptions_dashboard.css also hardcode background:#fff */
+body.dark-mode .btn-outlined {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .btn-outlined:hover {
+    background: #c9a84c !important;
+    color: #0f1419 !important;
+}
+
+body.dark-mode .btn-cancel {
+    background: #1e2530 !important;
+    border-color: #f87171 !important;
+    color: #f87171 !important;
+}
+
+body.dark-mode .btn-cancel:hover {
+    background: #2d0f0f !important;
+    color: #f87171 !important;
+}
+
+/* progress bar track */
+body.dark-mode .progress-bar-wrap {
+    background: #2d3748 !important;
+}
+
+/* progress bar fill uses --navy which is now gold — keep it gold */
+body.dark-mode .progress-bar-fill {
+    background: linear-gradient(90deg, #c9a84c, #e8c97a) !important;
+}
+
+/* table hover */
+body.dark-mode .table-row:hover {
+    background: #252d3a !important;
+}
+
+/* check icon bubble */
+body.dark-mode .check-icon {
+    background: #0d2818 !important;
+}
+
+/* modal inner panel */
+body.dark-mode #cancel-modal > div {
+    background: #1e2530 !important;
+    border: 1px solid #2d3748 !important;
+}
+
+/* ─────────────────────────────────────
+   Contracts page (invitations/my-contracts/)
+   my_contracts.css uses hardcoded #fff on every surface.
+───────────────────────────────────── */
+
+/* ── Stat cards ── */
+body.dark-mode .contract-stat {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.dark-mode .contract-stat p {
+    color: #8b949e !important;
+}
+
+body.dark-mode .contract-stat strong {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .contract-stat small {
+    color: #6e7681 !important;
+}
+
+/* ── Stat icon bubbles (hardcoded light backgrounds) ── */
+body.dark-mode .stat-icon.purple {
+    background: rgba(116, 87, 200, 0.15) !important;
+    color: #a78bfa !important;
+}
+
+body.dark-mode .stat-icon.green {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: #4ade80 !important;
+}
+
+body.dark-mode .stat-icon.blue {
+    background: rgba(99, 149, 255, 0.12) !important;
+    color: #7eb3ff !important;
+}
+
+body.dark-mode .stat-icon.gold {
+    background: rgba(201, 168, 76, 0.14) !important;
+    color: #c9a84c !important;
+}
+
+/* ── Filter card ── */
+body.dark-mode .contracts-filters-card {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .select-box {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .select-box select {
+    color: #e6edf3 !important;
+    background: #252d3a !important;
+}
+
+body.dark-mode .filter-submit {
+    background: #c9a84c !important;
+    color: #0f1419 !important;
+}
+
+body.dark-mode .filter-reset {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+/* ── Table card ── */
+body.dark-mode .contracts-table-card {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .contracts-table-header {
+    border-bottom-color: #2d3748 !important;
+}
+
+body.dark-mode .contracts-table-header h2 {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .contracts-table th {
+    background: #252d3a !important;
+    color: #8b949e !important;
+    border-bottom-color: #2d3748 !important;
+}
+
+body.dark-mode .contracts-table td {
+    color: #e6edf3 !important;
+    border-bottom-color: #2d3748 !important;
+}
+
+body.dark-mode .contract-name strong,
+body.dark-mode .party-info strong {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .contract-name small,
+body.dark-mode .party-info small {
+    color: #8b949e !important;
+}
+
+body.dark-mode .contract-icon {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #c9a84c !important;
+}
+
+/* ── Action buttons ── */
+body.dark-mode .view-btn,
+body.dark-mode .more-btn {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .view-btn:hover,
+body.dark-mode .more-btn:hover {
+    background: #2d3748 !important;
+}
+
+/* ── Role / direction pills (hardcoded light backgrounds) ── */
+body.dark-mode .soft-pill.gold {
+    background: rgba(201, 168, 76, 0.14) !important;
+    color: #c9a84c !important;
+}
+
+body.dark-mode .soft-pill.blue {
+    background: rgba(99, 149, 255, 0.12) !important;
+    color: #7eb3ff !important;
+}
+
+body.dark-mode .soft-pill.green {
+    background: rgba(74, 222, 128, 0.12) !important;
+    color: #4ade80 !important;
+}
+
+/* ── Status badges (hardcoded cream/light backgrounds) ── */
+body.dark-mode .status-pending,
+body.dark-mode .status-sent,
+body.dark-mode .status-viewed {
+    background: rgba(240, 180, 41, 0.12) !important;
+    color: #f0b429 !important;
+}
+
+body.dark-mode .status-signed {
+    background: #0d2818 !important;
+    color: #4ade80 !important;
+}
+
+body.dark-mode .status-rejected,
+body.dark-mode .status-failed,
+body.dark-mode .status-expired,
+body.dark-mode .status-cancelled {
+    background: #2d0f0f !important;
+    color: #f87171 !important;
+}
+
+/* ── Pagination ── */
+body.dark-mode .contracts-pagination {
+    background: #1e2530 !important;
+    border-top: 1px solid #2d3748;
+}
+
+body.dark-mode .contracts-pagination a,
+body.dark-mode .contracts-pagination span {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .contracts-pagination span.active {
+    background: #c9a84c !important;
+    border-color: #c9a84c !important;
+    color: #0f1419 !important;
+}
+
+/* ── Page header text ── */
+body.dark-mode .contracts-header h1 {
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .contracts-breadcrumb,
+body.dark-mode .contracts-header p {
+    color: #8b949e !important;
+}
+
+/* ── Empty state ── */
+body.dark-mode .empty-contracts {
+    color: #8b949e !important;
+}
+
+body.dark-mode .empty-contracts strong {
+    color: #e6edf3 !important;
+}
+
+/* ─────────────────────────────────────
+   Contract creation page (contracts/create/)
+   contract_create.css defines its own :root vars (--card, --surface-soft,
+   --bg, --border-s, --muted-2, --blue-soft, --danger-bg) and hardcodes
+   #fff on many surfaces. Re-declare vars + explicit overrides.
+───────────────────────────────────── */
+body.dark-mode {
+    --card: #1e2530;
+    --surface-soft: #252d3a;
+    --bg: #0f1419;
+    --border-s: #3d4a5c;
+    --muted-2: #6e7681;
+    --blue-soft: rgba(99, 149, 255, 0.1);
+    --danger-bg: #2d0f0f;
+}
+
+/* ── Section cards and wizard bar ── */
+body.dark-mode .wizard-steps {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+}
+
+/* ── Step circles in wizard bar ── */
+body.dark-mode .step-circle {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #8b949e !important;
+}
+
+/* ── Form group inputs (hardcoded #fff) ── */
+body.dark-mode .form-group input,
+body.dark-mode .form-group select,
+body.dark-mode .form-group textarea {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+/* ── Duration toggle buttons (محددة / غير محددة) ── */
+body.dark-mode .duration-toggle {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #8b949e !important;
+}
+
+body.dark-mode .duration-toggle.active {
+    background: #c9a84c !important;
+    color: #0f1419 !important;
+}
+
+/* ── Party cards (hardcoded #fff) ── */
+body.dark-mode .party-row {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .primary-party {
+    background: #1e2530 !important;
+    border-color: #c9a84c !important;
+}
+
+/* ── Clause type select and role select ── */
+body.dark-mode .clause-type-sel,
+body.dark-mode .role-select {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+/* ── Mini labels and permission tags ── */
+body.dark-mode .mini-label {
+    background: #252d3a !important;
+    color: #8b949e !important;
+}
+
+body.dark-mode .permissions span {
+    background: #252d3a !important;
+    color: #8b949e !important;
+    border-color: #2d3748 !important;
+}
+
+/* ── Navigation / action buttons (hardcoded #fff) ── */
+body.dark-mode .btn {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .btn.primary,
+body.dark-mode .btn-primary {
+    background: #c9a84c !important;
+    border-color: #c9a84c !important;
+    color: #0f1419 !important;
+}
+
+body.dark-mode .add-party-btn,
+body.dark-mode .small-btn {
+    background: #252d3a !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .add-dashed-btn {
+    border-color: #2d3748 !important;
+    color: #c9a84c !important;
+}
+
+body.dark-mode .add-dashed-btn:hover {
+    background: rgba(201, 168, 76, 0.1) !important;
+}
+
+/* ── Review step: summary items and party rows ── */
+body.dark-mode .summary-item,
+body.dark-mode .party-row-review {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .timeline-item {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .doc-preview {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+}
+
+/* ── Clause tabs ── */
+body.dark-mode .clause-tabs {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .clause-tab {
+    background: transparent !important;
+    color: #8b949e !important;
+}
+
+body.dark-mode .clause-tab.active {
+    background: rgba(201, 168, 76, 0.14) !important;
+    color: #c9a84c !important;
+}
+
+/* ── Note box (uses --gold-soft which is now dark-remapped) ── */
+body.dark-mode .note-box {
+    border-color: #c9a84c !important;
+}
+
+/* ── Modal overlay panel ── */
+body.dark-mode .modal-card {
+    background: #1e2530 !important;
+    border-color: #2d3748 !important;
+}
+
+body.dark-mode .modal-header {
+    background: #252d3a !important;
+    border-bottom-color: #2d3748 !important;
+    color: #e6edf3 !important;
+}
+
+body.dark-mode .modal-actions {
+    background: #252d3a !important;
+    border-top-color: #2d3748 !important;
+}
+
+body.dark-mode .modal-close {
+    background: #252d3a !important;
+    color: #8b949e !important;
+    border-color: #2d3748 !important;
+}
+
+/* ── Smooth transition on toggle ── */
+body {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}

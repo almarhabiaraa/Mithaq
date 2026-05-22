@@ -10,6 +10,8 @@ from .services import SigningInvitationService
 import hashlib
 from django.utils import timezone
 from signatures.models import Signature
+from notifications.services import NotificationService
+from notifications.models import Notification
 
 
 
@@ -30,6 +32,12 @@ def access_invitation(request, secret):
     if invitation.is_expired:
         invitation.status = SigningInvitation.Status.EXPIRED
         invitation.save(update_fields=["status", "updated_at"])
+        print(f"[Notif] access_invitation: INVITATION_EXPIRED → creator user_id={invitation.invited_by_id}")
+        NotificationService.notify(
+            user=invitation.invited_by,
+            notification_type=Notification.INVITATION_EXPIRED,
+            contract=invitation.contract,
+        )
         messages.error(request, "انتهت صلاحية رابط الدعوة")
         return redirect("home")
 
@@ -46,11 +54,21 @@ def access_invitation(request, secret):
             messages.error(request, "يجب الدخول بنفس البريد الإلكتروني المرسل له طلب التوقيع")
             return redirect("home")
 
-    if not invitation.invitee_user:
+    is_new_link = not invitation.invitee_user
+    if is_new_link:
         invitation.link_to_user(request.user)
 
     if invitation.status == SigningInvitation.Status.SENT:
         invitation.mark_as_viewed()
+
+    # Notify the invitee that they have a new signing invitation (only on first link)
+    if is_new_link:
+        print(f"[Notif] access_invitation: INVITATION_RECEIVED → invitee user_id={request.user.id}")
+        NotificationService.notify(
+            user=request.user,
+            notification_type=Notification.INVITATION_RECEIVED,
+            contract=invitation.contract,
+        )
 
     return redirect("invitations:my_contracts")
 
@@ -355,6 +373,13 @@ def reject_invitation_contract(request, invitation_id):
 
     invitation.mark_as_rejected()
 
+    print(f"[Notif] reject_invitation_contract: CONTRACT_REJECTED → creator user_id={invitation.invited_by_id}")
+    NotificationService.notify(
+        user=invitation.invited_by,
+        notification_type=Notification.CONTRACT_REJECTED,
+        contract=invitation.contract,
+    )
+
     messages.success(request, "تم رفض العقد بنجاح")
     return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
 
@@ -454,6 +479,33 @@ def sign_invitation_contract(request, invitation_id):
 
     invitation.mark_as_signed()
 
+    # Notify all other stakeholders that a signature was added
+    print(f"[Notif] sign_invitation_contract: CONTRACT_SIGNED → stakeholders (exclude user_id={request.user.id})")
+    NotificationService.notify_contract_stakeholders(
+        contract=contract,
+        notification_type=Notification.CONTRACT_SIGNED,
+        exclude_user=request.user,
+    )
+
+    # Check if all signable parties have now signed → contract complete
+    unsigned_remain = contract.signing_invitations.filter(
+        can_sign=True,
+        status__in=[
+            SigningInvitation.Status.PENDING,
+            SigningInvitation.Status.SENT,
+            SigningInvitation.Status.VIEWED,
+            SigningInvitation.Status.ACCEPTED,
+        ]
+    ).exists()
+
+    if not unsigned_remain:
+        contract.status = "COMPLETED"
+        contract.save(update_fields=["status", "updated_at"])
+        NotificationService.notify_contract_stakeholders(
+            contract=contract,
+            notification_type=Notification.CONTRACT_COMPLETED,
+        )
+
     messages.success(request, "تم توقيع العقد وحفظ بيانات التوقيع بنجاح")
     return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
 
@@ -475,6 +527,13 @@ def cancel_contract(request, invitation_id):
     SigningInvitation.objects.filter(contract=contract).update(
         status=SigningInvitation.Status.CANCELLED,
         failure_reason="تم إلغاء العقد من قبل المنشئ"
+    )
+
+    print(f"[Notif] cancel_contract: CONTRACT_REJECTED → stakeholders (exclude creator user_id={request.user.id})")
+    NotificationService.notify_contract_stakeholders(
+        contract=contract,
+        notification_type=Notification.CONTRACT_REJECTED,
+        exclude_user=request.user,
     )
 
     messages.success(
@@ -548,6 +607,13 @@ def submit_contract_modification(request, contract_id):
         proposed_version=proposed_version,
         requested_by=request.user,
         reason=modification_note,
+    )
+
+    print(f"[Notif] submit_contract_modification: CONTRACT_MODIFIED → stakeholders (exclude user_id={request.user.id})")
+    NotificationService.notify_contract_stakeholders(
+        contract=contract,
+        notification_type=Notification.CONTRACT_MODIFIED,
+        exclude_user=request.user,
     )
 
     messages.success(request, "تم إرسال طلب التعديل للطرف الآخر بنجاح.")
@@ -721,6 +787,12 @@ def reject_contract_modification(request, modification_id):
     modification.reviewed_at = timezone.now()
     modification.save(update_fields=["status", "reviewed_at"])
 
+    NotificationService.notify(
+        user=modification.requested_by,
+        notification_type=Notification.CONTRACT_REJECTED,
+        contract=contract,
+    )
+
     messages.success(request, "تم رفض تعديل العقد.")
 
     redirect_invitation = user_invitation or contract.signing_invitations.first()
@@ -753,6 +825,13 @@ def accept_invitation_contract(request, invitation_id):
         return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
 
     invitation.mark_as_accepted()
+
+    print(f"[Notif] accept_invitation_contract: CONTRACT_ACCEPTED → creator user_id={invitation.invited_by_id}")
+    NotificationService.notify(
+        user=invitation.invited_by,
+        notification_type=Notification.CONTRACT_ACCEPTED,
+        contract=invitation.contract,
+    )
 
     messages.success(request, "تم قبول العقد بنجاح")
     return redirect("invitations:invitation_contract_detail", invitation_id=invitation.id)
@@ -791,6 +870,12 @@ def approve_contract_modification(request, modification_id):
     modification.status = ContractModificationRequest.Status.APPROVED
     modification.reviewed_at = timezone.now()
     modification.save(update_fields=["status", "reviewed_at"])
+
+    NotificationService.notify(
+        user=modification.requested_by,
+        notification_type=Notification.CONTRACT_ACCEPTED,
+        contract=contract,
+    )
 
     messages.success(request, "تمت الموافقة على النسخة المعدلة. الآن يمكن للطرف المطلوب توقيعه إتمام التوقيع.")
 
