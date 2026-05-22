@@ -166,6 +166,11 @@ class ContractListCreateView(APIView):
                     data=serializer.validated_data,
                 )
         except PermissionDenied as exc:
+            # Atomic block rolled back — safe to write notification now
+            NotificationService.notify(
+                user=user,
+                notification_type=Notification.CONTRACT_LIMIT_REACHED,
+            )
             return Response({'error': str(exc)}, status=status.HTTP_403_FORBIDDEN)
 
         for index, party in enumerate(invite_parties, start=1):
@@ -228,6 +233,14 @@ class ContractListCreateView(APIView):
             invited_party.save(update_fields=["invitation"])
 
             SigningInvitationService.send_existing_invitation(invitation, secret)
+
+        # Notify the creator that their contract was created and invitations sent
+        print(f"[Contract created] id={contract.id} — sending CONTRACT_CREATED to creator user_id={user.id}")
+        NotificationService.notify(
+            user=user,
+            notification_type=Notification.CONTRACT_CREATED,
+            contract=contract,
+        )
 
         first_invitation = contract.signing_invitations.first()
 

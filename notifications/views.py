@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from rest_framework.views import APIView
@@ -75,9 +76,28 @@ class UnreadCountView(APIView):
 @login_required(login_url="accounts:sign_in")
 def notification_list_page(request):
     """Render notifications HTML page"""
-    notifications = Notification.objects.filter(
-        user=request.user
-    ).select_related('contract')
+    from invitations.models import SigningInvitation
+
+    notifications = list(
+        Notification.objects.filter(user=request.user).select_related('contract')
+    )
+
+    # Build a contract_id → invitation_id map so the template can link directly
+    # to the correct invitation detail page.
+    contract_ids = [n.contract_id for n in notifications if n.contract_id]
+    invitation_map = {}
+    if contract_ids:
+        for inv in SigningInvitation.objects.filter(
+            contract_id__in=contract_ids
+        ).filter(
+            Q(invited_by=request.user) | Q(invitee_user=request.user)
+        ).values('contract_id', 'id'):
+            cid = str(inv['contract_id'])
+            if cid not in invitation_map:
+                invitation_map[cid] = str(inv['id'])
+
+    for n in notifications:
+        n.invitation_id = invitation_map.get(str(n.contract_id)) if n.contract_id else None
 
     return render(request, 'notifications/list.html', {
         'notifications': notifications,

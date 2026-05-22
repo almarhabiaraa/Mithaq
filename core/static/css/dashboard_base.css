@@ -163,12 +163,19 @@ input {
     border-radius: var(--mithaq-radius-md);
     display: flex;
     align-items: center;
+    position: relative;
     gap: 11px;
     color: var(--mithaq-text-on-dark-muted);
     font-size: 13.5px;
     font-weight: 500;
     transition: var(--mithaq-transition);
     border: 1px solid transparent;
+}
+
+.mithaq-menu-link .mithaq-badge {
+    position: static;
+    margin-inline-start: auto;
+    flex-shrink: 0;
 }
 
 .mithaq-menu-link i {
@@ -303,14 +310,22 @@ input {
     color: var(--mithaq-navy);
 }
 
-.mithaq-icon-btn span {
+.mithaq-badge {
     position: absolute;
-    top: 9px;
-    left: 9px;
-    width: 7px;
-    height: 7px;
-    background: var(--mithaq-gold);
+    top: -6px;
+    left: -6px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
+    background: var(--mithaq-gold);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    pointer-events: none;
 }
 
 .mithaq-profile-btn {

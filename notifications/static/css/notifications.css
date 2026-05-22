@@ -15,12 +15,15 @@
 .notifications-title {
     font-size: 20px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--mithaq-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .mark-all-btn {
     font-size: 13px;
-    color: #C9A84C;
+    color: var(--mithaq-gold);
     background: none;
     border: none;
     cursor: pointer;
@@ -32,9 +35,9 @@
 }
 
 .notification-item {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    background: var(--mithaq-card-bg);
+    border: 1px solid var(--mithaq-border);
+    border-radius: var(--mithaq-radius-sm, 8px);
     padding: 16px 20px;
     margin-bottom: 10px;
     display: flex;
@@ -44,15 +47,16 @@
 }
 
 .notification-item.unread {
-    border-right: 3px solid #C9A84C;
-    background: #fdf6e3;
+    border-right: 3px solid var(--mithaq-gold);
+    background: var(--mithaq-gold-soft);
 }
 
 .notification-icon {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background: #f5f5f5;
+    background: var(--mithaq-soft-bg);
+    color: var(--mithaq-text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -60,43 +64,72 @@
     flex-shrink: 0;
 }
 
+/* Contract notification types */
+.notification-icon.created   { background: #f0fdf4; color: #16a34a; }
 .notification-icon.received  { background: #eff6ff; color: #2563eb; }
 .notification-icon.accepted  { background: #f0fdf4; color: #16a34a; }
 .notification-icon.rejected  { background: #fef2f2; color: #dc2626; }
-.notification-icon.signed    { background: #fdf6e3; color: #C9A84C; }
+.notification-icon.signed    { background: var(--mithaq-gold-soft); color: var(--mithaq-gold); }
 .notification-icon.completed { background: #f0fdf4; color: #15803d; }
+.notification-icon.modified  { background: #fefce8; color: #d97706; }
+
+/* Invitation types */
+.notification-icon.expired   { background: #fff7ed; color: #ea580c; }
+
+/* Subscription types */
+.notification-icon.expiring  { background: #fff7ed; color: #ea580c; }
+
+/* Contract limit */
+.notification-icon.limit_reached { background: #fef2f2; color: #dc2626; }
+
+/* Clickable notification wrapper */
+a.notification-link-wrap {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+a.notification-link-wrap:hover .notification-item {
+    border-color: var(--mithaq-gold);
+    box-shadow: var(--mithaq-shadow-sm);
+}
 
 .notification-body {
     flex: 1;
+    min-width: 0;
 }
 
 .notification-message {
     font-size: 14px;
     font-weight: 500;
-    color: #1a1a1a;
+    color: var(--mithaq-text-primary);
     margin-bottom: 4px;
 }
 
 .notification-contract {
     font-size: 12px;
-    color: #6b7280;
+    color: var(--mithaq-text-secondary);
     margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .notification-time {
     font-size: 11px;
-    color: #9ca3af;
+    color: var(--mithaq-text-secondary);
+    opacity: 0.75;
 }
 
 .no-notifications {
     text-align: center;
     padding: 60px 0;
-    color: #6b7280;
+    color: var(--mithaq-text-secondary);
 }
 
 .no-notifications i {
     font-size: 48px;
-    color: #e5e7eb;
+    color: var(--mithaq-border);
     margin-bottom: 12px;
     display: block;
 }

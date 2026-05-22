@@ -5,18 +5,32 @@ from django.conf import settings
 class Notification(models.Model):
 
     # Notification types
-    CONTRACT_RECEIVED  = 'contract_received'
-    CONTRACT_ACCEPTED  = 'contract_accepted'
-    CONTRACT_REJECTED  = 'contract_rejected'
-    CONTRACT_SIGNED    = 'contract_signed'
-    CONTRACT_COMPLETED = 'contract_completed'
+    CONTRACT_CREATED       = 'contract_created'
+    CONTRACT_RECEIVED      = 'contract_received'
+    CONTRACT_ACCEPTED      = 'contract_accepted'
+    CONTRACT_REJECTED      = 'contract_rejected'
+    CONTRACT_SIGNED        = 'contract_signed'
+    CONTRACT_COMPLETED     = 'contract_completed'
+    INVITATION_RECEIVED    = 'invitation_received'
+    INVITATION_EXPIRED     = 'invitation_expired'
+    CONTRACT_MODIFIED      = 'contract_modified'
+    SUBSCRIPTION_EXPIRING  = 'subscription_expiring'
+    SUBSCRIPTION_EXPIRED   = 'subscription_expired'
+    CONTRACT_LIMIT_REACHED = 'contract_limit_reached'
 
     NOTIFICATION_TYPES = [
-        (CONTRACT_RECEIVED,  'لديك عقد جديد للمراجعة'),
-        (CONTRACT_ACCEPTED,  'تم قبول العقد من الطرف الآخر'),
-        (CONTRACT_REJECTED,  'تم رفض العقد من الطرف الآخر'),
-        (CONTRACT_SIGNED,    'تم التوقيع على العقد'),
-        (CONTRACT_COMPLETED, 'تم توثيق العقد على البلوكشين'),
+        (CONTRACT_CREATED,       'تم إنشاء العقد وإرسال الدعوات'),
+        (CONTRACT_RECEIVED,      'لديك عقد جديد للمراجعة'),
+        (CONTRACT_ACCEPTED,      'تم قبول العقد من الطرف الآخر'),
+        (CONTRACT_REJECTED,      'تم رفض العقد من الطرف الآخر'),
+        (CONTRACT_SIGNED,        'تم التوقيع على العقد'),
+        (CONTRACT_COMPLETED,     'تم توثيق العقد على البلوكشين'),
+        (INVITATION_RECEIVED,    'لديك دعوة توقيع جديدة'),
+        (INVITATION_EXPIRED,     'انتهت صلاحية دعوة التوقيع'),
+        (CONTRACT_MODIFIED,      'تم اقتراح تعديل على العقد'),
+        (SUBSCRIPTION_EXPIRING,  'اشتراكك سينتهي خلال 3 أيام'),
+        (SUBSCRIPTION_EXPIRED,   'انتهت صلاحية اشتراكك'),
+        (CONTRACT_LIMIT_REACHED, 'لقد وصلت إلى الحد الأقصى من العقود'),
     ]
 
     # The user who receives the notification
