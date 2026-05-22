@@ -186,9 +186,9 @@ The platform provides these users with a secure and centralized environment that
 # Author
 
 - Reem Almezeal
--
--
--
+- Rimas Alshahrani
+- Ghadi Ali
+- Araa Almurhabi
 
 
 ---
