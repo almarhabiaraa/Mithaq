@@ -6,3 +6,6 @@ startCommand = "python manage.py migrate && python manage.py seed_plans && gunic
 healthcheckPath = "/"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
+
+[deploy.variables]
+RAILPACK_DEPLOY_APT_PACKAGES = "libglib2.0-0 libpango-1.0-0 libpangocairo-1.0-0 libpangoft2-1.0-0 libfontconfig1 libharfbuzz0b"
