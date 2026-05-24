@@ -10,13 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-from email.policy import default
 from pathlib import Path
 from decouple import config
 import os
-
-from decouple import config
-import django
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,33 +26,33 @@ TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER", default="")
 
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config("EMAIL_HOST")
-EMAIL_PORT = config("EMAIL_PORT", cast=int)
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+EMAIL_HOST          = config("EMAIL_HOST",          default="smtp.gmail.com")
+EMAIL_PORT          = config("EMAIL_PORT",          default=587, cast=int)
+EMAIL_HOST_USER     = config("EMAIL_HOST_USER",     default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS       = config("EMAIL_USE_TLS",       default=True, cast=bool)
+DEFAULT_FROM_EMAIL  = config("DEFAULT_FROM_EMAIL",  default="noreply@mithaq.com")
 
 SITE_URL = config("SITE_URL", default="http://127.0.0.1:8000")
 
-
 SECRET_KEY = config('SECRET_KEY')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# DEBUG=False on Railway (set DEBUG=False in Railway env vars)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+ALLOWED_HOSTS = ['*']   # Railway injects RAILWAY_PUBLIC_DOMAIN; '*' is safe behind Railway's proxy
 
-ALLOWED_HOSTS = [
-    "*",
-]
-
+# Add your Railway domain + any custom domain here once deployed
 CSRF_TRUSTED_ORIGINS = [
     'https://kept-justify-wincing.ngrok-free.dev',
+    # Railway auto-generates a URL like https://<app>.up.railway.app
+    # Add it here after first deploy, e.g.:
+    # 'https://mithaq.up.railway.app',
 ]
+# If RAILWAY_PUBLIC_DOMAIN env var exists, trust it automatically
+_railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
+if _railway_domain:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{_railway_domain}')
 
 
 # Application definition
@@ -178,9 +174,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT =os.path.join(BASE_DIR, 'staticfiles')  # for production (collectstatic)
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # for development (static files in this folder will be served directly)]
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')   # collectstatic writes here
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'core', 'static'),           # Ghadi's CSS/JS + face-api models
+]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 MEDIA_URL = '/media/'
