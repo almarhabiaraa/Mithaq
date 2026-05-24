@@ -1009,9 +1009,58 @@
     color: #991b1b;
 }
 
+.contract-detail-page,
+.contract-detail-page * {
+    box-sizing: border-box;
+}
+
+.contract-detail-page {
+    overflow-x: hidden;
+}
+
+.detail-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+}
+
+.detail-hero > div {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.detail-hero h3,
+.document-header h3,
+.text-box,
+.empty-box,
+.document-info-grid div,
+.document-parties div,
+.summary-list strong,
+.version-item,
+.party-card {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
 @media (max-width: 991px) {
-    .detail-grid,
-    .status-summary,
+    .contract-detail-page {
+        max-width: 100%;
+        padding: 28px 20px 44px;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-side {
+        width: 100%;
+    }
+
+    .status-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
     .document-info-grid,
     .document-parties,
     .parties-grid {
@@ -1021,23 +1070,219 @@
 
 @media (max-width: 767px) {
     .contract-detail-page {
-        padding: 24px 14px 40px;
+        width: 100%;
+        padding: 18px 12px 36px;
     }
 
-    .hero-row,
+    .detail-hero {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 18px 14px;
+        border-radius: 18px;
+    }
+
+    .breadcrumb {
+        font-size: 12px;
+        line-height: 1.8;
+    }
+
+    .detail-hero h3 {
+        font-size: 22px;
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+
+    .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .hero-meta span {
+        max-width: 100%;
+        font-size: 11px;
+        padding: 7px 10px;
+        white-space: normal;
+    }
+
+    .contract-status {
+        width: fit-content;
+        max-width: 100%;
+        white-space: normal;
+        align-self: flex-start;
+        text-align: center;
+        line-height: 1.6;
+    }
+
+    .detail-card {
+        padding: 18px 14px;
+        border-radius: 18px;
+    }
+
+    .card-title h2,
+    .detail-card h2,
+    .status-head h2 {
+        font-size: 18px;
+    }
+
+    .card-title p,
+    .detail-card p,
+    .status-head p {
+        font-size: 12px;
+        line-height: 1.8;
+    }
+
     .status-head {
         flex-direction: column;
     }
 
-    .hero-row h1 {
-        font-size: 26px;
+    .status-summary {
+        grid-template-columns: 1fr;
     }
 
     .contract-document {
-        padding: 22px;
+        padding: 18px 12px;
+        border-radius: 16px;
+    }
+
+    .document-header {
+        padding-bottom: 18px;
+        margin-bottom: 18px;
+    }
+
+    .document-header h3 {
+        font-size: 21px;
+    }
+
+    .document-header p {
+        font-size: 12px;
+        line-height: 1.8;
+    }
+
+    .document-section {
+        margin-bottom: 22px;
+    }
+
+    .document-section h4 {
+        font-size: 16px;
+    }
+
+    .document-info-grid,
+    .document-parties {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .document-info-grid div,
+    .document-parties div,
+    .text-box,
+    .empty-box {
+        padding: 14px 12px;
+        border-radius: 14px;
+    }
+
+    .summary-list div {
+        flex-direction: column;
+        gap: 5px;
+        align-items: flex-start;
+    }
+
+    .summary-list strong {
+        text-align: right;
+    }
+
+    .versions-list,
+    .actions-group {
+        width: 100%;
+    }
+
+    .action-btn {
+        width: 100%;
+        min-height: 48px;
+        font-size: 13px;
+        padding: 12px 14px;
     }
 
     .party-card {
         flex-direction: column;
+    }
+
+    .contract-modal .modal-header,
+    .contract-modal .modal-body,
+    .contract-modal .modal-footer {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .contract-modal .modal-footer {
+        flex-direction: column;
+    }
+
+    .modal-cancel-btn,
+    .modal-primary-btn,
+    .modal-danger-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .contract-detail-page {
+        padding: 14px 10px 32px;
+    }
+
+    .detail-hero {
+        padding: 16px 12px;
+    }
+
+    .detail-hero h3 {
+        font-size: 19px;
+    }
+
+    .hero-meta span {
+        font-size: 10.5px;
+    }
+
+    .detail-card {
+        padding: 15px 11px;
+    }
+
+    .contract-document {
+        padding: 14px 9px;
+    }
+
+    .document-header h3 {
+        font-size: 18px;
+    }
+
+    .document-section h4 {
+        font-size: 15px;
+    }
+
+    .document-info-grid div,
+    .document-parties div,
+    .text-box,
+    .empty-box {
+        padding: 12px 10px;
+    }
+
+    .document-info-grid strong,
+    .document-parties strong {
+        font-size: 13px;
+    }
+
+    .document-info-grid span,
+    .document-parties span,
+    .document-parties small {
+        font-size: 11px;
+    }
+
+    .action-btn {
+        font-size: 12px;
+        border-radius: 12px;
+    }
+
+    .version-item,
+    .version-empty {
+        padding: 12px;
     }
 }

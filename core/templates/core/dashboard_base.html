@@ -1,3 +1,10 @@
+<!--
+Dashboard Base template for the Mithaq platform.
+
+Provides the shared layout for all authenticated dashboard views,
+including the sidebar navigation, top header, notification area, and
+content blocks used across the digital contract management system.
+-->
 {% load static %}
 
 <!DOCTYPE html>
@@ -55,15 +62,13 @@
                     <span>إنشاء عقد</span>
                 </a>
 
-                {# (added by ghadi: الاشتراك → subscription dashboard, shows plan + invoice history) #}
                 <a href="{% url 'subscriptions:dashboard' %}"
                     class="mithaq-menu-link {% if 'subscriptions' in request.path or 'payment' in request.path %}active{% endif %}">
                     <i class="bi bi-gem"></i>
                     <span>الاشتراك</span>
                 </a>
 
-                {# (added by ghadi: التحقق من عقد → public verification page, no login needed) #}
-                <a href="/verify/" class="mithaq-menu-link {% if 'verify' in request.path %}active{% endif %}">
+                <a href="{% url 'verification:verify-page' %}" class="mithaq-menu-link {% if 'verify' in request.path %}active{% endif %}">
                     <i class="bi bi-shield-check"></i>
                     <span>التحقق من عقد</span>
                 </a>
@@ -99,10 +104,10 @@
                     <i class="bi bi-list"></i>
                 </button>
 
-                <div class="mithaq-navbar-search">
+                <form class="mithaq-navbar-search" action="{% url 'search' %}" method="get">
                     <i class="bi bi-search"></i>
-                    <input type="text" placeholder="ابحث عن عقد، عميل، أو معاملة...">
-                </div>
+                    <input type="text" name="q" placeholder="ابحث عن عقد، عميل، أو معاملة..." value="{{ request.GET.q|default:'' }}" autocomplete="off">
+                </form>
 
                 <div class="mithaq-navbar-actions">
                     <a href="{% url 'notifications:list' %}" class="mithaq-icon-btn">

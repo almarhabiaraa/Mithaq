@@ -31,6 +31,7 @@
 
 import logging
 
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -213,12 +214,12 @@ class PaymentHistoryView(APIView):
 # /api/subscriptions/payment/success/ and /payment/failed/ instead.
 # These views redirect to the correct pages so direct navigation still works.
 
-def payment_success(request):
+def payment_success(request: HttpRequest):
     """Redirect to the dashboard-integrated success page in the subscriptions app."""
     return redirect('/api/subscriptions/payment/success/')
 
 
-def payment_failed(request):
+def payment_failed(request: HttpRequest):
     """Redirect to the dashboard-integrated failed page in the subscriptions app."""
     plan_id = request.GET.get('plan_id', '')
     return redirect(f'/api/subscriptions/payment/failed/?plan_id={plan_id}')

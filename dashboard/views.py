@@ -1,3 +1,4 @@
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.db.models import Q
 from django.utils import timezone
@@ -15,7 +16,7 @@ STATUS_MAP = {
 }
 
 
-def dashboard_view(request):
+def dashboard_view(request: HttpRequest):
     status_filter    = request.GET.get('status', '')
     type_filter      = request.GET.get('type', '')
     date_filter      = request.GET.get('date', 'newest')

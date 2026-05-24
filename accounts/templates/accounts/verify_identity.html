@@ -1,559 +1,157 @@
-{% extends "core/dashboard_base.html" %}
+<!--  
+Identity Verification page for the Mithaq platform.
+
+Guides users through the identity verification process by collecting and
+validating required personal documents, ensuring that all parties in a
+contract are authenticated within the digital contract management system.
+  -->
+{% extends 'core/dashboard_base.html' %}
 {% load static %}
 
-{% block title %}التحقق من الهوية — ميثاق{% endblock %}
+{% block title %}
+  التحقق من الهوية — ميثاق
+{% endblock %}
 
 {% block extra_css %}
-{# Tailwind is not loaded by dashboard_base — this page uses Tailwind utilities so we load it here #}
-<script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'css/accountscss.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/verify_identity.css' %}">
 {% endblock %}
 
 {% block content %}
+  <main class="verify-page" dir="rtl">
+    <nav class="verify-breadcrumb">
+      <a href="{% url 'dashboard:dashboard' %}">الرئيسية</a>
+      <span>←</span>
+      <span>التحقق من الهوية</span>
+    </nav>
 
-<!-- Breadcrumb -->
-<nav class="text-sm text-gray-500 mb-6">
-    <a href="/dashboard/" class="hover:text-gray-800">الرئيسية</a>
-    <span class="mx-2">←</span>
-    <span class="text-gray-800">التحقق من الهوية</span>
-</nav>
+    <section class="verify-header">
+      <h1>التحقق من الهوية</h1>
+      <p>يجب التحقق من هويتك قبل توقيع أي عقد على منصة ميثاق</p>
+    </section>
 
-<!-- Page Header -->
-<div class="mb-8">
-    <h1 class="text-2xl font-bold text-gray-900">التحقق من الهوية</h1>
-    <p class="text-gray-500 mt-1">
-        يجب التحقق من هويتك قبل توقيع أي عقد على منصة ميثاق
-    </p>
-</div>
-
-{% if is_verified %}
-<!-- Already Verified State -->
-<div class="max-w-lg">
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
-        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-        </div>
-        <h2 class="text-xl font-bold text-gray-900 mb-2">تم التحقق من هويتك</h2>
-        <p class="text-gray-500 text-sm mb-6">
-            هويتك موثّقة ويمكنك توقيع العقود على منصة ميثاق
-        </p>
-        <p class="text-xs text-gray-400">
-            تاريخ التحقق: {{ verified_at|date:"d F Y — H:i" }}
-        </p>
-        <a href="/dashboard/" 
-           class="mt-6 inline-block bg-navy text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition"
-           style="background-color: #1B2A4A">
-            العودة للوحة التحكم
-        </a>
-    </div>
-</div>
-
-{% else %}
-<!-- Verification Flow -->
-<div class="max-w-2xl">
-
-    <!-- Steps indicator -->
-    <div class="flex items-center gap-4 mb-8">
-        <div class="flex items-center gap-2">
-            <div id="step1-indicator" 
-                 class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                 style="background-color: #1B2A4A">
-                1
-            </div>
-            <span class="text-sm font-medium">صورة الهوية</span>
-        </div>
-        <div class="flex-1 h-px bg-gray-200"></div>
-        <div class="flex items-center gap-2">
-            <div id="step2-indicator"
-                 class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-gray-200 text-gray-500">
-                2
-            </div>
-            <span class="text-sm font-medium text-gray-500">الكاميرا</span>
-        </div>
-        <div class="flex-1 h-px bg-gray-200"></div>
-        <div class="flex items-center gap-2">
-            <div id="step3-indicator"
-                 class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-gray-200 text-gray-500">
-                3
-            </div>
-            <span class="text-sm font-medium text-gray-500">النتيجة</span>
-        </div>
-    </div>
-
-    <!-- STEP 1: Upload ID Photo -->
-    <div id="step1" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-        <h2 class="text-lg font-bold mb-2">الخطوة 1 — صورة الهوية الوطنية</h2>
-        <p class="text-gray-500 text-sm mb-6">
-            قم بتحميل صورة واضحة لهويتك الوطنية أو الإقامة
-        </p>
-
-        <!-- Upload area -->
-        <label for="id-upload"
-               class="block border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-yellow-500 transition">
-            <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-            <p class="text-gray-500 text-sm">اضغط لاختيار صورة الهوية</p>
-            <p class="text-gray-400 text-xs mt-1">JPG, PNG — أقل من 5MB</p>
-            <input type="file" id="id-upload" accept="image/*" class="hidden">
-        </label>
-
-        <!-- ID Preview -->
-        <div id="id-preview" class="hidden mt-4">
-            <img id="id-img" class="w-full max-h-48 object-contain rounded-xl border border-gray-200">
-            <p class="text-green-600 text-sm mt-2 text-center">✅ تم تحميل صورة الهوية</p>
+    {% if is_verified %}
+      <section class="verified-card">
+        <div class="verified-icon">
+          <span>✓</span>
         </div>
 
-        <!-- Next button -->
-        <button id="step1-next"
-                onclick="goToStep2()"
-                disabled
-                class="mt-6 w-full py-3 rounded-xl font-semibold text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
-                style="background-color: #1B2A4A">
-            التالي — فتح الكاميرا
-        </button>
-    </div>
+        <h2>تم التحقق من هويتك</h2>
 
-    <!-- STEP 2: Camera Selfie -->
-    <div id="step2" class="hidden bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-        <h2 class="text-lg font-bold mb-2">الخطوة 2 — التقط صورة وجهك</h2>
-        <p class="text-gray-500 text-sm mb-6">
-            انظر مباشرة إلى الكاميرا وتأكد من إضاءة جيدة
-        </p>
+        <p>هويتك موثّقة ويمكنك توقيع العقود على منصة ميثاق</p>
 
-        <!-- Loading models -->
-        <div id="models-loading" class="text-center py-8">
-            <div class="w-10 h-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-            <p class="text-gray-500 text-sm">جارٍ تحميل نماذج الذكاء الاصطناعي...</p>
+        <small>تاريخ التحقق: {{ verified_at|date:'d F Y — H:i' }}</small>
+
+        <a href="{% url 'dashboard:dashboard' %}" class="verify-main-btn">العودة للوحة التحكم</a>
+      </section>
+    {% else %}
+      <section class="verify-wrapper">
+        <div class="verify-steps">
+          <div class="verify-step active">
+            <div id="step1-indicator" class="step-number active">1</div>
+            <span>صورة الهوية</span>
+          </div>
+
+          <div class="step-line"></div>
+
+          <div class="verify-step">
+            <div id="step2-indicator" class="step-number">2</div>
+            <span>الكاميرا</span>
+          </div>
+
+          <div class="step-line"></div>
+
+          <div class="verify-step">
+            <div id="step3-indicator" class="step-number">3</div>
+            <span>النتيجة</span>
+          </div>
         </div>
 
-        <!-- Camera view -->
-        <div id="camera-container" class="hidden">
-            <div class="relative rounded-xl overflow-hidden bg-black">
-                <video id="camera-video"
-                       class="w-full max-h-64 object-cover"
-                       autoplay muted playsinline></video>
-                <canvas id="face-canvas"
-                        class="absolute inset-0 w-full h-full"></canvas>
+        <div id="step1" class="verify-card">
+          <h2>الخطوة 1 — صورة الهوية الوطنية</h2>
+          <p>قم بتحميل صورة واضحة لهويتك الوطنية أو الإقامة</p>
 
-                <!-- Face guide overlay -->
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div class="w-40 h-48 border-4 border-yellow-400 rounded-full opacity-60"></div>
-                </div>
+          <label for="id-upload" class="upload-box">
+            <div class="upload-icon">⬆</div>
+            <strong>اضغط لاختيار صورة الهوية</strong>
+            <span>JPG, PNG — أقل من 5MB</span>
+            <input type="file" id="id-upload" accept="image/*" />
+          </label>
+
+          <div id="id-preview" class="preview-box hidden">
+            <img id="id-img" alt="صورة الهوية" />
+            <p>تم تحميل صورة الهوية</p>
+          </div>
+
+          <button id="step1-next" onclick="goToStep2()" disabled class="verify-main-btn full-btn">التالي — فتح الكاميرا</button>
+        </div>
+
+        <div id="step2" class="verify-card hidden">
+          <h2>الخطوة 2 — التقط صورة وجهك</h2>
+          <p>انظر مباشرة إلى الكاميرا وتأكد من إضاءة جيدة</p>
+
+          <div id="models-loading" class="loading-box">
+            <div class="spinner"></div>
+            <p>جارٍ تحميل نماذج الذكاء الاصطناعي...</p>
+          </div>
+
+          <div id="camera-container" class="camera-container hidden">
+            <div class="camera-box">
+              <video id="camera-video" autoplay muted playsinline></video>
+
+              <canvas id="face-canvas"></canvas>
+
+              <div class="face-guide"></div>
             </div>
 
-            <!-- Face detection status -->
-            <div id="face-status" class="mt-3 text-center text-sm text-gray-500">
-                ابحث عن وجهك في الكاميرا...
-            </div>
+            <div id="face-status" class="face-status">ابحث عن وجهك في الكاميرا...</div>
 
-            <!-- Capture button -->
-            <button id="capture-btn"
-                    onclick="captureSelfie()"
-                    disabled
-                    class="mt-4 w-full py-3 rounded-xl font-semibold text-white transition disabled:opacity-40"
-                    style="background-color: #C9A84C; color: #1B2A4A">
-                التقط الصورة
-            </button>
+            <button id="capture-btn" onclick="captureSelfie()" disabled class="verify-gold-btn full-btn">التقط الصورة</button>
+          </div>
+
+          <div id="selfie-preview" class="preview-box hidden">
+            <img id="selfie-img" alt="صورة الوجه" />
+            <p>تم التقاط صورتك</p>
+
+           <buttononclick="retakeSelfie()" class="verify-outline-btn full-btn" إعادة الالتقاط </buttononclick=>  
+          </div>
+
+          <button id="compare-btn" onclick="compareFaces()" disabled class="verify-main-btn full-btn">مقارنة الوجوه والتحقق</button>
         </div>
 
-        <!-- Selfie preview after capture -->
-        <div id="selfie-preview" class="hidden mt-4">
-            <img id="selfie-img" class="w-full max-h-48 object-contain rounded-xl border border-gray-200">
-            <p class="text-green-600 text-sm mt-2 text-center">✅ تم التقاط صورتك</p>
-            <button onclick="retakeSelfie()"
-                    class="mt-2 w-full py-2 rounded-xl text-sm border border-gray-300 text-gray-600 hover:bg-gray-50">
-                إعادة الالتقاط
-            </button>
+        <div id="step3" class="verify-card result-card hidden">
+          <div id="comparing-loading">
+            <div class="spinner large"></div>
+            <h3>جارٍ مقارنة الوجوه...</h3>
+            <p>يرجى الانتظار</p>
+          </div>
+
+          <div id="result-success" class="hidden">
+            <div class="result-icon success">✓</div>
+
+            <h2>تم التحقق من هويتك بنجاح!</h2>
+
+            <p>تطابق وجهك مع صورة الهوية. يمكنك الآن توقيع العقود.</p>
+
+            <a href="{% url 'dashboard:dashboard' %}" class="verify-main-btn">العودة للوحة التحكم</a>
+          </div>
+
+          <div id="result-failure" class="hidden">
+            <div class="result-icon danger">×</div>
+
+            <h2>لم يتم التعرف على وجهك</h2>
+
+            <p>لم يتطابق وجهك مع صورة الهوية. يرجى المحاولة مجددًا مع التأكد من إضاءة جيدة.</p>
+
+            <button onclick="resetVerification()" class="verify-gold-btn">حاول مجددًا</button>
+          </div>
         </div>
-
-        <!-- Compare button -->
-        <button id="compare-btn"
-                onclick="compareFaces()"
-                disabled
-                class="mt-4 w-full py-3 rounded-xl font-semibold text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
-                style="background-color: #1B2A4A">
-            مقارنة الوجوه والتحقق
-        </button>
-    </div>
-
-    <!-- STEP 3: Result -->
-    <div id="step3" class="hidden bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
-
-        <!-- Loading state -->
-        <div id="comparing-loading">
-            <div class="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p class="text-gray-600 font-semibold">جارٍ مقارنة الوجوه...</p>
-            <p class="text-gray-400 text-sm mt-1">يرجى الانتظار</p>
-        </div>
-
-        <!-- Success state -->
-        <div id="result-success" class="hidden">
-            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-            </div>
-            <h2 class="text-xl font-bold text-green-700 mb-2">تم التحقق من هويتك بنجاح! 🎉</h2>
-            <p class="text-gray-500 text-sm mb-6">
-                تطابق وجهك مع صورة الهوية. يمكنك الآن توقيع العقود.
-            </p>
-            <a href="/dashboard/"
-               class="inline-block text-white px-8 py-3 rounded-xl font-semibold hover:opacity-90 transition"
-               style="background-color: #1B2A4A">
-                العودة للوحة التحكم
-            </a>
-        </div>
-
-        <!-- Failure state -->
-        <div id="result-failure" class="hidden">
-            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </div>
-            <h2 class="text-xl font-bold text-red-700 mb-2">لم يتم التعرف على وجهك</h2>
-            <p class="text-gray-500 text-sm mb-6">
-                لم يتطابق وجهك مع صورة الهوية. يرجى المحاولة مجدداً مع التأكد من إضاءة جيدة.
-            </p>
-            <button onclick="resetVerification()"
-                    class="text-white px-8 py-3 rounded-xl font-semibold hover:opacity-90 transition"
-                    style="background-color: #C9A84C; color: #1B2A4A">
-                حاول مجدداً
-            </button>
-        </div>
-
-    </div>
-
-</div>
-{% endif %}
-
-<!-- face-api.js -->
-<script src="{% static 'js/face-api.min.js' %}"></script>
-
-<script>
-// ─── State ────────────────────────────────────────────────────────────────────
-let idImageElement       = null;   // the uploaded ID photo
-let selfieDataUrl        = null;   // the captured selfie
-let cameraStream         = null;   // active camera stream
-let modelsLoaded         = false;  // track if face-api models are ready
-let faceDetected         = false;  // track if face is visible in camera
-let faceDetectionInterval = null;  // stored so we can clearInterval when leaving step 2
-
-// ─── Step Navigation ──────────────────────────────────────────────────────────
-async function goToStep2() {
-    document.getElementById('step1').classList.add('hidden');
-    document.getElementById('step2').classList.remove('hidden');
-
-    document.getElementById('step2-indicator').style.backgroundColor = '#1B2A4A';
-    document.getElementById('step2-indicator').style.color = 'white';
-
-    // Run both in parallel — wait for BOTH to finish before showing camera
-    await Promise.all([
-        startCamera(),
-        loadModels()
-    ]);
-}
-
-function goToStep3() {
-    // Stop the face detection loop before stopping the camera
-    if (faceDetectionInterval) {
-        clearInterval(faceDetectionInterval);
-        faceDetectionInterval = null;
-    }
-
-    // Stop camera stream
-    if (cameraStream) {
-        cameraStream.getTracks().forEach(t => t.stop());
-    }
-
-    document.getElementById('step2').classList.add('hidden');
-    document.getElementById('step3').classList.remove('hidden');
-
-    // Update step indicators
-    document.getElementById('step3-indicator').style.backgroundColor = '#1B2A4A';
-    document.getElementById('step3-indicator').style.color = 'white';
-}
-
-// ─── Step 1: ID Upload ────────────────────────────────────────────────────────
-document.getElementById('id-upload').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-        const img = document.getElementById('id-img');
-        img.src = ev.target.result;
-
-        // Create image element for face-api.js to use later
-        idImageElement = new Image();
-        idImageElement.src = ev.target.result;
-
-        document.getElementById('id-preview').classList.remove('hidden');
-        document.getElementById('step1-next').disabled = false;
-    };
-    reader.readAsDataURL(file);
-});
-
-// ─── Step 2: Camera ───────────────────────────────────────────────────────────
-async function startCamera() {
-    try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-            video: { 
-                width: { ideal: 640 }, 
-                height: { ideal: 480 }, 
-                facingMode: 'user' 
-            }
-        });
-
-        const video = document.getElementById('camera-video');
-        video.srcObject = cameraStream;
-
-        // Wait for video metadata to load before proceeding
-        await new Promise(resolve => {
-            video.onloadedmetadata = () => {
-                video.width = video.videoWidth;
-                video.height = video.videoHeight;
-                resolve();
-            };
-        });
-
-        await video.play();
-
-    } catch (err) {
-        document.getElementById('face-status').textContent =
-            '❌ لا يمكن الوصول إلى الكاميرا. تأكد من السماح بالوصول.';
-        document.getElementById('face-status').style.color = '#C0392B';
-    }
-}
-
-async function loadModels() {
-    if (modelsLoaded) return;
-
-    const MODEL_URL = window.location.origin + "/static/models";
-
-    try {
-        await Promise.all([
-            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-            faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-            faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-        ]);
-
-        modelsLoaded = true;
-
-        // Hide loading spinner, show camera
-        document.getElementById('models-loading').classList.add('hidden');
-        document.getElementById('camera-container').classList.remove('hidden');
-
-        // Start detection AFTER both camera and models are ready
-        detectFaceLoop();
-
-    } catch (err) {
-        document.getElementById('models-loading').innerHTML =
-            '<p class="text-red-600 text-sm text-center">❌ خطأ في تحميل نماذج الذكاء الاصطناعي</p>';
-    }
-}
-
-async function detectFaceLoop() {
-    const video = document.getElementById('camera-video');
-    const statusEl = document.getElementById('face-status');
-    const captureBtn = document.getElementById('capture-btn');
-
-    // Wait for video to be fully ready before starting detection
-    await new Promise(resolve => {
-        if (video.readyState >= 2) {
-            resolve();
-        } else {
-            video.addEventListener('loadeddata', resolve, { once: true });
-        }
-    });
-
-    // Run every 300ms — store the ID so we can clearInterval on step exit
-    if (faceDetectionInterval) clearInterval(faceDetectionInterval);
-    faceDetectionInterval = setInterval(async () => {
-        if (!modelsLoaded || video.paused || video.ended) return;
-
-        // Guard 1: stream dimensions must be valid (0 until camera starts)
-        if (!video.videoWidth || !video.videoHeight) return;
-
-        // Guard 2: readyState must be HAVE_ENOUGH_DATA (4).
-        // readyState < 4 means the first frames are still arriving — face-api
-        // can compute invalid/negative bounding boxes from incomplete frame data,
-        // which is what causes the Box.constructor error.
-        if (video.readyState < 4) return;
-
-        try {
-            const detection = await faceapi.detectSingleFace(
-                video,
-                new faceapi.TinyFaceDetectorOptions({ 
-                    inputSize: 224, 
-                    scoreThreshold: 0.3  
-                })
-            );
-
-            if (detection) {
-                faceDetected = true;
-                statusEl.textContent = '✅ تم الكشف عن وجهك — اضغط التقاط';
-                statusEl.style.color = '#16A34A';
-                captureBtn.disabled = false;
-            } else {
-                faceDetected = false;
-                statusEl.textContent = 'ابحث عن وجهك في الكاميرا...';
-                statusEl.style.color = '#6B7280';
-                captureBtn.disabled = true;
-            }
-        } catch (err) {
-            // Swallow per-frame errors so the loop keeps running
-        }
-    }, 300);
-}
-
-function captureSelfie() {
-    const video = document.getElementById('camera-video');
-    const canvas = document.createElement('canvas');
-    canvas.width  = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-
-    selfieDataUrl = canvas.toDataURL('image/jpeg', 0.9);
-
-    // Show preview
-    document.getElementById('selfie-img').src = selfieDataUrl;
-    document.getElementById('selfie-preview').classList.remove('hidden');
-    document.getElementById('camera-container').classList.add('hidden');
-    document.getElementById('compare-btn').disabled = false;
-}
-
-function retakeSelfie() {
-    selfieDataUrl = null;
-    document.getElementById('selfie-preview').classList.add('hidden');
-    document.getElementById('camera-container').classList.remove('hidden');
-    document.getElementById('compare-btn').disabled = true;
-}
-
-// ─── Step 3: Face Comparison ──────────────────────────────────────────────────
-async function compareFaces() {
-    goToStep3();
-
-    try {
-        // Get face descriptor from ID photo
-        const idDescriptor = await getFaceDescriptor(idImageElement);
-        if (!idDescriptor) {
-            showResult(false, 'لم يتم الكشف عن وجه في صورة الهوية');
-            return;
-        }
-
-        // Get face descriptor from selfie
-        const selfieImg = new Image();
-        selfieImg.src = selfieDataUrl;
-        await selfieImg.decode();
-
-        const selfieDescriptor = await getFaceDescriptor(selfieImg);
-        if (!selfieDescriptor) {
-            showResult(false, 'لم يتم الكشف عن وجه في الصورة الملتقطة');
-            return;
-        }
-
-        // Compare the two faces
-        // Distance < 0.5 = very strong match
-        // Distance < 0.6 = good match
-        // Distance > 0.6 = no match
-        const distance = faceapi.euclideanDistance(idDescriptor, selfieDescriptor);
-        console.log('Face distance:', distance);
-
-        if (distance < 0.6) {
-            // Faces match — notify backend
-            await notifyBackend();
-            showResult(true);
-        } else {
-            showResult(false);
-        }
-
-    } catch (err) {
-        console.error('Comparison error:', err);
-        showResult(false, 'حدث خطأ أثناء المقارنة');
-    }
-}
-
-async function getFaceDescriptor(imgElement) {
-    const detection = await faceapi
-    .detectSingleFace(imgElement, new faceapi.TinyFaceDetectorOptions({
-        inputSize: 224,
-        scoreThreshold: 0.3
-    }))
-    .withFaceLandmarks()
-    .withFaceDescriptor();
-
-    return detection ? detection.descriptor : null;
-}
-
-async function notifyBackend() {
-    const csrfToken = document.cookie.split(';')
-        .map(c => c.trim())
-        .find(c => c.startsWith('csrftoken='))
-        ?.split('=')[1] || '';
-
-    const response = await fetch('/accounts/verify-identity/confirm/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken,
-        },
-    });
-
-    const data = await response.json();
-    console.log('Backend response:', data);
-}
-
-function showResult(success) {
-    document.getElementById('comparing-loading').classList.add('hidden');
-
-    if (success) {
-        document.getElementById('result-success').classList.remove('hidden');
-    } else {
-        document.getElementById('result-failure').classList.remove('hidden');
-    }
-}
-
-// face-api.js occasionally throws Box.constructor errors inside its own internal
-// promise chains — outside the scope of our try/catch. This global handler
-// suppresses them so they don't spam the console during the detection loop.
-window.addEventListener('unhandledrejection', function(event) {
-    if (event.reason && event.reason.message &&
-        event.reason.message.includes('Box.constructor')) {
-        event.preventDefault();
-    }
-});
-
-function resetVerification() {
-    selfieDataUrl  = null;
-    idImageElement = null;
-
-    // Stop the detection loop — without this, old intervals stack up on retries
-    if (faceDetectionInterval) {
-        clearInterval(faceDetectionInterval);
-        faceDetectionInterval = null;
-    }
-
-    document.getElementById('step3').classList.add('hidden');
-    document.getElementById('step1').classList.remove('hidden');
-    document.getElementById('id-preview').classList.add('hidden');
-    document.getElementById('step1-next').disabled = true;
-
-    // Reset step indicators
-    document.getElementById('step2-indicator').style.backgroundColor = '#E5E7EB';
-    document.getElementById('step2-indicator').style.color = '#6B7280';
-    document.getElementById('step3-indicator').style.backgroundColor = '#E5E7EB';
-    document.getElementById('step3-indicator').style.color = '#6B7280';
-
-    // Stop camera stream
-    if (cameraStream) {
-        cameraStream.getTracks().forEach(t => t.stop());
-        cameraStream = null;
-    }
-}
-</script>
-
+      </section>
+    {% endif %}
+  </main>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/face-api.min.js' %}"></script>
+  <script src="{% static 'js/verify_identity.js' %}"></script>
 {% endblock %}

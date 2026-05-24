@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from rest_framework.views import APIView
@@ -74,7 +75,7 @@ class UnreadCountView(APIView):
 
 
 @login_required(login_url="accounts:sign_in")
-def notification_list_page(request):
+def notification_list_page(request: HttpRequest):
     """Render notifications HTML page"""
     from invitations.models import SigningInvitation
 

@@ -1,3 +1,10 @@
+<!--
+Payment Failed page for the Mithaq platform.
+
+Informs the user that their one-time payment was unsuccessful and
+provides guidance on next steps such as retrying the transaction
+or contacting support within the digital contract management system.
+-->
 {% extends "base.html" %}
 
 {% block title %}لم تتم عملية الدفع — ميثاق{% endblock %}
@@ -18,7 +25,7 @@
     </p>
 
     <div class="space-y-3">
-      <a href="/api/subscriptions/plans-page/"
+      <a href="{% url 'subscriptions:plans_page' %}"
          class="inline-flex items-center gap-2 w-full justify-center
                 px-6 py-3 rounded-xl text-sm font-bold text-white
                 bg-brand-gold hover:bg-brand-gold-dark active:scale-95 transition-all duration-150">

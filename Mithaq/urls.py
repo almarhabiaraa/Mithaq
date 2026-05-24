@@ -6,6 +6,7 @@ from core import views as core_views
 
 urlpatterns = [
     path("", core_views.home, name="home"),
+    path("search/", core_views.search_view, name="search"),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
     

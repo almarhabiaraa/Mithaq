@@ -24,25 +24,25 @@ across all pages.
 <body>
 
     <nav class="nav">
-        <a href="/" class="nav-logo">ميثاق</a>
+        <a href="{% url 'home' %}" class="nav-logo">ميثاق</a>
 
         <div class="nav-links">
             {% if user.is_authenticated %}
                 <a href="/contracts/dashboard/" class="nav-link">عقودي</a>
-                <a href="/notifications/" class="nav-link">الإشعارات</a>
+                <a href="{% url 'notifications:list' %}" class="nav-link">الإشعارات</a>
 
                 <span class="nav-user">
                     {{ user.full_name }}
                 </span>
 
-                <a href="/accounts/logout/"
+                <a href="{% url 'accounts:log_out' %}"
                    class="btn btn-outline logout-btn">
                     خروج
                 </a>
 
             {% else %}
 
-                <a href="/accounts/login/" class="btn btn-primary">
+                <a href="{% url 'accounts:sign_in' %}" class="btn btn-primary">
                     دخول
                 </a>
 

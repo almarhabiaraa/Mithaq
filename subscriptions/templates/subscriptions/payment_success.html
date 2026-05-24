@@ -1,3 +1,10 @@
+<!--
+Subscription Payment Success page for the Mithaq platform.
+
+Confirms that the user's subscription payment was completed successfully
+and displays the activated plan details along with next steps for using
+premium features within the digital contract management system.
+-->
 {% extends "core/dashboard_base.html" %}
 {% load static %}
 
@@ -56,13 +63,13 @@
 
       <!-- Action buttons -->
       <div style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center;">
-        <a href="/contracts/create/" class="btn-gold">
+        <a href="{% url 'contracts:contract_create' %}" class="btn-gold">
           إنشاء عقد الآن
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
           </svg>
         </a>
-        <a href="/dashboard/" class="btn-outlined">
+        <a href="{% url 'dashboard:dashboard' %}" class="btn-outlined">
           لوحة التحكم
         </a>
       </div>

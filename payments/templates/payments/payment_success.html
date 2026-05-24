@@ -1,3 +1,10 @@
+<!--
+Payment Success page for the Mithaq platform.
+
+Confirms that the user's one-time payment was processed successfully
+and displays a summary of the completed transaction along with
+instructions for proceeding within the digital contract management system.
+-->
 {% extends "base.html" %}
 
 {% block title %}تم الدفع بنجاح — ميثاق{% endblock %}
@@ -51,13 +58,13 @@
     {% endif %}
 
     <div class="space-y-3">
-      <a href="/contracts/create/"
+      <a href="{% url 'contracts:contract_create' %}"
          class="inline-flex items-center gap-2 w-full justify-center
                 px-6 py-3 rounded-xl text-sm font-bold text-white
                 bg-brand-gold hover:bg-brand-gold-dark active:scale-95 transition-all duration-150">
         إنشاء عقد الآن
       </a>
-      <a href="/dashboard/"
+      <a href="{% url 'dashboard:dashboard' %}"
          class="inline-flex items-center gap-2 w-full justify-center
                 px-6 py-3 rounded-xl text-sm font-bold text-black
                 border-2 border-black hover:bg-black hover:text-white

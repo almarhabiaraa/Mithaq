@@ -1,3 +1,10 @@
+<!--
+Subscription Plans page for the Mithaq platform.
+
+Displays all available subscription tiers with their features and pricing,
+allowing users to compare plans and select the one that best suits their
+contract management needs within the digital contract management system.
+-->
 {% extends "core/dashboard_base.html" %}
 {% load static %}
 
@@ -11,7 +18,7 @@
 
 <!-- Breadcrumb -->
 <nav style="font-size:13px; color:var(--text-grey); margin-bottom:24px;">
-  <a href="/" style="color:var(--text-grey); text-decoration:none;">الرئيسية</a>
+  <a href="{% url 'home' %}" style="color:var(--text-grey); text-decoration:none;">الرئيسية</a>
   <span style="margin:0 8px;">←</span>
   <a href="{% url 'subscriptions:dashboard' %}" style="color:var(--text-grey); text-decoration:none;">الاشتراكات</a>
   <span style="margin:0 8px;">←</span>

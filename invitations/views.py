@@ -2,6 +2,7 @@ import json
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render, redirect
 from django.views.decorators.http import require_POST
 from contracts.models import Contract, ContractVersion, ContractModificationRequest, ContractClause
@@ -12,6 +13,7 @@ from django.utils import timezone
 from signatures.models import Signature
 from notifications.services import NotificationService
 from notifications.models import Notification
+from django.urls import reverse
 
 
 
@@ -21,7 +23,7 @@ def _as_bool(value):
     return value in [True, "true", "True", "1", 1, "on"]
 
 @login_required
-def access_invitation(request, secret):
+def access_invitation(request: HttpRequest, secret):
     secret_hash = SigningInvitation.hash_secret(secret)
 
     invitation = get_object_or_404(
@@ -74,7 +76,7 @@ def access_invitation(request, secret):
 
 
 @login_required
-def my_contracts(request):
+def my_contracts(request: HttpRequest):
     sent_invitations = SigningInvitation.objects.filter(
         invited_by=request.user
     ).select_related("contract", "invitee_user", "invited_by")
@@ -127,7 +129,7 @@ def my_contracts(request):
 
 
 @login_required
-def invitation_contract_detail(request, invitation_id):
+def invitation_contract_detail(request: HttpRequest, invitation_id):
     invitation = get_object_or_404(
         SigningInvitation.objects.select_related(
             "contract",
@@ -355,7 +357,7 @@ def invitation_contract_detail(request, invitation_id):
 
 @login_required
 @require_POST
-def reject_invitation_contract(request, invitation_id):
+def reject_invitation_contract(request: HttpRequest, invitation_id):
     invitation = get_object_or_404(
         SigningInvitation,
         id=invitation_id,
@@ -394,7 +396,7 @@ def _get_client_ip(request):
 
 @login_required
 @require_POST
-def sign_invitation_contract(request, invitation_id):
+def sign_invitation_contract(request: HttpRequest, invitation_id):
     invitation = get_object_or_404(
         SigningInvitation.objects.select_related(
             "contract",
@@ -405,6 +407,16 @@ def sign_invitation_contract(request, invitation_id):
     )
 
     contract = invitation.contract
+
+    if not request.user.is_verified:
+        messages.error(
+            request,
+            "يجب التحقق من الهوية قبل توقيع العقد."
+        )
+
+        return redirect(
+            f"{reverse('accounts:verify_identity')}?next={request.path}"
+        )
 
     if not invitation.can_sign:
         messages.error(request, "لا تملك صلاحية التوقيع على هذا العقد")
@@ -479,7 +491,6 @@ def sign_invitation_contract(request, invitation_id):
 
     invitation.mark_as_signed()
 
-    # Notify all other stakeholders that a signature was added
     print(f"[Notif] sign_invitation_contract: CONTRACT_SIGNED → stakeholders (exclude user_id={request.user.id})")
     NotificationService.notify_contract_stakeholders(
         contract=contract,
@@ -487,7 +498,6 @@ def sign_invitation_contract(request, invitation_id):
         exclude_user=request.user,
     )
 
-    # Check if all signable parties have now signed → contract complete
     unsigned_remain = contract.signing_invitations.filter(
         can_sign=True,
         status__in=[
@@ -512,7 +522,7 @@ def sign_invitation_contract(request, invitation_id):
 
 @login_required
 @require_POST
-def cancel_contract(request, invitation_id):
+def cancel_contract(request: HttpRequest, invitation_id):
     invitation = get_object_or_404(
         SigningInvitation,
         id=invitation_id,
@@ -547,7 +557,7 @@ def cancel_contract(request, invitation_id):
     )
 @login_required
 @require_POST
-def submit_contract_modification(request, contract_id):
+def submit_contract_modification(request: HttpRequest, contract_id):
     contract = get_object_or_404(Contract, id=contract_id)
 
     is_owner = contract.creator == request.user
@@ -622,7 +632,7 @@ def submit_contract_modification(request, contract_id):
 
 @login_required
 @require_POST
-def add_contract_invitation(request, contract_id):
+def add_contract_invitation(request: HttpRequest, contract_id):
     contract = get_object_or_404(
         Contract,
         id=contract_id,
@@ -761,7 +771,7 @@ def add_contract_invitation(request, contract_id):
 
 @login_required
 @require_POST
-def reject_contract_modification(request, modification_id):
+def reject_contract_modification(request: HttpRequest, modification_id):
     modification = get_object_or_404(
         ContractModificationRequest,
         id=modification_id,
@@ -804,7 +814,7 @@ def reject_contract_modification(request, modification_id):
 
 @login_required
 @require_POST
-def accept_invitation_contract(request, invitation_id):
+def accept_invitation_contract(request: HttpRequest, invitation_id):
     invitation = get_object_or_404(
         SigningInvitation,
         id=invitation_id,
@@ -839,7 +849,7 @@ def accept_invitation_contract(request, invitation_id):
 
 @login_required
 @require_POST
-def approve_contract_modification(request, modification_id):
+def approve_contract_modification(request: HttpRequest, modification_id):
     modification = get_object_or_404(
         ContractModificationRequest,
         id=modification_id,

@@ -128,9 +128,9 @@ progress, and quick access to the main contract management features.
                 <h3>إجراءات سريعة</h3>
             </div>
             <div class="mithaq-quick-actions">
-                <a href="/api/contracts/create/">إنشاء عقد</a>
+                <a href="{% url 'contracts:contract_create' %}">إنشاء عقد</a>
                 <a href="#">دعوة طرف</a>
-                <a href="/verify/">التحقق من عقد</a>
+                <a href="{% url 'verification:verify-page' %}">التحقق من عقد</a>
                 <a href="{% url 'subscriptions:dashboard' %}">ترقية الاشتراك</a>
             </div>
         </div>

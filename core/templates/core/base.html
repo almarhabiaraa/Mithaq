@@ -1,3 +1,10 @@
+<!--
+Base HTML template for the Mithaq platform.
+
+Defines the global page structure shared by all public-facing views,
+including the HTML head, navigation bar, footer, and script imports
+that form the foundation of the digital contract management system.
+-->
 {% load static %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -55,13 +62,13 @@
     <div class="nav-container">
 
       <!-- Logo — يمين -->
-      <a href="/" class="nav-logo">
+      <a href="{% url 'home' %}" class="nav-logo">
         <img src="{% static 'images/mithaq-logo.png' %}" alt="ميثاق">
       </a>
 
       <!-- Nav Links — وسط -->
       <div class="nav-links">
-        <a href="/">الرئيسية</a>
+        <a href="{% url 'home' %}">الرئيسية</a>
         <a href="#problem">المشكلة</a>
         <a href="#how-it-works">كيف يعمل</a>
         <a href="#features">المميزات</a>
@@ -88,7 +95,7 @@
 
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="nav-mobile hidden">
-      <a href="/">الرئيسية</a>
+      <a href="{% url 'home' %}">الرئيسية</a>
       <a href="#problem">المشكلة</a>
       <a href="#how-it-works">كيف يعمل</a>
       <a href="#features">المميزات</a>
