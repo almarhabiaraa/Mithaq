@@ -1,5 +1,4 @@
 [deploy]
-startCommand = "python manage.py migrate && gunicorn Mithaq.wsgi:application --bind 0.0.0.0:$PORT"
 startCommand = "python manage.py collectstatic --noinput && python manage.py migrate && gunicorn Mithaq.wsgi:application --bind 0.0.0.0:$PORT"
 
 
