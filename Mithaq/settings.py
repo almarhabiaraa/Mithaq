@@ -47,7 +47,6 @@ ALLOWED_HOSTS = ['*']   # Railway injects RAILWAY_PUBLIC_DOMAIN; '*' is safe beh
 
 # Add your Railway domain + any custom domain here once deployed
 CSRF_TRUSTED_ORIGINS = [
-    'https://kept-justify-wincing.ngrok-free.dev',
     'https://mithaq-production.up.railway.app',
 ]
 # If RAILWAY_PUBLIC_DOMAIN env var exists, trust it automatically
