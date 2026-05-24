@@ -27,7 +27,7 @@ urlpatterns = [
 
     # (added by ghadi: public contract verification — no login needed)
     path("verify/",     include("verification.urls")),   # HTML page for humans: /verify/
-    path("api/verify/", include("verification.urls")),   # JSON API for JS: /api/verify/<hash>/
+    path('api/verify/', include('verification.urls')),# JSON API for JS: /api/verify/<hash>/
 ]
 
 if settings.DEBUG:

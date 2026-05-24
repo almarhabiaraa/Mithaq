@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+app_name = 'verification'
 
 urlpatterns = [
     # HTML page — user types the hash from their signed PDF
