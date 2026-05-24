@@ -20,7 +20,13 @@ from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 from invitations.models import SigningInvitation
 from invitations.services import SigningInvitationService
-from weasyprint import HTML as WeasyHTML
+# WeasyPrint requires GTK system libraries (libgobject, Pango) at import time.
+# Wrapped in try/except so the server starts even if those libraries aren't
+# installed yet. PDF export endpoints will return 503 until Railway installs them.
+try:
+    from weasyprint import HTML as WeasyHTML
+except OSError:
+    WeasyHTML = None
 from .models import Contract, ContractParty, ContractVersion, ContractInvitedParty
 
 # ══════════════════════════════════════════════════════════════
