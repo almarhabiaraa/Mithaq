@@ -35,7 +35,7 @@ DEFAULT_FROM_EMAIL  = config("DEFAULT_FROM_EMAIL",  default="noreply@mithaq.com"
 
 SITE_URL = config("SITE_URL", default="http://127.0.0.1:8000")
 
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY='django-insecure-%q19qr*sokgxyu9$&+^&!yplv9o5p7v+zn6w&%*z7i#phpt*(j'
 
 # DEBUG=False on Railway (set DEBUG=False in Railway env vars)
 DEBUG = config('DEBUG', default=False, cast=bool)
