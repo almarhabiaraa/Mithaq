@@ -1,8 +1,16 @@
-[build]
-builder = "nixpacks"
-
 [deploy]
-startCommand = "python manage.py migrate && python manage.py seed_plans && gunicorn Mithaq.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
-healthcheckPath = "/"
-healthcheckTimeout = 30
-restartPolicyType = "ON_FAILURE"
+startCommand = "python manage.py migrate && gunicorn Mithaq.wsgi:application --bind 0.0.0.0:$PORT"
+
+[build]
+aptPackages = [
+  "libgobject-2.0-0",
+  "libpango-1.0-0",
+  "libpangoft2-1.0-0",
+  "libpangocairo-1.0-0",
+  "libgdk-pixbuf2.0-0",
+  "libcairo2",
+  "libffi-dev",
+  "shared-mime-info",
+  "fonts-noto-core",
+  "fonts-noto-cjk"
+]
