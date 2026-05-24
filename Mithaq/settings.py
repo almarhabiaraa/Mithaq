@@ -25,7 +25,10 @@ TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN", default="")
 TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER", default="")
 
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND', 
+    default='django.core.mail.backends.smtp.EmailBackend'
+)
 EMAIL_HOST          = config("EMAIL_HOST",          default="smtp.gmail.com")
 EMAIL_PORT          = config("EMAIL_PORT",          default=587, cast=int)
 EMAIL_HOST_USER     = config("EMAIL_HOST_USER",     default="")
@@ -45,9 +48,7 @@ ALLOWED_HOSTS = ['*']   # Railway injects RAILWAY_PUBLIC_DOMAIN; '*' is safe beh
 # Add your Railway domain + any custom domain here once deployed
 CSRF_TRUSTED_ORIGINS = [
     'https://kept-justify-wincing.ngrok-free.dev',
-    # Railway auto-generates a URL like https://<app>.up.railway.app
-    # Add it here after first deploy, e.g.:
-    # 'https://mithaq.up.railway.app',
+    'https://mithaq-production.up.railway.app',
 ]
 # If RAILWAY_PUBLIC_DOMAIN env var exists, trust it automatically
 _railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
