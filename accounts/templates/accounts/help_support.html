@@ -1,3 +1,10 @@
+<!--
+Help and Support page for the Mithaq platform.
+
+Provides users with access to frequently asked questions, support
+resources, and contact options to resolve issues or learn how to use
+features within the digital contract management system.
+-->
 {% extends 'core/dashboard_base.html' %}
 {% load static %}
 
@@ -11,13 +18,13 @@
 
 {% block content %}
   <section class="mithaq-dashboard" dir="rtl">
-    <!-- Page Header -->
+  
     <div class="profile-header">
       <h1 class="profile-header-title">المساعدة والدعم</h1>
       <p class="profile-header-subtitle">الأسئلة الشائعة وطرق التواصل مع الدعم</p>
     </div>
 
-    <!-- FAQ Card -->
+   
     <div class="profile-card" style="margin-bottom: 16px;">
       <div class="profile-card-header">
         <h3 class="profile-card-title">
@@ -27,7 +34,7 @@
       </div>
 
       <div class="faq-list">
-        <!-- Q1 -->
+      
         <div class="faq-item" onclick="toggleFaq(this)">
           <div class="faq-question">
             <span>من هم المستفيدون من الموقع؟</span>
@@ -38,7 +45,7 @@
           </div>
         </div>
 
-        <!-- Q2 -->
+      
         <div class="faq-item" onclick="toggleFaq(this)">
           <div class="faq-question">
             <span>كيف يمكن استخدام الموقع؟</span>
@@ -55,7 +62,7 @@
           </div>
         </div>
 
-        <!-- Q3 -->
+     
         <div class="faq-item" onclick="toggleFaq(this)">
           <div class="faq-question">
             <span>كيف أشترك بالباقات؟</span>
@@ -66,7 +73,6 @@
           </div>
         </div>
 
-        <!-- Q4 -->
         <div class="faq-item" onclick="toggleFaq(this)">
           <div class="faq-question">
             <span>كم عقد في كل باقة؟</span>
@@ -83,7 +89,7 @@
           </div>
         </div>
 
-        <!-- Q5 -->
+    
         <div class="faq-item" onclick="toggleFaq(this)">
           <div class="faq-question">
             <span>ماذا سأستفيد من الموقع؟</span>
@@ -102,7 +108,7 @@
       </div>
     </div>
 
-    <!-- Contact Card -->
+   
     <div class="profile-card" style="margin-bottom: 16px;">
       <div class="profile-card-header">
         <h3 class="profile-card-title">
@@ -125,7 +131,7 @@
       </div>
     </div>
 
-    <!-- Back -->
+   
     <div style="margin-top: 8px;">
       <a href="{% url 'accounts:settings' %}" class="profile-edit-btn">
         <i class="bi bi-arrow-right"></i>

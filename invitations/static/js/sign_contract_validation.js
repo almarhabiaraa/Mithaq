@@ -16,3 +16,15 @@ function validateSignerName() {
 
     return true;
 }
+document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("open_sign_modal") === "1") {
+        const signModalElement = document.getElementById("signContractModal");
+
+        if (signModalElement && typeof bootstrap !== "undefined") {
+            const modal = new bootstrap.Modal(signModalElement);
+            modal.show();
+        }
+    }
+});

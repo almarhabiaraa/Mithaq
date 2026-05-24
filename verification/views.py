@@ -1,81 +1,72 @@
-# =============================================================================
-# verification/views.py
-# OWNED BY: Ghadi
-# (added by ghadi: public contract verification feature — no login needed)
-#
-# PURPOSE:
-#   Two views that together make the verification feature work:
-#     1. PublicVerifyAPIView  — a JSON API called by JavaScript (PUBLIC)
-#     2. VerifyPageView       — the HTML standalone page (PUBLIC)
-#
-# HOW THE FEATURE WORKS END-TO-END:
-#   User opens /verify/ → sees the standalone page (VerifyPageView)
-#   User types a 64-char hash and clicks "تحقق الآن"
-#   JavaScript calls GET /api/verify/<hash>/ (PublicVerifyAPIView)
-#   The API calls verify_contract_hash() in services.py
-#   The API returns a JSON result (always HTTP 200)
-#   JavaScript reads verification_status and shows the right card
-#
-# SECURITY NOTES:
-#   - permission_classes = [] is intentional — this is a PUBLIC endpoint
-#   - AnonRateThrottle limits to 60 requests/hour per IP (see settings.py)
-#   - The API always returns HTTP 200, never 404 — returning 404 for
-#     unknown hashes would let attackers enumerate existing hashes
-#
-# URL MAP (registered in Mithaq/urls.py by Ghadi):
-#   GET /verify/                → VerifyPageView   (HTML page for anyone)
-#   GET /api/verify/<hash>/     → PublicVerifyAPIView (JSON for JavaScript)
-# =============================================================================
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import render
+from django.urls import reverse
+from django.views.decorators.http import require_GET
+from django.core.exceptions import ValidationError
+from django.utils.dateformat import DateFormat
+from uuid import UUID
 
-from django.views.generic import TemplateView
-
-from rest_framework.response import Response
-from rest_framework.throttling import AnonRateThrottle
-from rest_framework.views import APIView
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from .serializers import VerificationResultSerializer
-from .services import verify_contract_hash
+from contracts.models import Contract
+from invitations.models import SigningInvitation
 
 
-class PublicVerifyAPIView(APIView):
-    """
-    GET /api/verify/<hash_hex>/
-
-    Public JSON endpoint — no authentication required.
-    Called by the JavaScript in verify.html when the user submits a hash.
-
-    Throttled: 60 requests/hour per IP via AnonRateThrottle.
-    Always returns HTTP 200 — see security note in the file header above.
-    """
-
-    permission_classes = []
-    throttle_classes = [AnonRateThrottle]
-
-    def get(self, request, hash_hex):
-        result = verify_contract_hash(hash_hex)
-        serializer = VerificationResultSerializer(result)
-        return Response(serializer.data)
+@require_GET
+def verify_page(request: HttpRequest):
+    return render(
+        request,
+        "verification/verify.html",
+        {
+            "api_url": reverse("verification:verify_contract_api")
+        }
+    )
 
 
+@require_GET
+def verify_contract_api(request: HttpRequest):
+    contract_id = request.GET.get("contract_id", "").strip()
 
-@method_decorator(
-    login_required(login_url='accounts:sign_in'), 
-    name='dispatch'
-)
-class VerifyPageView(TemplateView):
-    template_name = "verification/verify.html"
-    """
-    GET /verify/
+    try:
+        UUID(contract_id)
+    except (ValueError, TypeError):
+        return JsonResponse(
+            {"result": "INVALID_CONTRACT_ID"},
+            status=400
+        )
 
-    Public standalone HTML page — no authentication required.
-    Renders verify.html and passes the API base URL as context
-    so the JavaScript knows where to send its fetch() calls.
-    """
+    contract = Contract.objects.filter(id=contract_id).first()
 
-    template_name = 'verification/verify.html'
+    if not contract:
+        return JsonResponse(
+            {"result": "NOT_FOUND"},
+            status=404
+        )
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['api_url'] = '/api/verify/'
-        return ctx
+    invitations = SigningInvitation.objects.filter(contract=contract)
+
+    total_parties = invitations.count()
+    signed_parties = invitations.filter(
+        status=SigningInvitation.Status.SIGNED
+    ).count()
+
+    all_signed = total_parties > 0 and signed_parties == total_parties
+
+    if all_signed:
+        result = "VALID_COMPLETED"
+    else:
+        result = "VALID_PENDING_SIGNATURES"
+
+    return JsonResponse({
+        "result": result,
+        "contract": {
+            "id": str(contract.id),
+            "title": contract.title_ar or "عقد بدون عنوان",
+            "status": contract.status,
+            "status_display": contract.get_status_display(),
+            "contract_type_display": contract.get_contract_type_display() if contract.contract_type else "غير محدد",
+            "created_at": contract.created_at.strftime("%Y-%m-%d") if contract.created_at else "-",
+            "updated_at": contract.updated_at.strftime("%Y-%m-%d %H:%M") if contract.updated_at else "-",
+            "parties_count": total_parties,
+            "signed_parties": signed_parties,
+            "all_signed": all_signed,
+        }
+    })

@@ -1,0 +1,341 @@
+{% extends "core/dashboard_base.html" %}
+{% load static %}
+
+{% block title %}نتائج البحث — ميثاق{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Search Results Page ──────────────────────────────────────── */
+/* Uses ONLY --mithaq-* design tokens from dashboard_base.css     */
+
+.sr-wrap {
+    max-width: 740px;
+    margin: 0 auto;
+}
+
+/* Page header */
+.sr-heading {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--mithaq-navy);
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+}
+
+.sr-meta {
+    font-size: var(--mithaq-text-sm);
+    color: var(--mithaq-text-secondary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sr-meta strong {
+    color: var(--mithaq-navy);
+    font-weight: 600;
+}
+
+.sr-count {
+    font-size: var(--mithaq-text-xs);
+    font-weight: 600;
+    color: var(--mithaq-gold);
+    background: var(--mithaq-gold-soft);
+    padding: 2px 10px;
+    border-radius: var(--mithaq-radius-pill);
+    border: 1px solid var(--mithaq-border-gold);
+}
+
+/* Empty / no-results state */
+.sr-empty {
+    background: var(--mithaq-card-bg);
+    border: 1px solid var(--mithaq-border);
+    border-radius: var(--mithaq-radius-lg);
+    box-shadow: var(--mithaq-shadow-sm);
+    padding: 64px 32px;
+    text-align: center;
+}
+
+.sr-empty i {
+    font-size: 34px;
+    color: var(--mithaq-text-secondary);
+    opacity: 0.4;
+    display: block;
+    margin-bottom: 18px;
+}
+
+.sr-empty h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--mithaq-navy);
+    margin: 0 0 6px;
+}
+
+.sr-empty p {
+    font-size: var(--mithaq-text-sm);
+    color: var(--mithaq-text-secondary);
+    margin: 0;
+}
+
+/* Section */
+.sr-section {
+    margin-bottom: 24px;
+}
+
+.sr-section-label {
+    font-size: var(--mithaq-text-xs);
+    font-weight: 700;
+    color: var(--mithaq-text-secondary);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.sr-section-label i {
+    font-size: 14px;
+    color: var(--mithaq-gold);
+}
+
+.sr-section-label .sr-section-count {
+    font-size: var(--mithaq-text-xs);
+    font-weight: 500;
+    color: var(--mithaq-text-secondary);
+    background: var(--mithaq-soft-bg);
+    border: 1px solid var(--mithaq-border);
+    padding: 1px 8px;
+    border-radius: var(--mithaq-radius-pill);
+}
+
+/* Result list */
+.sr-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Base card */
+.sr-card {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--mithaq-card-bg);
+    border: 1px solid var(--mithaq-border);
+    border-radius: var(--mithaq-radius-md);
+    padding: 13px 16px;
+    text-decoration: none;
+    color: var(--mithaq-text-primary);
+    transition: border-color var(--mithaq-transition),
+                box-shadow var(--mithaq-transition),
+                transform var(--mithaq-transition);
+}
+
+a.sr-card:hover {
+    border-color: var(--mithaq-border-gold);
+    box-shadow: var(--mithaq-shadow-md);
+    transform: translateY(-1px);
+}
+
+/* Icon bubble */
+.sr-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--mithaq-radius-sm);
+    background: var(--mithaq-gold-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-inline-end: 13px;
+}
+
+.sr-icon i {
+    font-size: 16px;
+    color: var(--mithaq-gold);
+}
+
+.sr-icon.sr-icon-navy {
+    background: var(--mithaq-navy-soft);
+}
+
+.sr-icon.sr-icon-navy i {
+    color: var(--mithaq-navy);
+}
+
+/* Avatar (users) */
+.sr-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--mithaq-navy-soft);
+    border: 1px solid var(--mithaq-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--mithaq-navy);
+    margin-inline-end: 13px;
+}
+
+/* Text */
+.sr-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.sr-name {
+    font-size: var(--mithaq-text-md);
+    font-weight: 600;
+    color: var(--mithaq-navy);
+    margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sr-sub {
+    font-size: var(--mithaq-text-xs);
+    color: var(--mithaq-text-secondary);
+    margin: 0;
+}
+
+.sr-sub .dot {
+    margin: 0 4px;
+    opacity: 0.5;
+}
+
+/* Trailing chevron */
+.sr-chevron {
+    font-size: 12px;
+    color: var(--mithaq-border);
+    flex-shrink: 0;
+    margin-inline-start: 10px;
+    transition: color var(--mithaq-transition);
+}
+
+a.sr-card:hover .sr-chevron {
+    color: var(--mithaq-gold);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sr-wrap">
+
+  <!-- Page header -->
+  <div style="margin-bottom:26px;">
+    <h1 class="sr-heading">نتائج البحث</h1>
+    {% if q %}
+    <p class="sr-meta">
+      <span>نتائج البحث عن: <strong>"{{ q }}"</strong></span>
+      {% if total %}<span class="sr-count">{{ total }} نتيجة</span>{% endif %}
+    </p>
+    {% endif %}
+  </div>
+
+  {% if not q %}
+  <!-- No query entered -->
+  <div class="sr-empty">
+    <i class="bi bi-search"></i>
+    <p>أدخل كلمة في شريط البحث للبدء</p>
+  </div>
+
+  {% elif total == 0 %}
+  <!-- No results -->
+  <div class="sr-empty">
+    <i class="bi bi-inbox"></i>
+    <h2>لا توجد نتائج</h2>
+    <p>لم يتم العثور على أي عقد أو مستخدم يطابق "{{ q }}"</p>
+  </div>
+
+  {% else %}
+
+  <!-- ── Contracts ── -->
+  {% if contracts %}
+  <section class="sr-section">
+    <p class="sr-section-label">
+      <i class="bi bi-file-earmark-text"></i>
+      العقود
+      <span class="sr-section-count">{{ contracts|length }}</span>
+    </p>
+    <div class="sr-list">
+      {% for contract in contracts %}
+      <a href="{% url 'contracts:contract_detail' pk=contract.pk %}" class="sr-card">
+        <div class="sr-icon">
+          <i class="bi bi-file-earmark-text"></i>
+        </div>
+        <div class="sr-body">
+          <p class="sr-name">{{ contract.title_ar|default:"عقد بدون عنوان" }}</p>
+          <p class="sr-sub">
+            {{ contract.get_status_display }}
+            <span class="dot">·</span>
+            {{ contract.created_at|date:"Y/m/d" }}
+          </p>
+        </div>
+        <i class="bi bi-chevron-left sr-chevron"></i>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ── Invitations ── -->
+  {% if invitations %}
+  <section class="sr-section">
+    <p class="sr-section-label">
+      <i class="bi bi-envelope-paper"></i>
+      دعوات التوقيع
+      <span class="sr-section-count">{{ invitations|length }}</span>
+    </p>
+    <div class="sr-list">
+      {% for inv in invitations %}
+      <a href="{% url 'invitations:invitation_contract_detail' invitation_id=inv.pk %}" class="sr-card">
+        <div class="sr-icon sr-icon-navy">
+          <i class="bi bi-envelope-paper"></i>
+        </div>
+        <div class="sr-body">
+          <p class="sr-name">{{ inv.contract.title_ar|default:"عقد بدون عنوان" }}</p>
+          <p class="sr-sub">
+            {{ inv.reference_number }}
+            <span class="dot">·</span>
+            {{ inv.get_status_display }}
+          </p>
+        </div>
+        <i class="bi bi-chevron-left sr-chevron"></i>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ── Users ── -->
+  {% if users %}
+  <section class="sr-section">
+    <p class="sr-section-label">
+      <i class="bi bi-people"></i>
+      المستخدمون
+      <span class="sr-section-count">{{ users|length }}</span>
+    </p>
+    <div class="sr-list">
+      {% for user in users %}
+      <div class="sr-card">
+        <div class="sr-avatar">{{ user.first_name|slice:":1" }}</div>
+        <div class="sr-body">
+          <p class="sr-name">{{ user.get_full_name }}</p>
+          <p class="sr-sub">{{ user.email }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% endif %}
+
+</div>
+{% endblock %}

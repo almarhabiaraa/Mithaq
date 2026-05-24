@@ -32,6 +32,7 @@ import logging
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404
 
 from rest_framework import status
@@ -166,7 +167,7 @@ class CancelSubscriptionView(APIView):
 
 # ── HTML Template Views ───────────────────────────────────────────────────────
 
-def plans_page(request):
+def plans_page(request: HttpRequest):
     """
     GET /api/subscriptions/plans-page/
     Renders the plan selection page.
@@ -198,7 +199,7 @@ def plans_page(request):
 
 
 @login_required(login_url='accounts:sign_in')
-def checkout_page(request, plan_id):
+def checkout_page(request: HttpRequest, plan_id):
     """
     GET /api/subscriptions/checkout-page/<plan_id>/
     Renders the checkout/payment confirmation page.
@@ -222,7 +223,7 @@ def checkout_page(request, plan_id):
 
 
 @login_required(login_url='accounts:sign_in')
-def subscription_dashboard_page(request):
+def subscription_dashboard_page(request: HttpRequest):
     """
     GET /api/subscriptions/dashboard/
     Renders the subscription management dashboard.
@@ -256,7 +257,7 @@ def subscription_dashboard_page(request):
     })
 
 
-def payment_success_page(request):
+def payment_success_page(request: HttpRequest):
     """
     GET /api/subscriptions/payment/success/
     Shown after Moyasar confirms a successful payment.
@@ -286,7 +287,7 @@ def payment_success_page(request):
     })
 
 
-def payment_failed_page(request):
+def payment_failed_page(request: HttpRequest):
     """
     GET /api/subscriptions/payment/failed/
     Shown after a payment fails or is cancelled on Moyasar.

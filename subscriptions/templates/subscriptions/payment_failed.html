@@ -1,3 +1,10 @@
+<!--
+Subscription Payment Failed page for the Mithaq platform.
+
+Notifies the user that their subscription payment could not be processed
+and provides options to retry or select a different payment method
+within the digital contract management system.
+-->
 {% extends "core/dashboard_base.html" %}
 {% load static %}
 
@@ -51,7 +58,7 @@
 
       <!-- Action buttons -->
       <div style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center;">
-        <a href="/api/subscriptions/checkout-page/{{ plan_id }}/" class="btn-gold">
+        <a href="{% url 'subscriptions:checkout_page' plan_id %}" class="btn-gold">
           حاول مرة أخرى
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>

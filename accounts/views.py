@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -181,7 +181,7 @@ def profile(request: HttpRequest):
 
 
 @login_required(login_url="accounts:sign_in")
-def settings(request):
+def settings(request: HttpRequest):
     return render(request, "accounts/settings.html", {"user": request.user})
 
 
@@ -226,7 +226,7 @@ def privacy(request: HttpRequest):
 
 
 @login_required(login_url="accounts:sign_in")
-def help_support(request):
+def help_support(request: HttpRequest):
     return render(request, "accounts/help_support.html")
 
 
@@ -238,7 +238,7 @@ from django.views.decorators.http import require_POST
 from accounts.services.face_verification_service import mark_user_verified
 
 @login_required(login_url='accounts:sign_in')
-def verify_identity_page(request):
+def verify_identity_page(request: HttpRequest):
     """
     GET /accounts/verify-identity/
     Renders the face verification page.
@@ -252,7 +252,7 @@ def verify_identity_page(request):
 
 @require_POST
 @login_required(login_url='accounts:sign_in')
-def confirm_verification(request):
+def confirm_verification(request: HttpRequest):
     """
     POST /accounts/verify-identity/confirm/
     Called by JavaScript after face-api.js confirms a match.
@@ -279,7 +279,7 @@ def confirm_verification(request):
 User = get_user_model()
 
 
-def forgot_password(request):
+def forgot_password(request: HttpRequest):
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
 
@@ -344,7 +344,7 @@ def forgot_password(request):
     )
 
 
-def reset_password(request, uidb64, token):
+def reset_password(request: HttpRequest, uidb64, token):
     try:
         uid = force_str(
             urlsafe_base64_decode(uidb64)

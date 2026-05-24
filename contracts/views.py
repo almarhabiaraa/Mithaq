@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.core.exceptions import PermissionDenied  # (added by ghadi: to catch subscription limit errors from check_contract_limit)
 from notifications.services import NotificationService
 from notifications.models import Notification
@@ -17,7 +17,7 @@ from signatures.models import Signature
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from invitations.models import SigningInvitation
 from invitations.services import SigningInvitationService
 from weasyprint import HTML as WeasyHTML
@@ -28,12 +28,12 @@ from .models import Contract, ContractParty, ContractVersion, ContractInvitedPar
 # ══════════════════════════════════════════════════════════════
 
 
-def contract_create_view(request):
+def contract_create_view(request: HttpRequest):
     return render(request, 'contracts/contract_create.html')
 
 
 @login_required(login_url='accounts:sign_in')
-def contract_list_view(request):
+def contract_list_view(request: HttpRequest):
     # Filters
     status_filter = request.GET.get('status', '')
     type_filter   = request.GET.get('type', '')
@@ -72,30 +72,26 @@ def contract_list_view(request):
 
 
 
-def contract_detail_view(request, pk):
+@login_required(login_url='accounts:sign_in')
+def contract_detail_view(request: HttpRequest, pk):
     contract = get_object_or_404(Contract, pk=pk)
 
-    # ── مؤقت للتطوير — بدون login required ──
-    if request.user.is_authenticated:
-        user_party = ContractParty.objects.filter(
-            contract=contract, user=request.user
-        ).first()
-        user_signed = Signature.objects.filter(
-            contract=contract, signer=request.user
-        ).exists()
-    else:
-        # للتطوير فقط — نعرض الصفحة بدون صلاحيات
-        user_party  = contract.parties.first()
-        user_signed = False
+    # Find the invitation that links this user to this contract
+    # (either as the sender or as an invitee)
+    invitation = (
+        SigningInvitation.objects.filter(contract=contract)
+        .filter(Q(invited_by=request.user) | Q(invitee_user=request.user))
+        .first()
+    )
 
-    return render(request, 'contracts/contract_detail.html', {
-        'contract':    contract,
-        'user_party':  user_party,
-        'user_signed': user_signed,
-    })
+    if invitation:
+        return redirect('invitations:invitation_contract_detail', invitation_id=invitation.pk)
+
+    # Creator with no invitations yet — fall back to the contracts list
+    return redirect('invitations:my_contracts')
 
 
-def version_history_view(request, pk):
+def version_history_view(request: HttpRequest, pk):
     contract = get_object_or_404(Contract, pk=pk)
 
     user_party = ContractParty.objects.filter(
@@ -114,7 +110,7 @@ def version_history_view(request, pk):
     })
 
 
-def audit_timeline_view(request, pk):
+def audit_timeline_view(request: HttpRequest, pk):
     contract = get_object_or_404(Contract, pk=pk)
 
     user_party = ContractParty.objects.filter(
@@ -431,7 +427,7 @@ class VersionDetailView(APIView):
 
 # Step 4: added by Remas — PDF generation view using WeasyPrint
 # Takes the saved contract HTML from canonical_json and converts it to a downloadable PDF
-def contract_pdf_view(request, pk):
+def contract_pdf_view(request: HttpRequest, pk):
     # Get contract
     contract = get_object_or_404(Contract, pk=pk)
 

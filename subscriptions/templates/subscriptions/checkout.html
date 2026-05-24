@@ -1,3 +1,10 @@
+<!--
+Subscription Checkout page for the Mithaq platform.
+
+Displays the payment form for the selected subscription plan, allowing
+the user to review plan details and complete their purchase securely
+within the digital contract management system.
+-->
 {% extends "core/dashboard_base.html" %}
 {% load static %}
 
@@ -28,7 +35,7 @@
   <div class="max-w-md w-full">
 
     <!-- Back link -->
-    <a href="/api/subscriptions/plans-page/"
+    <a href="{% url 'subscriptions:plans_page' %}"
        class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-black mb-8 transition-colors">
       <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>

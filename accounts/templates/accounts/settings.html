@@ -108,21 +108,8 @@ security settings, notification options...
       </a>
     </div>
   </section>
-
-  <script>
-    (function () {
-      function syncToggle() {
-        var dark = localStorage.getItem('mithaq_dark_mode') === 'true';
-        document.querySelectorAll('.dark-mode-label').forEach(function (el) {
-          el.textContent = dark ? 'داكن' : 'فاتح';
-        });
-        document.querySelectorAll('.dark-mode-toggle-track').forEach(function (el) {
-          el.classList.toggle('active', dark);
-        });
-      }
-      syncToggle();
-      var _orig = window.toggleDarkMode;
-      window.toggleDarkMode = function () { if (_orig) _orig(); syncToggle(); };
-    })();
-  </script>
 {% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/settings.js' %}"></script>
+{% endblock %}
+
