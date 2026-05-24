@@ -46,26 +46,21 @@ contract are authenticated within the digital contract management system.
       </section>
     {% else %}
       <section class="verify-wrapper">
-        <div class="verify-steps">
-          <div class="verify-step active">
-            <div id="step1-indicator" class="step-number active">1</div>
-            <span>صورة الهوية</span>
+        {# Face-verification feature is temporarily unavailable.
+           face-api.js was removed — this section will be re-enabled
+           once an alternative identity verification flow is implemented. #}
+        <div class="verified-card" style="border: 2px dashed #E5E7EB;">
+          <div class="verified-icon" style="background:#F3F4F6;">
+            <span style="color:#6B7280;">⏳</span>
           </div>
-
-          <div class="step-line"></div>
-
-          <div class="verify-step">
-            <div id="step2-indicator" class="step-number">2</div>
-            <span>الكاميرا</span>
-          </div>
-
-          <div class="step-line"></div>
-
-          <div class="verify-step">
-            <div id="step3-indicator" class="step-number">3</div>
-            <span>النتيجة</span>
-          </div>
+          <h2 style="color:#1C1C1C;">ميزة التحقق من الهوية قيد التطوير</h2>
+          <p style="color:#6B7280;">سيتم تفعيل التحقق من الهوية قريباً. يمكنك الاستمرار في استخدام المنصة في الوقت الحالي.</p>
+          <a href="{% url 'dashboard:dashboard' %}" class="verify-main-btn">العودة للوحة التحكم</a>
         </div>
+
+        {# Hidden sections kept for when face-api is re-integrated #}
+        <div style="display:none;">
+        <div class="verify-steps">
 
         <div id="step1" class="verify-card">
           <h2>الخطوة 1 — صورة الهوية الوطنية</h2>
@@ -147,11 +142,10 @@ contract are authenticated within the digital contract management system.
           </div>
         </div>
       </section>
+        </div>{# end hidden sections #}
     {% endif %}
   </main>
 {% endblock %}
 
-{% block extra_js %}
-  <script src="{% static 'js/face-api.min.js' %}"></script>
-  <script src="{% static 'js/verify_identity.js' %}"></script>
-{% endblock %}
+{# face-api.min.js and verify_identity.js removed — face-api.js was deleted.
+   Re-add scripts here when the identity verification feature is re-implemented. #}

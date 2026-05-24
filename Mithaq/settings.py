@@ -10,11 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+from email.policy import default
 from pathlib import Path
 from decouple import config
 import os
 
 from decouple import config
+import django
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -49,9 +51,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    'kept-justify-wincing.ngrok-free.dev',
+    "*",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -92,6 +92,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # (added by ghadi: for serving static files in production without needing nginx)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -127,6 +128,15 @@ WSGI_APPLICATION = 'Mithaq.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ["PGDATABASE"],
+        'USER': os.environ["PGUSER"],
+        'PASSWORD': os.environ["PGPASSWORD"],
+        'HOST': os.environ["PGHOST"],
+        'PORT': os.environ["PGPORT"],
+    }
+} if not DEBUG else {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
@@ -169,8 +179,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'core' / 'static']
+STATIC_ROOT =os.path.join(BASE_DIR, 'staticfiles')  # for production (collectstatic)
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # for development (static files in this folder will be served directly)]
 
 
 MEDIA_URL = '/media/'

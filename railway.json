@@ -1,0 +1,13 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "preDeployCommand": "cd Mithaq && python manage.py migrate && python manage.py collectstatic --noinput && python manage.py ensure_superuser",
+    "startCommand": "gunicorn Mithaq.wsgi --bind 0.0.0.0:$PORT",
+    "runtime": "v2",
+    "restartPolicyType": "ON_FAILURE",
+    "healthcheckPath": "/"
+  }
+}
