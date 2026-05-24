@@ -226,3 +226,17 @@ MOYASAR_CALLBACK_URL    = config('MOYASAR_CALLBACK_URL', default='http://localho
 LOGIN_URL = "accounts:sign_in"
 LOGIN_REDIRECT_URL = "accounts:profile"
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'ERROR',
+    },
+}
+
