@@ -53,11 +53,20 @@ function fillValid(contract) {
     document.getElementById("a-parties").textContent =
         `${contract.signed_parties || 0} / ${contract.parties_count || 0}`;
 
+    // (added by ghadi: show blockchain confirmation if available)
     const txLink = document.getElementById("a-tx-link");
-
     if (txLink) {
-        txLink.textContent = "غير مرتبط بالبلوك تشين";
-        txLink.removeAttribute("href");
+        if (contract.blockchain_tx) {
+            txLink.textContent = contract.blockchain_confirmed_at
+                ? 'مؤكّد على البلوك تشين — ' + contract.blockchain_confirmed_at
+                : 'مسجّل على البلوك تشين';
+            txLink.href = 'https://sepolia.etherscan.io/tx/' + contract.blockchain_tx;
+            txLink.target = '_blank';
+            txLink.rel = 'noopener';
+        } else {
+            txLink.textContent = 'محفوظ داخل ميثاق — بانتظار تأكيد البلوك تشين';
+            txLink.removeAttribute('href');
+        }
     }
 
     document.getElementById("card-anchored").style.display = "block";
